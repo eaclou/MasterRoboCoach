@@ -7,33 +7,12 @@ public class GameManager : MonoBehaviour {
     public bool isTraining = false;
     
     public TrainingManager trainerRef;
-
-    //public List<AgentGenome> agentGenomeList;
-    //public List<GameObject> agentGOList;
-
-    //public float timeScale = 1f;
     
-    //private int populationSize = 40;
-    //private int maxTimeSteps = 360;
-
-    //public float mutationChance = 0.16f;
-
-    //public Transform target;
-    //private float[] targetX;
-    //private float[] targetY;
-    //private float[] targetZ;
-
-    // Keep track of training status for each Agent per generation
-    //public List<int> trainedAgentsList;  // 0 = untrained, 1 = in progress, 2 = done
-
     // Use this for initialization
     void Start () {
-        //trainedAgentsList = new List<int>();
-
-        //testInitializeTraining();
-
         
-        trainerRef.EnterTrainingMode(Challenge.Type.Test);
+        
+        //trainerRef.EnterTrainingMode(Challenge.Type.Test);
     }
 	
 	// Update is called once per frame

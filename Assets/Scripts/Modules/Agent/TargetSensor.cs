@@ -10,6 +10,7 @@ public class TargetSensor {
     public float[] dotZ;
     public float[] vel;
     public float[] angVel;
+    public float[] inTarget;
 
     public Transform targetPosition;
 
@@ -21,5 +22,6 @@ public class TargetSensor {
         dotZ = new float[1];
         vel = new float[1];
         angVel = new float[1];
+        inTarget = new float[1];
     }
 }

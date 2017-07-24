@@ -11,6 +11,8 @@ public class RaycastSensor {
     public float[] distanceCenter;
     public float[] distanceRightCenter;
     public float[] distanceRight;
+    public float[] distanceBack;
+    public float[] distanceCenterShort;
 
     public Transform targetPosition;
 
@@ -22,5 +24,7 @@ public class RaycastSensor {
         distanceCenter = new float[1];
         distanceRightCenter = new float[1];
         distanceRight = new float[1];
+        distanceBack = new float[1];
+        distanceCenterShort = new float[1];
     }
 }

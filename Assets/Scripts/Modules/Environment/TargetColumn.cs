@@ -23,10 +23,10 @@ public class TargetColumn : MonoBehaviour {
 
         //Vector2 randDir = UnityEngine.Random.insideUnitCircle;
         //float radius = 20f;
-        float x = UnityEngine.Random.Range(genome.minX, genome.maxX) * Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).x - (Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).x * 0.5f);
-        float z = UnityEngine.Random.Range(genome.minZ, genome.maxZ) * Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).z - (Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).z * 0.5f);
-        //float x = genome.minX * Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).x - (Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).x * 0.5f);
-        //float z = genome.minZ * Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).z - (Challenge.GetChallengeArenaBounds(genome.parentGenome.challengeType).z * 0.5f);
+        //float x = UnityEngine.Random.Range(genome.minX, genome.maxX) * Challenge.GetChallengeArenaBounds(Challenge.Type.Test).x - (Challenge.GetChallengeArenaBounds(Challenge.Type.Test).x * 0.5f);
+        //float z = UnityEngine.Random.Range(genome.minZ, genome.maxZ) * Challenge.GetChallengeArenaBounds(Challenge.Type.Test).z - (Challenge.GetChallengeArenaBounds(Challenge.Type.Test).z * 0.5f);
+        float x = genome.minX * Challenge.GetChallengeArenaBounds(Challenge.Type.Test).x - (Challenge.GetChallengeArenaBounds(Challenge.Type.Test).x * 0.5f);
+        float z = genome.minZ * Challenge.GetChallengeArenaBounds(Challenge.Type.Test).z - (Challenge.GetChallengeArenaBounds(Challenge.Type.Test).z * 0.5f);
 
         gameObject.transform.localPosition = new Vector3(x, 0.5f, z);
         gameObject.transform.localScale = new Vector3(genome.targetRadius, 10f, genome.targetRadius);        

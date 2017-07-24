@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class LinkGenome {
 
     public int fromModuleID;  // id of node from which this connection originates

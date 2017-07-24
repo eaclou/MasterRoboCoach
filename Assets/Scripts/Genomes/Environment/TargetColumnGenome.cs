@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class TargetColumnGenome {
 
-    public EnvironmentGenome parentGenome;
+    //public EnvironmentGenome parentGenome;
 
     public float targetRadius;
     public float minX;  // 0 - 1
@@ -15,16 +16,16 @@ public class TargetColumnGenome {
     public float maxDistanceFromAgent;
 
     // constructor
-	public TargetColumnGenome(EnvironmentGenome parentGenome) {
-        this.parentGenome = parentGenome;
+	public TargetColumnGenome() {
+        //this.parentGenome = parentGenome;
     }
 
     public void InitializeRandomGenome() {
-        targetRadius = 0.5f;
+        targetRadius = 0.33f;
         minX = UnityEngine.Random.Range(0f, 1f);
-        maxX = UnityEngine.Random.Range(0f, 1f);
+        maxX = UnityEngine.Random.Range(1f, 1f);
         minZ = UnityEngine.Random.Range(0f, 1f);
-        maxZ = UnityEngine.Random.Range(0f, 1f);
+        maxZ = UnityEngine.Random.Range(1f, 1f);
         //minDistanceFromAgent = 1f;
         //maxDistanceFromAgent = 40f;
     }

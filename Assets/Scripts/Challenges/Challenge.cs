@@ -7,7 +7,9 @@ public class Challenge {
 
 
 	public enum Type {
-        Test
+        Test,
+        Racing,
+        Combat
     };
 
     public static Vector3 GetChallengeArenaBounds(Challenge.Type challengeType) {

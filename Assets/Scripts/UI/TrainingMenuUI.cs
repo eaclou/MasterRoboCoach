@@ -13,6 +13,9 @@ public class TrainingMenuUI : MonoBehaviour {
     public Button buttonCameraMode;
     public Text playbackSpeed;
 
+    public InputField inputFieldSaveName;
+    public Button buttonSave;
+
     public GameObject panelManualSelectionToolbar;
     public Button buttonManualKeep;
     public Button buttonManualAuto;
@@ -36,12 +39,12 @@ public class TrainingMenuUI : MonoBehaviour {
     }
 
     public void SetStatusFromData() {
-        if(mainMenuRef.gameManagerRef.trainerRef.ManualTrainingMode) {
+        /*if(mainMenuRef.gameManagerRef.trainerRef.ManualTrainingMode) {
             panelManualSelectionToolbar.SetActive(true);
         }
         else {
             panelManualSelectionToolbar.SetActive(false);
-        }
+        }*/
 
         textCurrentGen.text = mainMenuRef.gameManagerRef.trainerRef.GetCurrentGenText();
         textContestant.text = mainMenuRef.gameManagerRef.trainerRef.GetContestantText();
@@ -61,10 +64,21 @@ public class TrainingMenuUI : MonoBehaviour {
         buttonCameraMode.GetComponentInChildren<Text>().text = "Camera:\n" + cameraModeText;
     }
 
+    public void ClickSave() {
+        
+        string savename = inputFieldSaveName.text;
+        if(savename != "") {
+            mainMenuRef.gameManagerRef.trainerRef.SaveTraining(savename);
+        }
+        else {
+            Debug.Log("SAVE FAILED! no name");
+        }
+    }
+
     public void ClickToggleManualMode(bool value) {
         
-        mainMenuRef.gameManagerRef.trainerRef.ManualTrainingMode = value;
-        print("clicked toggle manual mode! " + mainMenuRef.gameManagerRef.trainerRef.ManualTrainingMode.ToString());
+        //mainMenuRef.gameManagerRef.trainerRef.ManualTrainingMode = value;
+        //print("clicked toggle manual mode! " + mainMenuRef.gameManagerRef.trainerRef.ManualTrainingMode.ToString());
     }
 
     public void ClickButtonPlayPause() {
