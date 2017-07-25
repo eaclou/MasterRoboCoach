@@ -13,8 +13,8 @@ public class EvaluationManager {
     private Queue<EvaluationTicket> evaluationTicketQueue;
     private List<EvaluationInstance> evaluationInstancesList;
     private EvaluationInstance exhibitionInstance;
-    private int maxInstancesX = 6;
-    private int maxInstancesZ = 6;    
+    private int maxInstancesX = 12;
+    private int maxInstancesZ = 12;    
     private float instanceBufferX = 2.5f;
     private float instanceBufferZ = 2.5f;
     private int maxTimeStepsDefault = 240;
@@ -461,6 +461,10 @@ public class EvaluationManager {
                     if (evaluationInstancesList[i].currentEvalTicket.status == EvaluationTicket.EvaluationStatus.InProgress) {
                         // Tick 
                         evaluationInstancesList[i].Tick();
+                        //if (evaluationInstancesList[i].currentEvalTicket.focusPopIndex == 1 && i == 4) {
+                            //teamsConfig.playersList[0].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[1]] += evaluationInstancesList[i].score;
+                        //    Debug.Log("evalInstance " + i.ToString() + ", Player 1 currentRawScore=" + evaluationInstancesList[i].fitnessComponentEvaluationGroup.fitCompList[0].rawScore.ToString());
+                        //}
                     }
                     if (evaluationInstancesList[i].currentEvalTicket.status == EvaluationTicket.EvaluationStatus.PendingComplete) {
                         // CleanUp and Process
@@ -468,20 +472,22 @@ public class EvaluationManager {
 
                         // STORE FITNESS
                         if (evaluationInstancesList[i].currentEvalTicket.focusPopIndex == 0) {  // Environment                            
-                            teamsConfig.environmentPopulation.fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[0]] += evaluationInstancesList[i].score;
+                            //teamsConfig.environmentPopulation.fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[0]] += evaluationInstancesList[i].score;
+                            //Debug.Log("evalInstance " + i.ToString() + ", Enviro rawScore=" + evaluationInstancesList[i].fitnessComponentEvaluationGroup.fitCompList[0].rawScore.ToString());
                         }
                         // Players:
                         else if (evaluationInstancesList[i].currentEvalTicket.focusPopIndex == 1) {
-                            teamsConfig.playersList[0].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[1]] += evaluationInstancesList[i].score;
+                            //teamsConfig.playersList[0].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[1]] += evaluationInstancesList[i].score;
+                            //Debug.Log("evalInstance " + i.ToString() + ", Player 1 rawScore=" + evaluationInstancesList[i].fitnessComponentEvaluationGroup.fitCompList[0].rawScore.ToString());
                         }
                         else if (evaluationInstancesList[i].currentEvalTicket.focusPopIndex == 2) {
-                            teamsConfig.playersList[1].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[2]] += evaluationInstancesList[i].score;
+                            //teamsConfig.playersList[1].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[2]] += evaluationInstancesList[i].score;
                         }
                         else if (evaluationInstancesList[i].currentEvalTicket.focusPopIndex == 3) {
-                            teamsConfig.playersList[2].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[3]] += evaluationInstancesList[i].score;
+                            //teamsConfig.playersList[2].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[3]] += evaluationInstancesList[i].score;
                         }
                         else { // 4
-                            teamsConfig.playersList[3].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[4]] += evaluationInstancesList[i].score;
+                            //teamsConfig.playersList[3].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[4]] += evaluationInstancesList[i].score;
                         }
                         evaluationInstancesList[i].currentEvalTicket.status = EvaluationTicket.EvaluationStatus.Complete;
                         evaluationInstancesList[i].currentEvalTicket = null;

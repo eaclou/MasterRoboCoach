@@ -39,7 +39,13 @@ public class PlayerPopulation {
         baselineGenomePool = new List<AgentGenome>();
 
         fitnessManager = new FitnessManager();
-        fitnessManager.ResetFitnessScores(numGenomes);
+        // TEMP DEFAULT:        
+        FitnessComponentDefinition distToTargetSquared = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.1f, false);
+        fitnessManager.fitnessComponentDefinitions.Add(distToTargetSquared);
+        FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
+        fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
+        fitnessManager.InitializeForNewGeneration(numGenomes);
+        
         trainingSettingsManager = new TrainingSettingsManager();
     }
 }

@@ -40,7 +40,13 @@ public class EnvironmentPopulation {
         baselineGenomePool = new List<EnvironmentGenome>();
 
         fitnessManager = new FitnessManager();
-        fitnessManager.ResetFitnessScores(numGenomes);
+        // TEMP DEFAULT:
+        FitnessComponentDefinition newComponent = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 1f, true);
+        fitnessManager.fitnessComponentDefinitions.Add(newComponent);
+        FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Max, 1f, true);
+        fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
+        fitnessManager.InitializeForNewGeneration(numGenomes);
+
         trainingSettingsManager = new TrainingSettingsManager();
     }
 }

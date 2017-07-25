@@ -14,6 +14,8 @@ public class EvaluationInstance : MonoBehaviour {
     private Challenge.Type challengeType;
     // this will hold reference to which agents & environment are being tested, for score allocation
 
+    public FitnessComponentEvaluationGroup fitnessComponentEvaluationGroup;
+
     public Agent currentAgent;
     private Environment currentEnvironment;
     private ChallengeBase currentChallenge;
@@ -57,9 +59,9 @@ public class EvaluationInstance : MonoBehaviour {
 
     public void Tick() {
         //print("Tick! " + currentTimeStep.ToString());
-
-        //UpdateTargetSensor();
-        CalculateScore();
+        
+        CalculateScore();        
+        
         currentAgent.TickBrain();
         currentAgent.RunModules();
 
@@ -78,25 +80,11 @@ public class EvaluationInstance : MonoBehaviour {
 
     private void CalculateScore() {
         if(!isExhibition) {
-            Vector3 agentToTarget = currentEnvironment.targetColumn.gameObject.transform.position - currentAgent.segmentList[0].transform.position;
+            // Temp for now: in order to update positions...
+            HookUpFitnessComponents();
 
-            float agentScore = 0f;
-            agentScore += agentToTarget.sqrMagnitude * 1f;
-            if (agentToTarget.sqrMagnitude < 4f) {
-                agentScore -= 10000f;
-            }
-            if (currentAgent.contactSensorList[0].contact) {
-                agentScore += 50000f;
-            }
-
-            if (currentEvalTicket.focusPopIndex == 0) {
-                // environment
-                score -= agentScore * 0.01f;
-                score += UnityEngine.Random.Range(0f, 100f);
-            }
-            else {
-                // agent
-                score += agentScore;
+            for (int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
+                fitnessComponentEvaluationGroup.fitCompList[i].TickScore();
             }
         }                
     }
@@ -214,9 +202,8 @@ public class EvaluationInstance : MonoBehaviour {
         currentChallenge.environment = currentEnvironment;
 
         currentChallenge.HookUpModules();
-
+        
         //SetInvisibleTraverse(gameObject);
-
         if (visible) {
             currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
             SetVisibleTraverse(gameObject);
@@ -229,7 +216,44 @@ public class EvaluationInstance : MonoBehaviour {
             currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
         }
         else {
+            // Fitness Crap only if NON-exhibition!:
+            FitnessManager fitnessManager;
+            if (currentEvalTicket.focusPopIndex == 0) {  // environment
+                fitnessManager = teamsConfig.environmentPopulation.fitnessManager;
+            }
+            else {  // a player
+                fitnessManager = teamsConfig.playersList[currentEvalTicket.focusPopIndex - 1].fitnessManager;
+            }            
+            fitnessComponentEvaluationGroup = new FitnessComponentEvaluationGroup();
+            // Creates a copy inside this, and also a copy in the FitnessManager, but they share refs to the FitComps themselves:
+            fitnessComponentEvaluationGroup.CreateFitnessComponentEvaluationGroup(fitnessManager, currentEvalTicket.genomeIndices[currentEvalTicket.focusPopIndex]);
+            //Debug.Log("currentEvalTicket.focusPopIndex: " + currentEvalTicket.focusPopIndex.ToString() + ", index: " + currentEvalTicket.genomeIndices[currentEvalTicket.focusPopIndex].ToString());
+            HookUpFitnessComponents();
+        }        
+    }
 
+    public void HookUpFitnessComponents() {
+
+        for(int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
+            
+            switch (fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type) {
+                case FitnessComponentType.DistanceToTargetSquared:
+                    FitCompDistanceToTargetSquared fitCompDistToTargetSquared = (FitCompDistanceToTargetSquared)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompDistanceToTargetSquared;
+                    fitCompDistToTargetSquared.pointA[0] = currentAgent.segmentList[0].transform.position;
+                    fitCompDistToTargetSquared.pointB[0] = currentEnvironment.targetColumn.gameObject.transform.position;
+                    break;
+                case FitnessComponentType.Velocity:
+                    FitCompVelocity fitCompVelocity = (FitCompVelocity)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompVelocity;
+                    fitCompVelocity.vel = currentAgent.segmentList[0].GetComponent<Rigidbody>().velocity;
+                    break;
+                case FitnessComponentType.ContactHazard:
+                    FitCompContactHazard fitCompContactHazard = (FitCompContactHazard)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompContactHazard;
+                    fitCompContactHazard.contactingHazard = currentAgent.segmentList[0].GetComponent<ContactSensor>().contact;
+                    //fitCompContactHazard
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

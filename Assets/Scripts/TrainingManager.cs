@@ -115,7 +115,7 @@ public class TrainingManager : MonoBehaviour {
                 break;
         }
         // environment is evolvable, 1 player:
-        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 1, 1);        
+        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 4, 2);        
 
         playingCurGen = 0;
         
@@ -390,6 +390,7 @@ public class TrainingManager : MonoBehaviour {
         // Crossover:
         teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness();
         for(int i = 0; i < teamsConfig.playersList.Count; i++) {
+            Debug.Log("Player " + i.ToString());
             teamsConfig.playersList[i].fitnessManager.ProcessAndRankRawFitness();
         }
 
@@ -397,9 +398,9 @@ public class TrainingManager : MonoBehaviour {
 
         // Cleanup for next Gen:
         // Reset fitness data:
-        teamsConfig.environmentPopulation.fitnessManager.ResetFitnessScores(teamsConfig.environmentPopulation.environmentGenomeList.Count);
+        teamsConfig.environmentPopulation.fitnessManager.InitializeForNewGeneration(teamsConfig.environmentPopulation.environmentGenomeList.Count);
         for (int i = 0; i < teamsConfig.playersList.Count; i++) {
-            teamsConfig.playersList[i].fitnessManager.ResetFitnessScores(teamsConfig.playersList[i].agentGenomeList.Count);
+            teamsConfig.playersList[i].fitnessManager.InitializeForNewGeneration(teamsConfig.playersList[i].agentGenomeList.Count);
         }
         // Reset default evals + exhibition
         evaluationManager.ResetForNewGeneration(teamsConfig);

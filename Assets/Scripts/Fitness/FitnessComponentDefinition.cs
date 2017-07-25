@@ -4,9 +4,9 @@ using UnityEngine;
 
 [System.Serializable]
 public enum FitnessComponentType {
-    Distance,
-    DistanceSquared,
-    Velocity
+    DistanceToTargetSquared,
+    Velocity,
+    ContactHazard
 };
 [System.Serializable]
 public enum FitnessComponentMeasure {
@@ -15,6 +15,16 @@ public enum FitnessComponentMeasure {
     Max,
     Last
 };
+
+// Experimental future:
+/* // Allows definitions to be more generic and modular?
+public enum ObjectTypeReference {
+    primaryAgentCenterOfMass,
+    targetColumn,
+    nearestAgentCenterOfMass,
+    hazard
+};
+*/
 
 [System.Serializable]
 public class FitnessComponentDefinition {
@@ -25,11 +35,12 @@ public class FitnessComponentDefinition {
     public FitnessComponentType type;
     public FitnessComponentMeasure measure;
     public float weight;
+    public bool biggerIsBetter;
 
-
-    public FitnessComponentDefinition(FitnessComponentType type, FitnessComponentMeasure measure, float weight) {
+    public FitnessComponentDefinition(FitnessComponentType type, FitnessComponentMeasure measure, float weight, bool biggerIsBetter) {
         this.type = type;
         this.measure = measure;
         this.weight = weight;
+        this.biggerIsBetter = biggerIsBetter;
     }
 }
