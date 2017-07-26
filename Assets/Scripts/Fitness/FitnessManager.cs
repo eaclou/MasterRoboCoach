@@ -19,8 +19,8 @@ public class FitnessManager {
     public List<FitnessComponentEvaluationGroup>[] FitnessEvalGroupArray; // each index is one genome
 
 	public FitnessManager() {
-        fitnessComponentDefinitions = new List<FitnessComponentDefinition>();        
-    }    
+        fitnessComponentDefinitions = new List<FitnessComponentDefinition>();
+    }
    
     public void InitializeForNewGeneration(int populationSize) {
         Debug.Log("InitializeForNewGeneration: " + populationSize.ToString());

@@ -20,6 +20,8 @@ public class AgentGenome {
     public List<ThrusterGenome> thrusterList;
     public List<TorqueGenome> torqueList;
     public List<ValueInputGenome> valueInputList;
+    public List<WeaponProjectileGenome> weaponProjectileList;
+    public List<WeaponTazerGenome> weaponTazerList;
 
     // Constructor
     public AgentGenome(int index) {
@@ -70,14 +72,24 @@ public class AgentGenome {
         for (int i = 0; i < templateGenome.valueInputList.Count; i++) {
             ValueInputGenome genomeCopy = new ValueInputGenome(templateGenome.valueInputList[i]);
             valueInputList.Add(genomeCopy);
-        }           
+        }
+        weaponProjectileList = new List<WeaponProjectileGenome>();
+        for (int i = 0; i < templateGenome.weaponProjectileList.Count; i++) {
+            WeaponProjectileGenome genomeCopy = new WeaponProjectileGenome(templateGenome.weaponProjectileList[i]);
+            weaponProjectileList.Add(genomeCopy);
+        }
+        weaponTazerList = new List<WeaponTazerGenome>();
+        for (int i = 0; i < templateGenome.weaponTazerList.Count; i++) {
+            WeaponTazerGenome genomeCopy = new WeaponTazerGenome(templateGenome.weaponTazerList[i]);
+            weaponTazerList.Add(genomeCopy);
+        }
 
         // For now this is fine -- but eventually might want to copy brainGenome from saved asset!
         brainGenome = new BrainGenome();  // creates neuron and axonLists
         InitializeRandomBrainGenome();
     }
 
-    public void TempInitializeTestGenome() {
+    /*public void TempInitializeTestGenome() {
         SegmentGenome rootSegment = new SegmentGenome(-1);
         
         TargetSensorGenome targetSensor = new TargetSensorGenome(0, 1);
@@ -103,7 +115,7 @@ public class AgentGenome {
         brainGenome = new BrainGenome();
         InitializeRandomBrainGenome();
         //PrintBrainGenome();
-    }
+    }*/
 
     public void InitializeRandomBrainGenome() {
         //Debug.Log("InitializeRandomBrain");
@@ -153,6 +165,18 @@ public class AgentGenome {
             NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.In, valueInputList[i].inno, 0);
             brainGenome.neuronList.Add(neuron);
         }
+        for (int i = 0; i < weaponProjectileList.Count; i++) {
+            NeuronGenome neuron1 = new NeuronGenome(NeuronGenome.NeuronType.In, weaponProjectileList[i].inno, 0);
+            NeuronGenome neuron2 = new NeuronGenome(NeuronGenome.NeuronType.Out, weaponProjectileList[i].inno, 1);
+            brainGenome.neuronList.Add(neuron1);
+            brainGenome.neuronList.Add(neuron2);
+        }
+        for (int i = 0; i < weaponTazerList.Count; i++) {
+            NeuronGenome neuron1 = new NeuronGenome(NeuronGenome.NeuronType.In, weaponTazerList[i].inno, 0);
+            NeuronGenome neuron2 = new NeuronGenome(NeuronGenome.NeuronType.Out, weaponTazerList[i].inno, 1);
+            brainGenome.neuronList.Add(neuron1);
+            brainGenome.neuronList.Add(neuron2);
+        }
 
         int numInputs = 0;
         for(int i = 0; i < brainGenome.neuronList.Count; i++) {
@@ -166,8 +190,8 @@ public class AgentGenome {
 
         // Create Hidden nodes TEMP!!!!
         for (int i = 0; i < numInputs; i++) {
-            //NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.Hid, 6, i);
-            //brainGenome.neuronList.Add(neuron);
+            NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.Hid, 20, i);
+            brainGenome.neuronList.Add(neuron);
         }
 
         // Create initial connections -- :
@@ -186,27 +210,27 @@ public class AgentGenome {
             }
         }
         // Initialize fully connected with all weights Random
-        for (int i = 0; i < outputNeuronList.Count; i++) {
+        /*for (int i = 0; i < outputNeuronList.Count; i++) {
             for (int j = 0; j < inputNeuronList.Count; j++) {
                 float randomWeight = Gaussian.GetRandomGaussian() * 1f;
                 LinkGenome linkGenome = new LinkGenome(inputNeuronList[j].nid.moduleID, inputNeuronList[j].nid.neuronID, outputNeuronList[i].nid.moduleID, outputNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }
-        }
-        /*for (int i = 0; i < outputNeuronList.Count; i++) {
+        }*/
+        for (int i = 0; i < outputNeuronList.Count; i++) {
             for(int j = 0; j < hiddenNeuronList.Count; j++) {
-                float randomWeight = Gaussian.GetRandomGaussian() * 0.1f;
+                float randomWeight = Gaussian.GetRandomGaussian() * 0.25f;
                 LinkGenome linkGenome = new LinkGenome(hiddenNeuronList[j].nid.moduleID, hiddenNeuronList[j].nid.neuronID, outputNeuronList[i].nid.moduleID, outputNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }
         }
         for (int i = 0; i < hiddenNeuronList.Count; i++) {
             for (int j = 0; j < inputNeuronList.Count; j++) {
-                float randomWeight = Gaussian.GetRandomGaussian() * 0.1f;
+                float randomWeight = Gaussian.GetRandomGaussian() * 0.25f;
                 LinkGenome linkGenome = new LinkGenome(inputNeuronList[j].nid.moduleID, inputNeuronList[j].nid.neuronID, hiddenNeuronList[i].nid.moduleID, hiddenNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }
-        }*/
+        }
 
         //PrintBrainGenome();
     }

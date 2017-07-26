@@ -6,7 +6,9 @@ using UnityEngine;
 public enum FitnessComponentType {
     DistanceToTargetSquared,
     Velocity,
-    ContactHazard
+    ContactHazard,
+    DamageInflicted,
+    Health
 };
 [System.Serializable]
 public enum FitnessComponentMeasure {

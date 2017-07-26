@@ -13,10 +13,22 @@ public class Challenge {
     };
 
     public static Vector3 GetChallengeArenaBounds(Challenge.Type challengeType) {
-        Vector3 arenaBounds = new Vector3(1f, 1f, 1f);
+        Vector3 arenaBounds = new Vector3(10f, 10f, 10f);
 
         switch (challengeType) {
             case Challenge.Type.Test:
+                arenaBounds.x = 40f;
+                arenaBounds.y = 40f;
+                arenaBounds.z = 40f;
+
+                break;
+            case Challenge.Type.Racing:
+                arenaBounds.x = 40f;
+                arenaBounds.y = 40f;
+                arenaBounds.z = 40f;
+
+                break;
+            case Challenge.Type.Combat:
                 arenaBounds.x = 40f;
                 arenaBounds.y = 40f;
                 arenaBounds.z = 40f;

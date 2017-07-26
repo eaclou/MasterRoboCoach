@@ -17,7 +17,7 @@ public class EvaluationManager {
     private int maxInstancesZ = 12;    
     private float instanceBufferX = 2.5f;
     private float instanceBufferZ = 2.5f;
-    private int maxTimeStepsDefault = 240;
+    private int maxTimeStepsDefault = 600;
 
     private bool manualTrainingMode = false;  // toggles between manual sequential evaluations & auto parallel evaluations
     public bool ManualTrainingMode

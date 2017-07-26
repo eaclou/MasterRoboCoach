@@ -18,13 +18,20 @@ public class EnvironmentPopulation {
     public bool isTraining = true;
     public int numPerformanceReps = 1;
 
-    public EnvironmentPopulation(Challenge.Type challengeType, int numGenomes, int numReps) {
-        environmentGenomeList = new List<EnvironmentGenome>();
+    public EnvironmentPopulation(Challenge.Type challengeType, EnvironmentGenome templateGenome, int numGenomes, int numReps) {
+        //agentGenomeList = new List<AgentGenome>();
+        //for (int j = 0; j < numGenomes; j++) {
+        //    AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
+        //    agentGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
+        //    agentGenomeList.Add(agentGenome);
+        //}
 
+        environmentGenomeList = new List<EnvironmentGenome>();
         for (int e = 0; e < numGenomes; e++) {
             // Create new environmentGenome
-            EnvironmentGenome envGenome = new EnvironmentGenome(e, challengeType);
-            envGenome.TempInitializeGenome();  // Roll this into Constructor??
+            EnvironmentGenome envGenome = new EnvironmentGenome(e);
+            envGenome.CopyGenomeFromTemplate(templateGenome);
+            //envGenome.TempInitializeGenome();  // Roll this into Constructor??
             environmentGenomeList.Add(envGenome);
             // Add to envGenomesList:
         }
@@ -40,13 +47,32 @@ public class EnvironmentPopulation {
         baselineGenomePool = new List<EnvironmentGenome>();
 
         fitnessManager = new FitnessManager();
-        // TEMP DEFAULT:
-        FitnessComponentDefinition newComponent = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 1f, true);
-        fitnessManager.fitnessComponentDefinitions.Add(newComponent);
-        FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Max, 1f, true);
-        fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
+        SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.InitializeForNewGeneration(numGenomes);
 
         trainingSettingsManager = new TrainingSettingsManager();
+    }
+
+    private void SetUpDefaultFitnessComponents(Challenge.Type challengeType, FitnessManager fitnessManager) {
+
+        switch (challengeType) {
+            case Challenge.Type.Test:
+                FitnessComponentDefinition newComponent = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(newComponent);
+                FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
+                break;
+            case Challenge.Type.Racing:
+                FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing1);
+                break;
+            case Challenge.Type.Combat:
+                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat1);
+                break;
+            default:
+                Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
+                break;
+        }
     }
 }

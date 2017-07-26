@@ -22,17 +22,60 @@ public class TeamsConfig {
         Debug.Log("TeamsConfig() " + this.challengeType.ToString());
         // Teams:
         // Environment
-        environmentPopulation = new EnvironmentPopulation(challengeType, numEnvironmentGenomes, numEnvironmentReps);
+        EnvironmentGenome templateEnvironmentGenome = GetDefaultTemplateEnvironmentGenome(challengeType);
+        environmentPopulation = new EnvironmentPopulation(challengeType, templateEnvironmentGenome, numEnvironmentGenomes, numEnvironmentReps);
         
         // Players:
         playersList = new List<PlayerPopulation>();
         for(int i = 0; i < numPlayers; i++) {
             // Might have to revisit how to pass agent templates per population...
-            AgentGenome templateGenome = ((AgentTemplateVacuumBot)AssetDatabase.LoadAssetAtPath("Assets/Templates/TemplateVacuumBot.asset", typeof(AgentTemplateVacuumBot))).templateGenome;
+            AgentGenome templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
             // List of Agent Genomes
-            PlayerPopulation player = new PlayerPopulation(templateGenome, numAgentGenomesPerPlayer, numPlayerReps);
+            PlayerPopulation player = new PlayerPopulation(challengeType, templateAgentGenome, numAgentGenomesPerPlayer, numPlayerReps);
 
             playersList.Add(player);
         }
-    }    
+    }
+
+    private EnvironmentGenome GetDefaultTemplateEnvironmentGenome(Challenge.Type challengeType) {
+        EnvironmentGenome templateGenome;
+        switch (challengeType) {
+            case Challenge.Type.Test:
+                templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateTestDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
+                break;
+            case Challenge.Type.Racing:
+                templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateRacingDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
+                break;
+            case Challenge.Type.Combat:
+                templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateCombatDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
+                break;
+            default:
+                Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
+                templateGenome = null;
+                break;
+        }
+        return templateGenome;
+    }
+
+    private AgentGenome GetDefaultTemplateAgentGenome(Challenge.Type challengeType) {
+        AgentGenome templateGenome;
+        switch (challengeType) {
+            case Challenge.Type.Test:
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateVacuumBot.asset", typeof(AgentGenomeTemplate))).templateGenome;
+                break;
+            case Challenge.Type.Racing:
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateRacingBot.asset", typeof(AgentGenomeTemplate))).templateGenome;
+                break;
+            case Challenge.Type.Combat:
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate))).templateGenome;
+                break;
+            default:
+                Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
+                templateGenome = null;
+                break;
+        }
+        return templateGenome;
+    }
+
+
 }

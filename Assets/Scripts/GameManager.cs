@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour {
     
     // Use this for initialization
     void Start () {
-        
+        Debug.Log(Quaternion.Euler(0f, -180f, 0f).ToString());
         
         //trainerRef.EnterTrainingMode(Challenge.Type.Test);
     }

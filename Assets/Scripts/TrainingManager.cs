@@ -115,7 +115,7 @@ public class TrainingManager : MonoBehaviour {
                 break;
         }
         // environment is evolvable, 1 player:
-        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 4, 2);        
+        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 1, 2);        
 
         playingCurGen = 0;
         
@@ -432,93 +432,10 @@ public class TrainingManager : MonoBehaviour {
                 newGenGenomeList.Add(parentGenome);
             }
             else {
-                EnvironmentGenome newGenome = new EnvironmentGenome(newGenGenomeList.Count, teamsConfig.challengeType);
-
+                //EnvironmentGenome newGenome = new EnvironmentGenome(newGenGenomeList.Count, teamsConfig.challengeType);
                 EnvironmentGenome parentGenome = teamsConfig.environmentPopulation.environmentGenomeList[fitnessManager.rankedIndicesList[Mathf.FloorToInt(x / 2)]];
-
-                newGenome.color = parentGenome.color;
-                float rand = UnityEngine.Random.Range(0f, 1f);
-                if (rand < envMutationChance) {
-                    float r = UnityEngine.Random.Range(0f, 1f);
-                    newGenome.color = new Vector3(Mathf.Lerp(newGenome.color.x, r, envMutationStepSize), newGenome.color.y, newGenome.color.z);
-                }
-                rand = UnityEngine.Random.Range(0f, 1f);
-                if (rand < envMutationChance) {
-                    float g = UnityEngine.Random.Range(0f, 1f);
-                    newGenome.color = new Vector3(newGenome.color.x, Mathf.Lerp(newGenome.color.y, g, envMutationStepSize), newGenome.color.z);
-                }
-                rand = UnityEngine.Random.Range(0f, 1f);
-                if (rand < envMutationChance) {
-                    float b = UnityEngine.Random.Range(0f, 1f);
-                    newGenome.color = new Vector3(newGenome.color.x, newGenome.color.y, Mathf.Lerp(newGenome.color.z, b, envMutationStepSize));
-                }
-                // TERRAIN:
-                for (int i = 0; i < parentGenome.terrainWaves.Length; i++) {
-                    newGenome.terrainWaves[i] = new Vector3(parentGenome.terrainWaves[i].x, parentGenome.terrainWaves[i].y, parentGenome.terrainWaves[i].z);
-                    rand = UnityEngine.Random.Range(0f, 1f);
-                    if (rand < envMutationChance) {
-                        float newFreq = UnityEngine.Random.Range(0.01f, 1f);
-                        newGenome.terrainWaves[i].x = Mathf.Lerp(newGenome.terrainWaves[i].x, newFreq, envMutationStepSize);
-                    }
-                    rand = UnityEngine.Random.Range(0f, 1f);
-                    if (rand < envMutationChance) {
-                        float newAmp = UnityEngine.Random.Range(0f, 0f);
-                        newGenome.terrainWaves[i].y = Mathf.Lerp(newGenome.terrainWaves[i].y, newAmp, envMutationStepSize);
-                    }
-                    rand = UnityEngine.Random.Range(0f, 1f);
-                    if (rand < envMutationChance) {
-                        float newOff = UnityEngine.Random.Range(-10f, 10f);
-                        newGenome.terrainWaves[i].z = Mathf.Lerp(newGenome.terrainWaves[i].z, newOff, envMutationStepSize);
-                    }
-                }
-                // OBSTACLES:
-                for (int i = 0; i < parentGenome.obstaclePositions.Length; i++) {
-                    newGenome.obstaclePositions[i] = new Vector2(parentGenome.obstaclePositions[i].x, parentGenome.obstaclePositions[i].y);
-                    newGenome.obstacleScales[i] = parentGenome.obstacleScales[i];
-                    rand = UnityEngine.Random.Range(0f, 1f);
-                    if (rand < envMutationChance) {
-                        float newPosX = UnityEngine.Random.Range(0f, 1f);
-                        newGenome.obstaclePositions[i].x = Mathf.Lerp(newGenome.obstaclePositions[i].x, newPosX, envMutationStepSize);
-                    }
-                    if (rand < envMutationChance) {
-                        float newPosZ = UnityEngine.Random.Range(0f, 1f);
-                        newGenome.obstaclePositions[i].y = Mathf.Lerp(newGenome.obstaclePositions[i].y, newPosZ, envMutationStepSize);
-                    }
-                    if ((newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude < 0.15f) {
-                        newGenome.obstaclePositions[i] = new Vector2(0.5f, 0.5f) + (newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)) * 0.15f / (newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude;
-                    }
-                    if (rand < envMutationChance) {
-                        float newScale = UnityEngine.Random.Range(1f, 5f);
-                        newGenome.obstacleScales[i] = Mathf.Lerp(newGenome.obstacleScales[i], newScale, envMutationStepSize);
-                    }
-                }
-                // TARGET:
-                newGenome.targetColumnGenome = new TargetColumnGenome();
-                newGenome.targetColumnGenome.targetRadius = parentGenome.targetColumnGenome.targetRadius;
-                newGenome.targetColumnGenome.minX = parentGenome.targetColumnGenome.minX;
-                newGenome.targetColumnGenome.maxX = parentGenome.targetColumnGenome.maxX;
-                newGenome.targetColumnGenome.minZ = parentGenome.targetColumnGenome.minZ;
-                newGenome.targetColumnGenome.maxZ = parentGenome.targetColumnGenome.maxZ;
-                rand = UnityEngine.Random.Range(0f, 0f);
-                if (rand < envMutationChance) {
-                    float newX = Mathf.Lerp(newGenome.targetColumnGenome.minX, UnityEngine.Random.Range(0f, 1f), envMutationStepSize);
-                    newGenome.targetColumnGenome.minX = Mathf.Min(newX, parentGenome.targetColumnGenome.maxX);  // prevent min being bigger than max
-                }
-                rand = UnityEngine.Random.Range(0f, 1f);
-                if (rand < envMutationChance) {
-                    float newX = Mathf.Lerp(newGenome.targetColumnGenome.maxX, UnityEngine.Random.Range(0f, 1f), envMutationStepSize);
-                    newGenome.targetColumnGenome.maxX = Mathf.Max(newX, parentGenome.targetColumnGenome.minX);
-                }
-                rand = UnityEngine.Random.Range(0f, 0f);
-                if (rand < envMutationChance) {
-                    float newZ = Mathf.Lerp(newGenome.targetColumnGenome.minZ, UnityEngine.Random.Range(0f, 1f), envMutationStepSize);
-                    newGenome.targetColumnGenome.minZ = Mathf.Min(newZ, parentGenome.targetColumnGenome.maxZ);  // prevent min being bigger than max
-                }
-                rand = UnityEngine.Random.Range(0f, 1f);
-                if (rand < envMutationChance) {
-                    float newZ = Mathf.Lerp(newGenome.targetColumnGenome.maxZ, UnityEngine.Random.Range(0f, 1f), envMutationStepSize);
-                    newGenome.targetColumnGenome.maxZ = Mathf.Max(newZ, parentGenome.targetColumnGenome.minZ);
-                }
+                EnvironmentGenome newGenome = EnvironmentGenome.BirthNewGenome(parentGenome, newGenGenomeList.Count, teamsConfig.challengeType, envMutationChance, envMutationStepSize);
+                                
                 newGenGenomeList.Add(newGenome);
             }                       
         }       

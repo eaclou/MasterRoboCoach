@@ -26,6 +26,14 @@ public class FitnessComponentEvaluationGroup {
                     FitCompContactHazard fitCompContactHazard = new FitCompContactHazard(fitnessManager.fitnessComponentDefinitions[i]);
                     fitCompList.Add(fitCompContactHazard);
                     break;
+                case FitnessComponentType.DamageInflicted:
+                    FitCompDamageInflicted fitCompDamageInflicted = new FitCompDamageInflicted(fitnessManager.fitnessComponentDefinitions[i]);
+                    fitCompList.Add(fitCompDamageInflicted);
+                    break;
+                case FitnessComponentType.Health:
+                    FitCompHealth fitCompHealth = new FitCompHealth(fitnessManager.fitnessComponentDefinitions[i]);
+                    fitCompList.Add(fitCompHealth);
+                    break;
                 default:
                     Debug.LogError("No such component type! (" + fitnessManager.fitnessComponentDefinitions[i].type.ToString() + ")");
                     break;

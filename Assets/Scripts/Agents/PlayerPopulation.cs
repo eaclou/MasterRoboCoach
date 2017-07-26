@@ -19,7 +19,7 @@ public class PlayerPopulation {
     public int numPerformanceReps = 1;
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
-    public PlayerPopulation(AgentGenome templateGenome, int numGenomes, int numReps) {
+    public PlayerPopulation(Challenge.Type challengeType, AgentGenome templateGenome, int numGenomes, int numReps) {
         // Create blank AgentGenomes for the standard population
         agentGenomeList = new List<AgentGenome>();
         for (int j = 0; j < numGenomes; j++) {
@@ -39,13 +39,42 @@ public class PlayerPopulation {
         baselineGenomePool = new List<AgentGenome>();
 
         fitnessManager = new FitnessManager();
-        // TEMP DEFAULT:        
-        FitnessComponentDefinition distToTargetSquared = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.1f, false);
-        fitnessManager.fitnessComponentDefinitions.Add(distToTargetSquared);
-        FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
-        fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
+        SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.InitializeForNewGeneration(numGenomes);
         
         trainingSettingsManager = new TrainingSettingsManager();
+    }
+
+    private void SetUpDefaultFitnessComponents(Challenge.Type challengeType, FitnessManager fitnessManager) {
+         
+        switch(challengeType) {
+            case Challenge.Type.Test:
+                FitnessComponentDefinition distToTargetSquared = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.1f, false);
+                fitnessManager.fitnessComponentDefinitions.Add(distToTargetSquared);
+                FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
+                fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
+                break;
+            case Challenge.Type.Racing:
+                FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing1);
+                FitnessComponentDefinition fitCompRacing2 = new FitnessComponentDefinition(FitnessComponentType.Velocity, FitnessComponentMeasure.Average, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing2);
+                break;
+            case Challenge.Type.Combat:
+                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat1);
+                //FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.2f, false);
+                //fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat2);
+                //FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.Velocity, FitnessComponentMeasure.Average, 0.2f, true);
+                //fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat3);
+                FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.DamageInflicted, FitnessComponentMeasure.Average, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat2);
+                FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.Health, FitnessComponentMeasure.Average, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat3);
+                break;
+            default:
+                Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
+                break;
+        }
     }
 }

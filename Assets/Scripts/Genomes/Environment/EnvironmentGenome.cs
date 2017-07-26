@@ -23,57 +23,111 @@ public class EnvironmentGenome {
 
     // For now, due to Serialization concerns, all environmentGenomes will have fields for all possible environmental Modules
     // If they are unused they will simply be null. The challengeType / preset Templates will determine which ones are necessary initially
-    public float altitude;
-    public Vector3 color;
-    public Vector3[] terrainWaves;  // x = freq, y = amp, z = offset
-    public Vector2[] obstaclePositions;
-    public float[] obstacleScales;
+    
+    
 
-    // MODULES:
+    // MODULES:    
+    public List<StartPositionGenome> agentStartPositionsList;
+    public bool useTerrain;
+    public TerrainGenome terrainGenome;
+    public bool useBasicObstacles;
+    public BasicObstaclesGenome basicObstaclesGenome;
+    public bool useTargetColumn;
     public TargetColumnGenome targetColumnGenome;
-    public List<Transform> agentStartPositionsList; 
 
-	public EnvironmentGenome(int index, Challenge.Type challengeType) {
+    public EnvironmentGenome(int index) {
         this.index = index;
-        this.challengeType = challengeType;
-        arenaBounds = Challenge.GetChallengeArenaBounds(challengeType); // Look into support for expandable bounds
-        terrainWaves = new Vector3[6];
-        obstaclePositions = new Vector2[6];
-        obstacleScales = new float[6];
+        //this.challengeType = challengeType;
+        //arenaBounds = Challenge.GetChallengeArenaBounds(challengeType); // Look into support for expandable bounds
+        //terrainWaves = new Vector3[6];
+        //obstaclePositions = new Vector2[6];
+        //obstacleScales = new float[6];        
+    }
+
+    public void CopyGenomeFromTemplate(EnvironmentGenome templateGenome) {
+        // This method creates a clone of the provided ScriptableObject Genome - should have no shared references!!!
+        this.challengeType = templateGenome.challengeType;
+        arenaBounds = new Vector3(templateGenome.arenaBounds.x, templateGenome.arenaBounds.y, templateGenome.arenaBounds.z);
+
+        agentStartPositionsList = new List<StartPositionGenome>(); 
+        for(int i = 0; i < templateGenome.agentStartPositionsList.Count; i++) {
+            StartPositionGenome genomeCopy = new StartPositionGenome(templateGenome.agentStartPositionsList[i]);
+            agentStartPositionsList.Add(genomeCopy);
+        }
+
+        useTerrain = templateGenome.useTerrain;
+        if (useTerrain) {
+            terrainGenome = new TerrainGenome(templateGenome.terrainGenome);
+            terrainGenome.InitializeRandomGenome();
+        }
+        useBasicObstacles = templateGenome.useBasicObstacles;
+        if (useBasicObstacles) {
+            basicObstaclesGenome = new BasicObstaclesGenome(templateGenome.basicObstaclesGenome);
+            basicObstaclesGenome.InitializeRandomGenome();
+        }
+        useTargetColumn = templateGenome.useTargetColumn;
+        if(useTargetColumn) {
+            targetColumnGenome = new TargetColumnGenome();
+            targetColumnGenome.InitializeRandomGenome();
+        }        
+
+        // For now this is fine -- but eventually might want to copy brainGenome from saved asset!
+        //brainGenome = new BrainGenome();  // creates neuron and axonLists
+        //InitializeRandomBrainGenome();        
     }
 
     public void TempInitializeGenome() {
         // Creates a basic but functioning Genome
         // This might be replaceable in the future with the use of prefab Templates, similar to Agent Bodies
         // Terrain:
-        altitude = 0f;        
-        for(int i = 0; i < terrainWaves.Length; i++) {
-            terrainWaves[i] = new Vector3(0.1f, 0f, 0f);
-        }
-        for (int i = 0; i < obstaclePositions.Length; i++) {
-            obstaclePositions[i] = new Vector2(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
-
-            if ((obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude < 0.15f) {
-                obstaclePositions[i] = new Vector2(0.5f, 0.5f) + (obstaclePositions[i] - new Vector2(0.5f, 0.5f)) * 0.15f / (obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude;
-            }
-            obstacleScales[i] = UnityEngine.Random.Range(1f, 1f);
-        }
-
-        float r = UnityEngine.Random.Range(0f, 1f);
-        float g = UnityEngine.Random.Range(0f, 1f);
-        float b = UnityEngine.Random.Range(0f, 1f);
-
-        color = new Vector3(r, g, b);
+        //altitude = 0f;        
+                
 
         // Target:
-        if(challengeType == Challenge.Type.Test) {
+        /*if (challengeType == Challenge.Type.Test) {
             targetColumnGenome = new TargetColumnGenome();
 
             targetColumnGenome.InitializeRandomGenome();
-        }
+        }*/
     }
 
     public void ClearEnvironmentPrefab() {
         environmentPrefab = null;
+    }
+
+    public static EnvironmentGenome BirthNewGenome(EnvironmentGenome parentGenome, int index, Challenge.Type challengeType, float mutationRate, float mutationDriftAmount) {
+        EnvironmentGenome newGenome = new EnvironmentGenome(index);
+
+        newGenome.challengeType = parentGenome.challengeType;
+        newGenome.arenaBounds = new Vector3(parentGenome.arenaBounds.x, parentGenome.arenaBounds.y, parentGenome.arenaBounds.z);
+
+        newGenome.useTerrain = parentGenome.useTerrain;
+        if (parentGenome.useTerrain) {
+            newGenome.terrainGenome = TerrainGenome.BirthNewGenome(parentGenome.terrainGenome, mutationRate, mutationDriftAmount);
+        }
+        newGenome.useBasicObstacles = parentGenome.useBasicObstacles;
+        if (parentGenome.useBasicObstacles) {
+            newGenome.basicObstaclesGenome = BasicObstaclesGenome.BirthNewGenome(parentGenome.basicObstaclesGenome, mutationRate, mutationDriftAmount);
+        }
+        newGenome.useTargetColumn = parentGenome.useTargetColumn;
+        if (parentGenome.useTargetColumn) {
+            newGenome.targetColumnGenome = TargetColumnGenome.BirthNewGenome(parentGenome.targetColumnGenome, mutationRate, mutationDriftAmount);
+        }
+
+        // StartPositions:
+        // HACKY! DOES NOT SUPPORT EVOLVING START POSITIONS! ALL THE SAME!!!!
+        newGenome.agentStartPositionsList = parentGenome.agentStartPositionsList;
+
+        /*newGenome.agentStartPositionsList = new List<Vector3>();
+        //Debug.Log("(parentGenome.agentStartPositionsList.Count" + parentGenome.agentStartPositionsList.Count.ToString());
+        for (int i = 0; i < parentGenome.agentStartPositionsList.Count; i++) {
+            newGenome.agentStartPositionsList.Add(new Vector3(parentGenome.agentStartPositionsList[i].x, parentGenome.agentStartPositionsList[i].y, parentGenome.agentStartPositionsList[i].z));
+        }
+        newGenome.agentStartRotationsList = new List<Quaternion>();
+        for (int i = 0; i < parentGenome.agentStartRotationsList.Count; i++) {
+            newGenome.agentStartRotationsList.Add(new Quaternion(parentGenome.agentStartRotationsList[i].x, parentGenome.agentStartRotationsList[i].y, parentGenome.agentStartRotationsList[i].z, parentGenome.agentStartRotationsList[i].w));
+        }*/
+
+        return newGenome;
     }
 }

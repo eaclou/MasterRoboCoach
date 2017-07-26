@@ -40,7 +40,7 @@ public class Environment : MonoBehaviour {
         // assumes that the instance already has minimum collision objects created
 
         Material mat = new Material(Shader.Find("Standard"));
-        mat.color = new Color(genome.color.x, genome.color.y, genome.color.z);
+        mat.color = new Color(genome.terrainGenome.color.x, genome.terrainGenome.color.y, genome.terrainGenome.color.z);
 
         if(ground.GetComponent<MeshFilter>() == null) {
             ground.AddComponent<MeshFilter>().sharedMesh = ground.GetComponent<MeshCollider>().sharedMesh;
@@ -57,15 +57,17 @@ public class Environment : MonoBehaviour {
         
 
         // Target !!!
-        if (targetColumn != null) {
+        if(genome.useTargetColumn) {
             targetColumn.GetComponent<MeshRenderer>().enabled = true; // hide
-        }
+        }        
 
         // Obstacles:
-        for (int i = 0; i < obstacles.Count; i++) {
-            obstacles[i].GetComponent<MeshRenderer>().material = mat;
-            obstacles[i].GetComponent<MeshRenderer>().enabled = true; // reveal
-        }
+        if(genome.useBasicObstacles) {
+            for (int i = 0; i < obstacles.Count; i++) {
+                obstacles[i].GetComponent<MeshRenderer>().material = mat;
+                obstacles[i].GetComponent<MeshRenderer>().enabled = true; // reveal
+            }
+        }        
     }
 
     public void CreateCollisionAndGameplayContent(EnvironmentGenome genome) {
@@ -75,12 +77,14 @@ public class Environment : MonoBehaviour {
         noFriction.staticFriction = 0f;
         noFriction.frictionCombine = PhysicMaterialCombine.Minimum;
 
-        ground = new GameObject("ground");
-        Mesh topology = GetTerrainMesh(genome);        
-        ground.AddComponent<MeshCollider>().sharedMesh = topology;
-        ground.transform.parent = gameObject.transform;
-        ground.transform.localPosition = new Vector3(0f, 0f, 0f);
-        ground.GetComponent<Collider>().material = noFriction;
+        if(genome.useTerrain) {
+            ground = new GameObject("ground");
+            Mesh topology = GetTerrainMesh(genome);
+            ground.AddComponent<MeshCollider>().sharedMesh = topology;
+            ground.transform.parent = gameObject.transform;
+            ground.transform.localPosition = new Vector3(0f, 0f, 0f);
+            ground.GetComponent<Collider>().material = noFriction;
+        }        
 
         //=============WALLS===========
         arenaWalls = new List<GameObject>();
@@ -128,29 +132,31 @@ public class Environment : MonoBehaviour {
 
         // Game-Required Modules:
         // Target !!!
-        if (genome.targetColumnGenome != null) {
+        if(genome.useTargetColumn) {
             GameObject targetColumnGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             targetColumnGO.transform.parent = gameObject.transform;
             targetColumn = targetColumnGO.AddComponent<TargetColumn>();
             targetColumn.GetComponent<MeshRenderer>().enabled = false; // hide
-            targetColumn.Initialize(genome.targetColumnGenome);           
+            targetColumn.Initialize(genome.targetColumnGenome);
         }
-
+        
         // Obstacles:
-        obstacles = new List<GameObject>();
-        for (int i = 0; i < genome.obstaclePositions.Length; i++) {
-            GameObject obstacle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            obstacle.transform.parent = gameObject.transform;
-            float x = genome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
-            float z = genome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
-            float y = GetAltitude(genome, x, z) + 0.5f;
-            obstacle.transform.localScale = new Vector3(genome.obstacleScales[i], 1f, genome.obstacleScales[i]);
-            obstacle.transform.localPosition = new Vector3(x, y, z);
-            obstacle.GetComponent<Collider>().material = noFriction;
-            obstacle.tag = "hazard";
-            obstacle.GetComponent<MeshRenderer>().enabled = false; // hide
-            obstacles.Add(obstacle);
-        }
+        if (genome.useBasicObstacles) {
+            obstacles = new List<GameObject>();
+            for (int i = 0; i < genome.basicObstaclesGenome.obstaclePositions.Length; i++) {
+                GameObject obstacle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                obstacle.transform.parent = gameObject.transform;
+                float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
+                float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
+                float y = GetAltitude(genome, x, z) + 0.5f;
+                obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], 1f, genome.basicObstaclesGenome.obstacleScales[i]);
+                obstacle.transform.localPosition = new Vector3(x, y, z);
+                obstacle.GetComponent<Collider>().material = noFriction;
+                obstacle.tag = "hazard";
+                obstacle.GetComponent<MeshRenderer>().enabled = false; // hide
+                obstacles.Add(obstacle);
+            }
+        }        
 
         // Set Genome's prefab environment:
         genome.environmentPrefab = this;
@@ -158,15 +164,15 @@ public class Environment : MonoBehaviour {
 
     private float GetAltitude(EnvironmentGenome genome, float x, float z) {
         float total = 0f;
-        for(int i = 0; i < genome.terrainWaves.Length; i++) {
+        for(int i = 0; i < genome.terrainGenome.terrainWaves.Length; i++) {
             if(i % 2 == 0) {
-                total += Mathf.Sin(x * genome.terrainWaves[i].x + genome.terrainWaves[i].z) * genome.terrainWaves[i].y;
+                total += Mathf.Sin(x * genome.terrainGenome.terrainWaves[i].x + genome.terrainGenome.terrainWaves[i].z) * genome.terrainGenome.terrainWaves[i].y;
             }
             else {
-                total += Mathf.Sin(z * genome.terrainWaves[i].x + genome.terrainWaves[i].z) * genome.terrainWaves[i].y;
+                total += Mathf.Sin(z * genome.terrainGenome.terrainWaves[i].x + genome.terrainGenome.terrainWaves[i].z) * genome.terrainGenome.terrainWaves[i].y;
             }
         }
-        float height = total / genome.terrainWaves.Length;
+        float height = total / genome.terrainGenome.terrainWaves.Length;
         float distToSpawn = new Vector2(x, z).magnitude;
         if (distToSpawn < 12f) {
             height = Mathf.Lerp(0f, height, Mathf.Max(distToSpawn - 4f, 0f) / 8f);

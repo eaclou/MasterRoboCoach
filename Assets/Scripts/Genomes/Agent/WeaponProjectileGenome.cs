@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class TorqueGenome {
+public class WeaponProjectileGenome {
+
     public int parentID;
     public int inno;
 
-    public TorqueGenome(int parentID, int inno) {
+    public WeaponProjectileGenome(int parentID, int inno) {
         this.parentID = parentID;
         this.inno = inno;
     }
 
-    public TorqueGenome(TorqueGenome template) {
+    public WeaponProjectileGenome(WeaponProjectileGenome template) {
         this.parentID = template.parentID;
         this.inno = template.inno;
     }
