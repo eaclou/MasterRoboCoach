@@ -5,6 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public class PlayerPopulation {
 
+    //public AgentGenome templateGenome;
     public List<AgentGenome> agentGenomeList;  // Primary genome population
     //public TrainingSettings trainingSettings;  // mutation, max eval time, etc.
     //public FitnessSettings fitnessSettings;  // fitness function components and settings
@@ -20,6 +21,9 @@ public class PlayerPopulation {
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
     public PlayerPopulation(Challenge.Type challengeType, AgentGenome templateGenome, int numGenomes, int numReps) {
+        //this.templateGenome = new AgentGenome(-1);
+        //templateGenome.CopyGenomeFromTemplate(templateGenome);
+
         // Create blank AgentGenomes for the standard population
         agentGenomeList = new List<AgentGenome>();
         for (int j = 0; j < numGenomes; j++) {
@@ -42,7 +46,7 @@ public class PlayerPopulation {
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.InitializeForNewGeneration(numGenomes);
         
-        trainingSettingsManager = new TrainingSettingsManager();
+        trainingSettingsManager = new TrainingSettingsManager(0.005f, 0.5f);
     }
 
     private void SetUpDefaultFitnessComponents(Challenge.Type challengeType, FitnessManager fitnessManager) {
@@ -61,7 +65,7 @@ public class PlayerPopulation {
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing2);
                 break;
             case Challenge.Type.Combat:
-                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
+                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 0.1f, false);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat1);
                 //FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.2f, false);
                 //fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat2);
@@ -69,8 +73,10 @@ public class PlayerPopulation {
                 //fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat3);
                 FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.DamageInflicted, FitnessComponentMeasure.Average, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat2);
-                FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.Health, FitnessComponentMeasure.Average, 1f, true);
+                FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.Health, FitnessComponentMeasure.Average, 0.1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat3);
+                FitnessComponentDefinition fitCompCombat4 = new FitnessComponentDefinition(FitnessComponentType.WinLoss, FitnessComponentMeasure.Last, 0.5f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat4);
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());

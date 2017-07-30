@@ -34,6 +34,14 @@ public class FitnessComponentEvaluationGroup {
                     FitCompHealth fitCompHealth = new FitCompHealth(fitnessManager.fitnessComponentDefinitions[i]);
                     fitCompList.Add(fitCompHealth);
                     break;
+                case FitnessComponentType.Random:
+                    FitCompRandom fitCompRandom = new FitCompRandom(fitnessManager.fitnessComponentDefinitions[i]);
+                    fitCompList.Add(fitCompRandom);
+                    break;
+                case FitnessComponentType.WinLoss:
+                    FitCompWinLoss fitCompWinLoss = new FitCompWinLoss(fitnessManager.fitnessComponentDefinitions[i]);
+                    fitCompList.Add(fitCompWinLoss);
+                    break;
                 default:
                     Debug.LogError("No such component type! (" + fitnessManager.fitnessComponentDefinitions[i].type.ToString() + ")");
                     break;

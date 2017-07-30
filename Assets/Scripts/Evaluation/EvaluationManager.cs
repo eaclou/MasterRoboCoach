@@ -9,15 +9,20 @@ public class EvaluationManager {
     // Evaluations Manager
     // for each generation, what are the required evaluation pairs?
     // what is the status of each of them?
-    private List<EvaluationTicket> evaluationTicketList;
-    private Queue<EvaluationTicket> evaluationTicketQueue;
-    private List<EvaluationInstance> evaluationInstancesList;
-    private EvaluationInstance exhibitionInstance;
-    private int maxInstancesX = 12;
-    private int maxInstancesZ = 12;    
+    public List<EvaluationTicket> evaluationTicketList;
+    public Queue<EvaluationTicket> evaluationTicketQueue;
+    public List<EvaluationInstance> evaluationInstancesList;
+
+    public List<EvaluationTicket> exhibitionTicketList;
+    public int exhibitionTicketCurrentIndex = 0;
+    public EvaluationInstance exhibitionInstance;
+    public ExhibitionParticleCurves exhibitionParticleCurves;
+
+    private int maxInstancesX = 10;
+    private int maxInstancesZ = 10;    
     private float instanceBufferX = 2.5f;
     private float instanceBufferZ = 2.5f;
-    private int maxTimeStepsDefault = 600;
+    public int maxTimeStepsDefault = 300;
 
     private bool manualTrainingMode = false;  // toggles between manual sequential evaluations & auto parallel evaluations
     public bool ManualTrainingMode
@@ -38,22 +43,28 @@ public class EvaluationManager {
 
     public void InitializeNewTraining(TeamsConfig teamsConfig, Challenge.Type challengeType) {
         // Find out if I need to keep a ref to this, or can accomplish what is needed by passing to functions as-needed:
-        //teamsConfigRef = teamsConfig;
-
+        //teamsConfigRef = teamsConfig;        
 
         // Set up eval tickets:
         evaluationTicketList = new List<EvaluationTicket>();
+        exhibitionTicketList = new List<EvaluationTicket>();
         evaluationTicketQueue = new Queue<EvaluationTicket>();
 
         // Set up Exhibition Instance:
         GameObject exhibitionInstanceGO = new GameObject("ExhibitionInstance");
         exhibitionInstance = exhibitionInstanceGO.AddComponent<EvaluationInstance>();
         exhibitionInstance.transform.position = new Vector3(0f, 0f, 0f);
+        exhibitionInstance.visible = true;
         exhibitionInstance.isExhibition = true;
 
         CreateEvaluationInstances(challengeType);
 
-        CreateDefaultEvaluationTickets(teamsConfig); // creates combinatorics for each Population's representatives               
+        CreateDefaultEvaluationTickets(teamsConfig); // creates combinatorics for each Population's representatives  
+        InitializeExhibitionTickets(teamsConfig);
+
+        GameObject exhibitionParticleCurvesGO = new GameObject("ExhibitionParticleCurves");
+        exhibitionParticleCurves = exhibitionParticleCurvesGO.AddComponent<ExhibitionParticleCurves>();
+        exhibitionParticleCurves.CreateRepresentativeParticleSystems(teamsConfig);
     }
 
     public void CreateDefaultEvaluationTickets(TeamsConfig teamsConfig) {
@@ -68,8 +79,8 @@ public class EvaluationManager {
         // !!!!! =============================================================================
         // Player / Agent Evals:
 
-        List<int> currentReps = new List<int>();
-        List<int> numReps = new List<int>();         
+        //List<int> currentReps = new List<int>();
+        //List<int> numReps = new List<int>();         
 
         // TEMPORARY!!! BRUTE FORCE SOLUTION -- MAX 4 Players!!!:
         // TEMPORARY!!! BRUTE FORCE SOLUTION -- MAX 4 Players!!!:
@@ -321,7 +332,7 @@ public class EvaluationManager {
                 }
             }
         }
-        string evalText = "";
+        /*string evalText = "";
         for(int i = 0; i < evaluationTicketList.Count; i++) {
             evalText += "(";
             for (int j = 0; j < evaluationTicketList[i].genomeIndices.Length; j++) {
@@ -329,7 +340,7 @@ public class EvaluationManager {
             }
             evalText += ")\n";
         }
-        Debug.Log(evalText);
+        Debug.Log(evalText);*/
     }
     public void CreateEvaluationInstances(Challenge.Type challengeType) {
         // Set up Evaluation Instances:
@@ -354,7 +365,11 @@ public class EvaluationManager {
         }
         if(evaluationTicketQueue != null) {
             evaluationTicketQueue = new Queue<EvaluationTicket>();
-        }        
+        } 
+        //if(exhibitionTicketList != null) {
+        //    exhibitionTicketList.Clear();
+        //    exhibitionTicketCurrentIndex = 0;
+        //}
     }
     
     public void Tick(TeamsConfig teamsConfig) {
@@ -383,7 +398,7 @@ public class EvaluationManager {
                     // Pending -- Set up instance:
                     if (evaluationTicketList[currentEvalTicketIndex].status == EvaluationTicket.EvaluationStatus.Pending) {
                         Debug.Log("currentEvalPair: " + currentEvalTicketIndex.ToString() + " (" + evaluationTicketList[currentEvalTicketIndex].status.ToString() + "), [" + evaluationTicketList[currentEvalTicketIndex].genomeIndices[0].ToString() + "," + evaluationTicketList[currentEvalTicketIndex].genomeIndices[1].ToString() + "]");
-                        evaluationInstancesList[0].SetUpInstance(evaluationTicketList[currentEvalTicketIndex], teamsConfig);
+                        evaluationInstancesList[0].SetUpInstance(evaluationTicketList[currentEvalTicketIndex], teamsConfig, exhibitionParticleCurves);
                     }
                     if (evaluationTicketList[currentEvalTicketIndex].status == EvaluationTicket.EvaluationStatus.PendingComplete) {
                         // Instance finished but not fully processed
@@ -443,19 +458,27 @@ public class EvaluationManager {
             // Auto Parallel Mode!!!!!
 
             // loop through evalInstances -- if pending, start evaluating with next free evalPair
-            // if inProgress, Tick()                
+            // if inProgress, Tick()    
+            int maxEvalConstructionsPerFrame = 1;
+            int numEvalConstructionsThisFrame = 0;
             for (int i = 0; i < evaluationInstancesList.Count; i++) {
                 if (evaluationInstancesList[i].currentEvalTicket == null) {
-                    // available for use
-                    // Find next available evalPair:
-                    int currentEvalPairIndex = GetNextPendingEvalPairIndex();
-                    if (currentEvalPairIndex == -1) {
-                        // no evals pending
+                    if(numEvalConstructionsThisFrame >= maxEvalConstructionsPerFrame) {
+                        // ignore
                     }
                     else {
-                        //print("evalPair: " + currentEvalPairIndex.ToString() + " (" + evaluationPairsList[currentEvalPairIndex].status.ToString() + "), [" + evaluationPairsList[currentEvalPairIndex].evalPairIndices[0].ToString() + "," + evaluationPairsList[currentEvalPairIndex].evalPairIndices[1].ToString() + "]");
-                        evaluationInstancesList[i].SetUpInstance(evaluationTicketList[currentEvalPairIndex], teamsConfig);
-                    }
+                        // available for use
+                        // Find next available evalPair:
+                        int currentEvalPairIndex = GetNextPendingEvalPairIndex();
+                        if (currentEvalPairIndex == -1) {
+                            // no evals pending
+                        }
+                        else {
+                            //print("evalPair: " + currentEvalPairIndex.ToString() + " (" + evaluationPairsList[currentEvalPairIndex].status.ToString() + "), [" + evaluationPairsList[currentEvalPairIndex].evalPairIndices[0].ToString() + "," + evaluationPairsList[currentEvalPairIndex].evalPairIndices[1].ToString() + "]");
+                            evaluationInstancesList[i].SetUpInstance(evaluationTicketList[currentEvalPairIndex], teamsConfig, exhibitionParticleCurves);
+                            numEvalConstructionsThisFrame++;
+                        }
+                    }                    
                 }
                 else {
                     if (evaluationInstancesList[i].currentEvalTicket.status == EvaluationTicket.EvaluationStatus.InProgress) {
@@ -533,15 +556,341 @@ public class EvaluationManager {
         }
     }
 
-    private void ResetExhibitionInstance(TeamsConfig teamsConfig) {
-        // Create eval Ticket  TEMP all 0's:
-        int[] indices = new int[teamsConfig.playersList.Count + 1];
-        for (int i = 0; i < indices.Length; i++) {
-            indices[i] = 0;
+    public void InitializeExhibitionTickets(TeamsConfig teamsConfig) {
+        int numPlayers = teamsConfig.playersList.Count;
+        int[] indices = new int[numPlayers + 1];
+        indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[0].index;
+        for(int i = 1; i < indices.Length; i++) {
+            indices[i] = teamsConfig.playersList[i-1].representativeGenomeList[0].index;
         }
         EvaluationTicket evalTicket = new EvaluationTicket(indices, 0, maxTimeStepsDefault * 10);
+        exhibitionTicketList.Add(evalTicket);
 
-        exhibitionInstance.SetUpInstance(evalTicket, teamsConfig);
+        // OLD!!!
+        // TEMPORARY!!! BRUTE FORCE SOLUTION -- MAX 4 Players!!!:
+        // TEMPORARY!!! BRUTE FORCE SOLUTION -- MAX 4 Players!!!:
+        /*
+        int numPlayers = teamsConfig.playersList.Count;
+        if (numPlayers > 4) {
+            Debug.Assert(true, "More than 4 Players not currently supported! NumPlayers: " + numPlayers.ToString());
+        }
+        else {
+            // Environment First:
+            for (int e = 0; e < teamsConfig.environmentPopulation.representativeGenomeList.Count; e++) {
+                // 1+ Player:
+                for (int i = 0; i < teamsConfig.playersList[0].representativeGenomeList.Count; i++) {
+                    if (numPlayers > 1) {
+                        // 2+ Players:
+                        for (int j = 0; j < teamsConfig.playersList[1].representativeGenomeList.Count; j++) {
+                            if (numPlayers > 2) {
+                                // 3+ Players:
+                                for (int k = 0; k < teamsConfig.playersList[2].representativeGenomeList.Count; k++) {
+                                    if (numPlayers > 3) {
+                                        // 4 Players
+                                        for (int m = 0; m < teamsConfig.playersList[3].representativeGenomeList.Count; m++) {
+                                            // 4 Players
+                                            //string text = "envIndex: *" + e.ToString() + "*, agentIndices: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + "," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + "," + teamsConfig.playersList[2].representativeGenomeList[k].index.ToString() + "," + teamsConfig.playersList[3].representativeGenomeList[m].index.ToString() + "]";
+                                            //Debug.Log(text);
+                                            int[] indices = new int[5];
+                                            indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                            indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                            indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                            indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                            indices[4] = teamsConfig.playersList[3].representativeGenomeList[m].index;
+                                            EvaluationTicket evalTicket = new EvaluationTicket(indices, 0, maxTimeStepsDefault);
+                                            exhibitionTicketList.Add(evalTicket);
+                                        }
+                                    }
+                                    else { // 3 Players
+                                        //string text = "envIndex: *" + e.ToString() + "*, agentIndices: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + "," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + "," + teamsConfig.playersList[2].representativeGenomeList[k].index.ToString() + "]";
+                                        //Debug.Log(text);
+                                        int[] indices = new int[4];
+                                        indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                        indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                        indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                        indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                        EvaluationTicket evalTicket = new EvaluationTicket(indices, 0, maxTimeStepsDefault);
+                                        exhibitionTicketList.Add(evalTicket);
+                                    }
+                                }
+                            }
+                            else {  // 2 Players:
+                                //string text = "envIndex: *" + e.ToString() + "*, agentIndices: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + "," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + "]";
+                                //Debug.Log(text);
+                                int[] indices = new int[3];
+                                indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                EvaluationTicket evalTicket = new EvaluationTicket(indices, 0, maxTimeStepsDefault);
+                                exhibitionTicketList.Add(evalTicket);
+                            }
+                        }
+                    }
+                    else { // 1 Player:
+                        //string text = "envIndex: *" + e.ToString() + "*, agentIndex: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + "]";
+                        //Debug.Log(text);
+                        int[] indices = new int[2];
+                        indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                        indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                        EvaluationTicket evalTicket = new EvaluationTicket(indices, 0, maxTimeStepsDefault);
+                        exhibitionTicketList.Add(evalTicket);
+                    }
+                }
+            }
+            if (numPlayers > 0) {
+                // Player 1:
+                for (int i = 0; i < teamsConfig.playersList[0].representativeGenomeList.Count; i++) {
+                    for (int e = 0; e < teamsConfig.environmentPopulation.representativeGenomeList.Count; e++) {
+                        if (numPlayers > 1) {
+                            for (int j = 0; j < teamsConfig.playersList[1].representativeGenomeList.Count; j++) {
+                                if (numPlayers > 2) {
+                                    for (int k = 0; k < teamsConfig.playersList[2].representativeGenomeList.Count; k++) {
+                                        if (numPlayers > 3) {
+                                            // 4 Players:
+                                            for (int m = 0; m < teamsConfig.playersList[3].representativeGenomeList.Count; m++) {
+                                                //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [*" + i.ToString() + "*," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + "," + teamsConfig.playersList[2].representativeGenomeList[k].index.ToString() + "," + teamsConfig.playersList[3].representativeGenomeList[m].index.ToString() + "]";
+                                                //Debug.Log(text);
+                                                int[] indices = new int[5];
+                                                indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                                indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                                indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                                indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                                indices[4] = teamsConfig.playersList[3].representativeGenomeList[m].index;
+                                                EvaluationTicket evalTicket = new EvaluationTicket(indices, 1, maxTimeStepsDefault);
+                                                exhibitionTicketList.Add(evalTicket);
+                                            }
+                                        }
+                                        else {
+                                            // 3 Players:
+                                            //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [*" + i.ToString() + "*," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + "," + teamsConfig.playersList[2].representativeGenomeList[k].index.ToString() + "]";
+                                            //Debug.Log(text);
+                                            int[] indices = new int[4];
+                                            indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                            indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                            indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                            indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                            EvaluationTicket evalTicket = new EvaluationTicket(indices, 1, maxTimeStepsDefault);
+                                            exhibitionTicketList.Add(evalTicket);
+                                        }
+                                    }
+                                }
+                                else {
+                                    // 2 Players:
+                                    //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [*" + i.ToString() + "*," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + "]";
+                                    //Debug.Log(text);
+                                    int[] indices = new int[3];
+                                    indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                    indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                    indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                    EvaluationTicket evalTicket = new EvaluationTicket(indices, 1, maxTimeStepsDefault);
+                                    exhibitionTicketList.Add(evalTicket);
+                                }
+                            }
+                        }
+                        else {
+                            // 1 Player:
+                            //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [*" + i.ToString() + "*]";
+                            //Debug.Log(text);
+                            int[] indices = new int[2];
+                            indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                            indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                            EvaluationTicket evalTicket = new EvaluationTicket(indices, 1, maxTimeStepsDefault);
+                            exhibitionTicketList.Add(evalTicket);
+                        }
+                    }
+                }
+
+                if (numPlayers > 1) {
+                    // more than 1 player -- do player 2:
+                    // 2 Players:
+                    for (int j = 0; j < teamsConfig.playersList[1].representativeGenomeList.Count; j++) { // Player 2 focus
+                        for (int e = 0; e < teamsConfig.environmentPopulation.representativeGenomeList.Count; e++) {
+                            for (int i = 0; i < teamsConfig.playersList[0].representativeGenomeList.Count; i++) {
+                                if (numPlayers > 2) {
+                                    for (int k = 0; k < teamsConfig.playersList[2].representativeGenomeList.Count; k++) {
+                                        if (numPlayers > 3) {
+                                            // 4 Players:
+                                            for (int m = 0; m < teamsConfig.playersList[3].representativeGenomeList.Count; m++) {
+                                                //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + ",*" + j.ToString() + "*," + teamsConfig.playersList[2].representativeGenomeList[k].index.ToString() + "," + teamsConfig.playersList[3].representativeGenomeList[m].index.ToString() + "]";
+                                                //Debug.Log(text);
+                                                int[] indices = new int[5];
+                                                indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                                indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                                indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                                indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                                indices[4] = teamsConfig.playersList[3].representativeGenomeList[m].index;
+                                                EvaluationTicket evalTicket = new EvaluationTicket(indices, 2, maxTimeStepsDefault);
+                                                exhibitionTicketList.Add(evalTicket);
+                                            }
+                                        }
+                                        else {
+                                            // 3 Players:
+                                            //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + ",*" + j.ToString() + "*," + teamsConfig.playersList[2].representativeGenomeList[k].index.ToString() + "]";
+                                            //Debug.Log(text);
+                                            int[] indices = new int[4];
+                                            indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                            indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                            indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                            indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                            EvaluationTicket evalTicket = new EvaluationTicket(indices, 2, maxTimeStepsDefault);
+                                            exhibitionTicketList.Add(evalTicket);
+                                        }
+                                    }
+                                }
+                                else {
+                                    // 2 Players:
+                                    //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + ",*" + j.ToString() + "*]";
+                                    //Debug.Log(text);
+                                    int[] indices = new int[3];
+                                    indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                    indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                    indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                    EvaluationTicket evalTicket = new EvaluationTicket(indices, 2, maxTimeStepsDefault);
+                                    exhibitionTicketList.Add(evalTicket);
+                                }
+                            }
+                        }
+                    }
+                    if (numPlayers > 2) {
+                        // more than 2 players: do player 3:
+                        // 3 Players:
+                        for (int k = 0; k < teamsConfig.playersList[2].representativeGenomeList.Count; k++) { // Player 2 focus
+                            for (int e = 0; e < teamsConfig.environmentPopulation.representativeGenomeList.Count; e++) {
+                                for (int i = 0; i < teamsConfig.playersList[0].representativeGenomeList.Count; i++) {
+                                    for (int j = 0; j < teamsConfig.playersList[1].representativeGenomeList.Count; j++) {
+                                        if (numPlayers > 3) {
+                                            // 4 Players:
+                                            for (int m = 0; m < teamsConfig.playersList[3].representativeGenomeList.Count; m++) {
+                                                //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + "," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + ",*" + k.ToString() + "*," + teamsConfig.playersList[3].representativeGenomeList[m].index.ToString() + "]";
+                                                //Debug.Log(text);
+                                                int[] indices = new int[5];
+                                                indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                                indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                                indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                                indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                                indices[4] = teamsConfig.playersList[3].representativeGenomeList[m].index;
+                                                EvaluationTicket evalTicket = new EvaluationTicket(indices, 3, maxTimeStepsDefault);
+                                                exhibitionTicketList.Add(evalTicket);
+                                            }
+                                        }
+                                        else {
+                                            // 3 Players:
+                                            //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + "," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + ",*" + k.ToString() + "*]";
+                                            //Debug.Log(text);
+                                            int[] indices = new int[4];
+                                            indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                            indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                            indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                            indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                            EvaluationTicket evalTicket = new EvaluationTicket(indices, 3, maxTimeStepsDefault);
+                                            exhibitionTicketList.Add(evalTicket);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (numPlayers > 3) {
+                            // 4 Players:
+                            for (int m = 0; m < teamsConfig.playersList[3].representativeGenomeList.Count; m++) { // Player 2 focus
+                                for (int e = 0; e < teamsConfig.environmentPopulation.representativeGenomeList.Count; e++) {
+                                    for (int i = 0; i < teamsConfig.playersList[0].representativeGenomeList.Count; i++) {
+                                        for (int j = 0; j < teamsConfig.playersList[1].representativeGenomeList.Count; j++) {
+                                            for (int k = 0; k < teamsConfig.playersList[2].representativeGenomeList.Count; k++) {
+                                                // 4 Players:
+                                                //string text = "envIndex: " + teamsConfig.environmentPopulation.representativeGenomeList[e].index.ToString() + ", agentIndex: [" + teamsConfig.playersList[0].representativeGenomeList[i].index.ToString() + "," + teamsConfig.playersList[1].representativeGenomeList[j].index.ToString() + "," + teamsConfig.playersList[1].representativeGenomeList[k].index.ToString() + ",*" + m.ToString() + "*]";
+                                                //Debug.Log(text);
+                                                int[] indices = new int[5];
+                                                indices[0] = teamsConfig.environmentPopulation.representativeGenomeList[e].index;
+                                                indices[1] = teamsConfig.playersList[0].representativeGenomeList[i].index;
+                                                indices[2] = teamsConfig.playersList[1].representativeGenomeList[j].index;
+                                                indices[3] = teamsConfig.playersList[2].representativeGenomeList[k].index;
+                                                indices[4] = teamsConfig.playersList[3].representativeGenomeList[m].index;
+                                                EvaluationTicket evalTicket = new EvaluationTicket(indices, 4, maxTimeStepsDefault);
+                                                exhibitionTicketList.Add(evalTicket);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }*/
+    }
+    public void ExhibitionCycleFocusPop(TeamsConfig teamsConfig) {
+        EvaluationTicket exhibitionTicket = exhibitionTicketList[exhibitionTicketCurrentIndex];
+        int currentFocusPop = exhibitionTicket.focusPopIndex;
+        currentFocusPop++;
+        if (currentFocusPop > teamsConfig.playersList.Count) {
+            currentFocusPop = 0;
+        }
+        exhibitionTicket.focusPopIndex = currentFocusPop;
+        //ResetExhibitionInstance(teamsConfig);
+        exhibitionParticleCurves.SetActiveParticle(exhibitionTicketList[exhibitionTicketCurrentIndex]);
+    }
+    public void ExhibitionPrevGenome(TeamsConfig teamsConfig) {
+        EvaluationTicket exhibitionTicket = exhibitionTicketList[exhibitionTicketCurrentIndex];
+        int currentFocusPop = exhibitionTicket.focusPopIndex;
+        if(currentFocusPop < 1) {
+            // ENVIRONMENT
+            int currentGenomeIndex = exhibitionTicket.genomeIndices[currentFocusPop];
+            currentGenomeIndex--;
+            if(currentGenomeIndex < 0) {
+                currentGenomeIndex = teamsConfig.environmentPopulation.environmentGenomeList.Count - 1;
+            }
+            exhibitionTicket.genomeIndices[currentFocusPop] = currentGenomeIndex;
+        }
+        else {
+            // AGENT
+            int currentGenomeIndex = exhibitionTicket.genomeIndices[currentFocusPop];
+            currentGenomeIndex--;
+            if (currentGenomeIndex < 0) {
+                currentGenomeIndex = teamsConfig.playersList[currentFocusPop].agentGenomeList.Count - 1;
+            }
+            exhibitionTicket.genomeIndices[currentFocusPop] = currentGenomeIndex;
+        }
+        
+        ResetExhibitionInstance(teamsConfig);
+    }
+    public void ExhibitionNextGenome(TeamsConfig teamsConfig) {
+        EvaluationTicket exhibitionTicket = exhibitionTicketList[exhibitionTicketCurrentIndex];
+        int currentFocusPop = exhibitionTicket.focusPopIndex;
+        if (currentFocusPop < 1) {
+            // ENVIRONMENT
+            int currentGenomeIndex = exhibitionTicket.genomeIndices[currentFocusPop];
+            currentGenomeIndex++;
+            if (currentGenomeIndex >= (teamsConfig.environmentPopulation.environmentGenomeList.Count)) {
+                currentGenomeIndex = 0;
+            }
+            exhibitionTicket.genomeIndices[currentFocusPop] = currentGenomeIndex;
+        }
+        else {
+            // AGENT
+            int currentGenomeIndex = exhibitionTicket.genomeIndices[currentFocusPop];
+            currentGenomeIndex++;
+            if (currentGenomeIndex >= (teamsConfig.playersList[currentFocusPop - 1].agentGenomeList.Count)) {
+                currentGenomeIndex = 0;
+            }
+            exhibitionTicket.genomeIndices[currentFocusPop] = currentGenomeIndex;
+        }
+
+        ResetExhibitionInstance(teamsConfig);
+    }
+    public void ResetExhibitionInstance(TeamsConfig teamsConfig) {
+        // Create eval Ticket  TEMP all 0's:
+        //int[] indices = new int[teamsConfig.playersList.Count + 1];
+        //for (int i = 0; i < indices.Length; i++) {
+        //    indices[i] = 0;
+        //}
+        //EvaluationTicket evalTicket = new EvaluationTicket(indices, 0, maxTimeStepsDefault);
+        exhibitionTicketCurrentIndex++;
+        if(exhibitionTicketCurrentIndex >= exhibitionTicketList.Count) {
+            exhibitionTicketCurrentIndex = 0;
+        }
+
+        exhibitionParticleCurves.SetActiveParticle(exhibitionTicketList[exhibitionTicketCurrentIndex]);
+        exhibitionInstance.SetUpInstance(exhibitionTicketList[exhibitionTicketCurrentIndex], teamsConfig, exhibitionParticleCurves);        
     }
 
     private int GetNextPendingEvalPairIndex() {
@@ -578,6 +927,7 @@ public class EvaluationManager {
         for (int i = 0; i < evaluationTicketList.Count; i++) {
             evaluationTicketList[i].status = EvaluationTicket.EvaluationStatus.Pending;
             evaluationTicketList[i].manualSelectStatus = EvaluationTicket.ManualSelectStatus.Pending;
+            evaluationTicketList[i].maxTimeSteps = maxTimeStepsDefault;
         }
     }
 
@@ -585,6 +935,8 @@ public class EvaluationManager {
         ResetEvaluationTicketList();
         allEvalsComplete = false;
         ResetExhibitionInstance(teamsConfig);
+        exhibitionTicketCurrentIndex = 0;
+        exhibitionParticleCurves.ClearAllSystems();
     }
 
     private void ToggleManualMode(bool val) {

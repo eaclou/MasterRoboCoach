@@ -128,11 +128,21 @@ public class Environment : MonoBehaviour {
         westWall.tag = "hazard";
         arenaWalls.Add(westWall);
 
+        GameObject ceiling = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        ceiling.transform.parent = gameObject.transform;
+        ceiling.transform.localPosition = new Vector3(0f, genome.arenaBounds.y * 0.5f, 0f);
+        ceiling.transform.localScale = new Vector3(genome.arenaBounds.z, genome.arenaBounds.y, 1f);
+        ceiling.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+        ceiling.GetComponent<MeshRenderer>().enabled = false;
+        ceiling.GetComponent<Collider>().material = noFriction;
+        ceiling.tag = "hazard";
+        arenaWalls.Add(ceiling);
+
         // ======================================================================
 
         // Game-Required Modules:
         // Target !!!
-        if(genome.useTargetColumn) {
+        if (genome.useTargetColumn) {
             GameObject targetColumnGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             targetColumnGO.transform.parent = gameObject.transform;
             targetColumn = targetColumnGO.AddComponent<TargetColumn>();

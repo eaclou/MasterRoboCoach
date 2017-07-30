@@ -3,11 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class EvaluationInstance : MonoBehaviour {
-    public bool visible = true;
+    public bool visible = false;
     public bool isExhibition = false;
+    public bool gameWonOrLost = false;
+    public bool emit = false;
+    //public int winnerPopIndex = -1;
 
-    public ParticleSystem particleCurves;
-    public ParticleSystem.EmitParams emitterParams;
+    public ParticleSystem particleCurves; // reference to particle system that 'lives' in ExhibitionParticleCurves class
+    public ParticleSystem.EmitParams emitterParamsDefault;
+    public ParticleSystem.EmitParams emitterParamsWin;
+    public ParticleSystem.EmitParams emitterParamsLose;
+    public ParticleSystem.EmitParams emitterParamsDraw;
 
     public EvaluationTicket currentEvalTicket;
     private TeamsConfig teamsConfig;
@@ -17,141 +23,149 @@ public class EvaluationInstance : MonoBehaviour {
     public FitnessComponentEvaluationGroup fitnessComponentEvaluationGroup;
 
     public Agent[] currentAgentsArray;
+    public float[][] agentGameScoresArray;
     private Environment currentEnvironment;
     private ChallengeBase currentChallenge;
 
     public int maxTimeSteps;
-    private int currentTimeStep = 0;
-
-    //private Transform targetPos;
-    //public float score = 0f;
-
-    // Use this for initialization
-    void Start () {
-        //ParticleSystem.EmitParams emitterParams = new ParticleSystem.EmitParams();        
-        //emitterParams.startLifetime = 1000f;       
-    }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
-    public void SetInvisibleTraverse(GameObject obj) {
-        //print("SetInvisibleTraverse " + obj.name);
-        obj.layer = LayerMask.NameToLayer("Hidden");
-        //foreach (Transform child in obj.transform) {
-        //    SetInvisibleTraverse(child.gameObject);
-        //}
-        var children = new List<GameObject>();
-        foreach (Transform child in obj.transform) children.Add(child.gameObject);
-        children.ForEach(child => SetInvisibleTraverse(child.gameObject));
-    }
-    public void SetVisibleTraverse(GameObject obj) {
-        obj.layer = LayerMask.NameToLayer("Default");
-        //foreach (Transform child in obj.transform) {
-        //    SetVisibleTraverse(child.gameObject);
-        //}
-        var children = new List<GameObject>();
-        foreach (Transform child in obj.transform) children.Add(child.gameObject);
-        children.ForEach(child => SetVisibleTraverse(child.gameObject));
-    }
-
+    public int currentTimeStep = 0;
+    
     public void Tick() {
         //print("Tick! " + currentTimeStep.ToString());
-        
-        CalculateScore();        
-        
-        for(int i = 0; i < currentAgentsArray.Length; i++) {
+
+        CalculateGameScores();
+        CalculateFitnessScores();        
+
+        for (int i = 0; i < currentAgentsArray.Length; i++) {
             currentAgentsArray[i].TickBrain();
             currentAgentsArray[i].RunModules();
         }        
 
         if(CheckForEvaluationEnd()) {
             currentEvalTicket.status = EvaluationTicket.EvaluationStatus.PendingComplete;
+
+            if (!gameWonOrLost) {
+                if (emit && currentEvalTicket.focusPopIndex == 2) {  // Only Agents
+                    emitterParamsDraw.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                    particleCurves.Emit(emitterParamsDraw, 8);
+                }
+                if (emit && currentEvalTicket.focusPopIndex == 1) {  // Only Agents
+                    emitterParamsDraw.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                    particleCurves.Emit(emitterParamsDraw, 8);
+                }
+            }
+            
+
+            if (!isExhibition) {
+                AverageFitnessComponentsByTimeSteps();
+            }
+            else {
+                if(gameWonOrLost) {                    
+                    if(agentGameScoresArray.Length > 1) {
+                        if (agentGameScoresArray[0][0] > 0f) {
+                            //Debug.Log("Player 1 WINS!!!");
+                            
+                        }
+                        else {
+                            //Debug.Log("Player 2 WINS!!!");
+                            
+                        }
+                    }
+                    else {
+                        if (agentGameScoresArray[0][0] < 0f) {
+                            //Debug.Log("Player 1 DIED!!!");
+                        }
+                    }
+                }
+            }
         }
         else {
             currentTimeStep++;
         }
 
-        if (currentEvalTicket.focusPopIndex == 1 && currentEvalTicket.genomeIndices[0] == 0) {  // Only Agents on Environment 0
-            //emitterParams.position = currentAgent.segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f);
-            //particleCurves.Emit(emitterParams, 1);
-        }        
-    }
-
-    private void CalculateScore() {
-        if(!isExhibition) {
-            // Temp for now: in order to update positions...
-            HookUpFitnessComponents();
-
-            for (int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
-                fitnessComponentEvaluationGroup.fitCompList[i].TickScore();
+        if (emit && currentEvalTicket.focusPopIndex > 0) {  // Only Agents
+            if(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList != null) {
+                emitterParamsDefault.startColor = Color.Lerp(new Color(1f, 0f, 0f, 0.25f), new Color(0f, 1f, 0f, 0.25f), currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList[0].healthSensor[0]);
+                //emitterParamsDefault.startColor.a = 0.5f;
             }
-        }                
-    }
+            emitterParamsDefault.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+            particleCurves.Emit(emitterParamsDefault, 1);
+            
+        }       
+    }    
 
     private bool CheckForEvaluationEnd() {
-        if(currentTimeStep > maxTimeSteps) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+        bool isEnded = false;
 
+        if(currentTimeStep > maxTimeSteps) {
+            isEnded = true;
+        }
+        if(gameWonOrLost) {
+            isEnded = true;
+        }
+        
+        return isEnded;
+    }
     public void ClearInstance() {
         currentEvalTicket.status = EvaluationTicket.EvaluationStatus.Pending;
         currentEvalTicket = null;
         DeleteAllGameObjects();
     }
-
     public void DeleteAllGameObjects() {
         var children = new List<GameObject>();
         foreach (Transform child in gameObject.transform) children.Add(child.gameObject);
         children.ForEach(child => Destroy(child));
     }
 
-    public void SetUpInstance(EvaluationTicket evalTicket, TeamsConfig teamsConfig) {
+    public void SetUpInstance(EvaluationTicket evalTicket, TeamsConfig teamsConfig, ExhibitionParticleCurves exhibitionParticleRef) {
         this.teamsConfig = teamsConfig;
         this.challengeType = teamsConfig.challengeType;
         this.maxTimeSteps = evalTicket.maxTimeSteps;
-        
+
+        // create particle key:
+        int[] indices = new int[teamsConfig.playersList.Count + 2];
+        indices[0] = evalTicket.focusPopIndex;
+        for(int i = 0; i < evalTicket.genomeIndices.Length; i++) {
+            indices[i + 1] = evalTicket.genomeIndices[i];
+        }
+        indices[indices[0] + 1] = 0; // focusPop is 0
+
+        string txt = "";
+        for(int i = 0; i < indices.Length; i++) {
+            txt += indices[i].ToString();
+        }
+        //Debug.Log(txt);
+        if(exhibitionParticleRef.particleDictionary.TryGetValue(txt, out particleCurves)) {
+            // particleCurves
+            //Debug.Log("FOUND IT! set up " + txt);
+            
+            emit = true;
+            if (isExhibition)
+                emit = false;
+        }
+        else {
+            //Debug.Log("Eval Instance Setup FAIL " + txt);
+            emit = false;
+        }
+
         currentEvalTicket = evalTicket;
               
         BruteForceInit();
 
         currentEvalTicket.status = EvaluationTicket.EvaluationStatus.InProgress;
 
-        if (currentEvalTicket.genomeIndices[0] != 0 || currentEvalTicket.genomeIndices[1] != 0 || currentEvalTicket.focusPopIndex == 0) {
-            //emitterParams.startColor = new Color(0.66f, 0.66f, 0.66f, 0.5f);
-        }
-        else {
-            //emitterParams.startColor = new Color(1f, 1f, 0f, 1f);
-            //emitterParams.startSize = 0.6f;
-        }
-    }
 
-    private void CreateEnvironment() {
-        // Check if this has already been built.
-        // If it has NOT:
-        if(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab == null) {
-            GameObject environmentGO = new GameObject("environment" + currentEvalTicket.genomeIndices[0].ToString());
-            Environment environmentScript = environmentGO.AddComponent<Environment>();
-            currentEnvironment = environmentScript;
-            environmentGO.transform.parent = gameObject.transform;
-            environmentGO.transform.localPosition = new Vector3(0f, 0f, 0f);
-            // This might only work if environment is completely static!!!! otherwise it could change inside original evalInstance and then that
-            // changed environment would be instantiated as fresh Environments for subsequent Evals!
-            environmentScript.CreateCollisionAndGameplayContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
-        }
-        else {
-            // Already built
-            Environment environmentScript = Instantiate<Environment>(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab) as Environment;
-            currentEnvironment = environmentScript;
-            currentEnvironment.gameObject.transform.parent = gameObject.transform;
-            currentEnvironment.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
-        }
+        emitterParamsDefault.startSize = 0.25f;
+        emitterParamsDefault.startColor = new Color(1f, 1f, 1f, 0.25f);
+        
+        emitterParamsWin.startSize = 1.2f;
+        emitterParamsWin.startColor = new Color(0.1f, 1f, 0.1f, 1f);
+
+        emitterParamsLose.startSize = 1.2f;
+        emitterParamsLose.startColor = new Color(1f, 0.1f, 0.1f, 1f);
+
+        emitterParamsDraw.startSize = 1.0f;
+        emitterParamsDraw.startColor = new Color(0.4f, 0.4f, 0.4f, 1f);
     }
 
     private void BruteForceInit() {
@@ -161,8 +175,14 @@ public class EvaluationInstance : MonoBehaviour {
         DeleteAllGameObjects();        
 
         currentTimeStep = 0;
+        gameWonOrLost = false; // <-- revisit this shit
+        //winnerPopIndex = -1; // <-- revisit this shit
 
         currentAgentsArray = new Agent[currentEvalTicket.genomeIndices.Length - 1];
+        agentGameScoresArray = new float[currentEvalTicket.genomeIndices.Length - 1][];
+        for(int i = 0; i < agentGameScoresArray.Length; i++) {
+            agentGameScoresArray[i] = new float[1];
+        }
 
         // Create Environment:
         CreateEnvironment();
@@ -174,7 +194,7 @@ public class EvaluationInstance : MonoBehaviour {
             agentGO.transform.localPosition = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartPosition;
             agentGO.transform.localRotation = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartRotation;
             Agent agentScript = agentGO.AddComponent<Agent>();
-            //agentScript.SetGenome(teamsConfig.playersList[0].agentGenomeList[currentEvalPair.evalPairIndices[1]]);
+            agentScript.isVisible = visible;
             agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i+1]]);
             currentAgentsArray[i] = agentScript;            
         }        
@@ -235,6 +255,27 @@ public class EvaluationInstance : MonoBehaviour {
             HookUpFitnessComponents();
         }        
     }
+    private void CreateEnvironment() {
+        // Check if this has already been built.
+        // If it has NOT:
+        if (teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab == null) {
+            GameObject environmentGO = new GameObject("environment" + currentEvalTicket.genomeIndices[0].ToString());
+            Environment environmentScript = environmentGO.AddComponent<Environment>();
+            currentEnvironment = environmentScript;
+            environmentGO.transform.parent = gameObject.transform;
+            environmentGO.transform.localPosition = new Vector3(0f, 0f, 0f);
+            // This might only work if environment is completely static!!!! otherwise it could change inside original evalInstance and then that
+            // changed environment would be instantiated as fresh Environments for subsequent Evals!
+            environmentScript.CreateCollisionAndGameplayContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
+        }
+        else {
+            // Already built
+            Environment environmentScript = Instantiate<Environment>(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab) as Environment;
+            currentEnvironment = environmentScript;
+            currentEnvironment.gameObject.transform.parent = gameObject.transform;
+            currentEnvironment.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
+        }
+    }
 
     public void HookUpModules() {
 
@@ -260,7 +301,6 @@ public class EvaluationInstance : MonoBehaviour {
                 break;
         }
     }
-
     public void HookUpFitnessComponents() {
 
         for(int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
@@ -281,7 +321,7 @@ public class EvaluationInstance : MonoBehaviour {
                     break;
                 case FitnessComponentType.ContactHazard:
                     FitCompContactHazard fitCompContactHazard = (FitCompContactHazard)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompContactHazard;
-                    fitCompContactHazard.contactingHazard = currentAgentsArray[populationIndex].segmentList[0].GetComponent<ContactSensor>().contact;
+                    fitCompContactHazard.contactingHazard = currentAgentsArray[populationIndex].segmentList[0].GetComponent<ContactSensorComponent>().contact;
                     //fitCompContactHazard
                     break;
                 case FitnessComponentType.DamageInflicted:
@@ -290,11 +330,129 @@ public class EvaluationInstance : MonoBehaviour {
                     break;
                 case FitnessComponentType.Health:
                     FitCompHealth fitCompHealth = (FitCompHealth)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompHealth;
-                    fitCompHealth.health = currentAgentsArray[populationIndex].segmentList[0].GetComponent<HealthModule>().health;
+                    fitCompHealth.health = currentAgentsArray[populationIndex].healthModuleList[0].health;
+                    break;
+                case FitnessComponentType.Random:
+                    // handled fully within the FitCompRandom class
+                    break;
+                case FitnessComponentType.WinLoss:
+                    FitCompWinLoss fitCompWinLoss = (FitCompWinLoss)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompWinLoss;                    
+                    fitCompWinLoss.score = agentGameScoresArray[populationIndex];
                     break;
                 default:
+                    Debug.LogError("ERROR!!! Fitness Type found!!! " + fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString());
                     break;
             }
         }
+    }
+    private void CalculateFitnessScores() {
+        if (!isExhibition) {
+            // Temp for now: in order to update positions...
+            HookUpFitnessComponents();
+
+            for (int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
+                fitnessComponentEvaluationGroup.fitCompList[i].TickScore();
+            }
+        }
+    }
+    // !#$!#$!@ HARDCODED FOR 1 or 2 players only!!!!
+    public void CalculateGameScores() {  // only applies to players for now...
+        //float winLossDraw = 0f;
+
+        if(gameWonOrLost) {  // if game is over
+
+        }
+        else {
+            agentGameScoresArray[0][0] = 0f;
+            if (currentAgentsArray.Length > 1)
+                agentGameScoresArray[1][0] = 0f;  // undecided
+
+            if(currentAgentsArray[0].segmentList[0].GetComponent<HealthModuleComponent>()) {
+                // if player 0 dead:
+                if (currentAgentsArray[0].segmentList[0].GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
+                    // if 2 players:
+                    if (currentAgentsArray.Length > 1) {
+                        //if player 0 dead AND player 1 dead:
+                        if (currentAgentsArray[1].segmentList[0].GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
+                            // ...then they died simultaneously -- DRAW
+                        }
+                        else { // player 0 dead and player 1 alive
+                               // Player 1 WINS!
+                            agentGameScoresArray[0][0] = -1f;
+                            agentGameScoresArray[1][0] = 1f;
+                            gameWonOrLost = true;
+                            //Debug.Log("Player 1 WINS!");
+                            
+                            if (emit && currentEvalTicket.focusPopIndex == 2) {  // Only Agents
+                                emitterParamsWin.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                particleCurves.Emit(emitterParamsWin, 8);
+                            }
+                            if (emit && currentEvalTicket.focusPopIndex == 1) {  // Only Agents
+                                emitterParamsLose.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                particleCurves.Emit(emitterParamsLose, 8);
+                            }
+                        }
+                    }
+                    else { // player0 died and is only player
+                        agentGameScoresArray[0][0] = -1f;
+                        gameWonOrLost = true;
+                    }
+                }
+                else {  // if Player 0 is alive:
+                        // if 2 players:
+                    if (currentAgentsArray.Length > 1) {
+                        //if player 0 alive but player 1 dead:
+                        if (currentAgentsArray[1].segmentList[0].GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
+                            // Player 0 WINS!
+                            agentGameScoresArray[0][0] = 1f;
+                            agentGameScoresArray[1][0] = -1f;
+                            gameWonOrLost = true;
+                            //Debug.Log("Player 0 WINS!");
+                            if (emit && currentEvalTicket.focusPopIndex == 1) {  // Only Agents
+                                emitterParamsWin.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                particleCurves.Emit(emitterParamsWin, 8);
+                            }
+                            if (emit && currentEvalTicket.focusPopIndex == 2) {  // Only Agents
+                                emitterParamsLose.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                particleCurves.Emit(emitterParamsLose, 8);
+                            }
+                        }
+                        else { // both players are alive!
+
+                        }
+                    }
+                    else { // player0 alive and is only player
+
+                    }
+                }
+            }            
+        }
+    }
+    public void AverageFitnessComponentsByTimeSteps() {
+        for (int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
+            if(fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.measure == FitnessComponentMeasure.Average) {
+                fitnessComponentEvaluationGroup.fitCompList[i].rawScore /= currentTimeStep;
+            }
+        }
+    }
+
+    public void SetInvisibleTraverse(GameObject obj) {
+        //print("SetInvisibleTraverse " + obj.name);
+        obj.layer = LayerMask.NameToLayer("Hidden");
+        //foreach (Transform child in obj.transform) {
+        //    SetInvisibleTraverse(child.gameObject);
+        //}
+        var children = new List<GameObject>();
+        foreach (Transform child in obj.transform) children.Add(child.gameObject);
+        children.ForEach(child => SetInvisibleTraverse(child.gameObject));
+    }
+    public void SetVisibleTraverse(GameObject obj) {
+        obj.layer = LayerMask.NameToLayer("Default");
+        //foreach (Transform child in obj.transform) {
+        //    SetVisibleTraverse(child.gameObject);
+        //}
+        var children = new List<GameObject>();
+        foreach (Transform child in obj.transform) children.Add(child.gameObject);
+        children.ForEach(child => SetVisibleTraverse(child.gameObject));
     }
 }

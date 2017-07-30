@@ -50,7 +50,7 @@ public class EnvironmentPopulation {
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.InitializeForNewGeneration(numGenomes);
 
-        trainingSettingsManager = new TrainingSettingsManager();
+        trainingSettingsManager = new TrainingSettingsManager(0.02f, 0.5f);
     }
 
     private void SetUpDefaultFitnessComponents(Challenge.Type challengeType, FitnessManager fitnessManager) {

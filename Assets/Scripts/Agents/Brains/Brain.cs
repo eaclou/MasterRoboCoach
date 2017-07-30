@@ -46,6 +46,8 @@ public class Brain {
             Axon axon = new Axon(fromID, toID, genome.linkList[i].weight);
             axonList.Add(axon);
         }
+
+        //PrintBrain();
     }
 
     public void BrainMasterFunction() {

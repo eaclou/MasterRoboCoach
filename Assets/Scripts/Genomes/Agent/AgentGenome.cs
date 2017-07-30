@@ -15,6 +15,9 @@ public class AgentGenome {
     public BrainGenome brainGenome;
     public List<SegmentGenome> segmentList;
     // Modules:
+    public List<HealthGenome> healthModuleList;
+    public List<ContactGenome> contactSensorList;
+
     public List<TargetSensorGenome> targetSensorList;
     public List<RaycastSensorGenome> raycastSensorList;
     public List<ThrusterGenome> thrusterList;
@@ -28,17 +31,6 @@ public class AgentGenome {
         this.index = index;
     }
 
-    /*[MenuItem("Assets/Create/My Scriptable Object")]
-    public static void CreateMyAsset() {
-        AgentGenome asset = ScriptableObject.CreateInstance<AgentGenome>();
-
-        AssetDatabase.CreateAsset(asset, "Assets/NewScripableObject.asset");
-        AssetDatabase.SaveAssets();
-
-        EditorUtility.FocusProjectWindow();
-
-        Selection.activeObject = asset;
-    }*/
     public void CopyGenomeFromTemplate(AgentGenome templateGenome) {
         // This method creates a clone of the provided ScriptableObject Genome - should have no shared references!!!
         // copy segment list:
@@ -83,6 +75,16 @@ public class AgentGenome {
             WeaponTazerGenome genomeCopy = new WeaponTazerGenome(templateGenome.weaponTazerList[i]);
             weaponTazerList.Add(genomeCopy);
         }
+        healthModuleList = new List<HealthGenome>();
+        for (int i = 0; i < templateGenome.healthModuleList.Count; i++) {
+            HealthGenome genomeCopy = new HealthGenome(templateGenome.healthModuleList[i]);
+            healthModuleList.Add(genomeCopy);
+        }
+        contactSensorList = new List<ContactGenome>();
+        for (int i = 0; i < templateGenome.contactSensorList.Count; i++) {
+            ContactGenome genomeCopy = new ContactGenome(templateGenome.contactSensorList[i]);
+            contactSensorList.Add(genomeCopy);
+        }
 
         // For now this is fine -- but eventually might want to copy brainGenome from saved asset!
         brainGenome = new BrainGenome();  // creates neuron and axonLists
@@ -122,17 +124,23 @@ public class AgentGenome {
         // Create Initial Neurons:
         for (int i = 0; i < targetSensorList.Count; i++) {
             NeuronGenome neuronX = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 0);
-            NeuronGenome neuronY = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 1);
-            NeuronGenome neuronZ = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 2);
-            NeuronGenome neuronVel = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 3);
-            NeuronGenome neuronAngVel = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 4);
-            NeuronGenome neuronInTarget = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 5);
+            NeuronGenome neuronZ = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 1);
+            NeuronGenome forward = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 2);
+            NeuronGenome horizontal = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 3);
+            NeuronGenome neuronInTarget = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 4);
+            NeuronGenome velX = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 5);
+            NeuronGenome velZ = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 6);
+            NeuronGenome health = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 7);
+            NeuronGenome attacking = new NeuronGenome(NeuronGenome.NeuronType.In, targetSensorList[i].inno, 8);
             brainGenome.neuronList.Add(neuronX);
-            brainGenome.neuronList.Add(neuronY);
             brainGenome.neuronList.Add(neuronZ);
-            brainGenome.neuronList.Add(neuronVel);
-            brainGenome.neuronList.Add(neuronAngVel);
+            brainGenome.neuronList.Add(forward);
+            brainGenome.neuronList.Add(horizontal);
             brainGenome.neuronList.Add(neuronInTarget);
+            brainGenome.neuronList.Add(velX);
+            brainGenome.neuronList.Add(velZ);
+            brainGenome.neuronList.Add(health);
+            brainGenome.neuronList.Add(attacking);
         }
         for (int i = 0; i < raycastSensorList.Count; i++) {
             //Debug.Log("raycastSensorList AgentGenome Init");
@@ -176,6 +184,16 @@ public class AgentGenome {
             NeuronGenome neuron2 = new NeuronGenome(NeuronGenome.NeuronType.Out, weaponTazerList[i].inno, 1);
             brainGenome.neuronList.Add(neuron1);
             brainGenome.neuronList.Add(neuron2);
+        }
+        for(int i = 0; i < healthModuleList.Count; i++) {
+            NeuronGenome health = new NeuronGenome(NeuronGenome.NeuronType.In, healthModuleList[i].inno, 0);
+            NeuronGenome takingDamage = new NeuronGenome(NeuronGenome.NeuronType.In, healthModuleList[i].inno, 1);
+            brainGenome.neuronList.Add(health);
+            brainGenome.neuronList.Add(takingDamage);
+        }
+        for (int i = 0; i < contactSensorList.Count; i++) {
+            NeuronGenome neuron1 = new NeuronGenome(NeuronGenome.NeuronType.In, contactSensorList[i].inno, 0);
+            brainGenome.neuronList.Add(neuron1);
         }
 
         int numInputs = 0;

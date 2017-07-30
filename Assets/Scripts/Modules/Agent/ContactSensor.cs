@@ -2,20 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ContactSensor : MonoBehaviour {
-    public bool contact = false;
+public class ContactSensor {
+    public int parentID;
+    public int inno;
+    public float[] contactSensor;
 
-    private void FixedUpdate() {
-        contact = false;
-    }
+    public ContactSensorComponent component;
 
-    private void OnCollisionEnter(Collision collision) {
-               
-    }
-
-    private void OnCollisionStay(Collision collision) {
-        if (collision.collider.tag == "hazard") {
-            contact = true;
-        }
+    public ContactSensor(ContactGenome genome) {
+        contactSensor = new float[1];
+        parentID = genome.parentID;
+        inno = genome.inno;
     }
 }

@@ -23,7 +23,7 @@ public class FitnessManager {
     }
    
     public void InitializeForNewGeneration(int populationSize) {
-        Debug.Log("InitializeForNewGeneration: " + populationSize.ToString());
+        //Debug.Log("InitializeForNewGeneration: " + populationSize.ToString());
         if (FitnessEvalGroupArray == null) {
             FitnessEvalGroupArray = new List<FitnessComponentEvaluationGroup>[populationSize];
             for (int i = 0; i < populationSize; i++) { // for each genome:                
@@ -99,7 +99,7 @@ public class FitnessManager {
         for (int f = 0; f < numComponents; f++) {
             componentWeightsNormalized[f] = Mathf.Clamp01(fitnessComponentDefinitions[f].weight / totalFitCompWeight);
             //temp
-            Debug.Log("component[" + f.ToString() + "] min: " + componentRecordMinimums[f].ToString() + ", max: " + componentRecordMaximums[f].ToString());
+            //Debug.Log("component[" + f.ToString() + "] min: " + componentRecordMinimums[f].ToString() + ", max: " + componentRecordMaximums[f].ToString());
         }
         // Loop through all genomes and tally up their scores from each of their evaluations
         for (int a = 0; a < FitnessEvalGroupArray.Length; a++) {  // a = genomes
@@ -151,10 +151,33 @@ public class FitnessManager {
                 }
             }
         }
-        string fitnessRankText = "";
+        /*string fitnessRankText = "";
         for (int i = 0; i < processedFitnessScores.Length; i++) {
             fitnessRankText += "[" + rankedIndicesList[i].ToString() + "]: " + rankedFitnessList[i].ToString() + "\n";
         }
         Debug.Log(fitnessRankText);
+        */
+    }
+
+    public int GetAgentIndexByLottery() {
+        int selectedIndex = 0;
+        // calculate total fitness of all agents
+        float totalFitness = 0f;
+        for(int i = 0; i < rankedFitnessList.Length; i++) {
+            totalFitness += (1f - rankedFitnessList[i]);  // Fitness right now is Lower = Better, so take inverse! Might want to change this...
+        }
+        // generate random lottery value between 0f and totalFitness:
+        float lotteryValue = UnityEngine.Random.Range(0f, totalFitness);
+        float currentValue = 0f;
+        for (int i = 0; i < rankedFitnessList.Length; i++) {
+            if(lotteryValue >= currentValue && lotteryValue < (currentValue + (1f - rankedFitnessList[i]))) {
+                // Jackpot!
+                selectedIndex = rankedIndicesList[i];
+                //Debug.Log("Selected: " + selectedIndex.ToString() + "! (" + i.ToString() + ") fit= " + currentValue.ToString() + "--" + (currentValue + (1f - rankedFitnessList[i])).ToString() + " / " + totalFitness.ToString() + ", lotto# " + lotteryValue.ToString() + ", fit= " + (1f - rankedFitnessList[i]).ToString());
+            }
+            currentValue += (1f - rankedFitnessList[i]); // add this agent's fitness to current value for next check            
+        }
+
+        return selectedIndex;
     }
 }

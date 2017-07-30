@@ -10,13 +10,13 @@ public class TrainingManager : MonoBehaviour {
     // Handles all of Training Mode:
     // Setting up evaluations
     // managing challenge & agent instances
-    private Challenge.Type challengeType;
-    private TeamsConfig teamsConfig; // holds all the data    
-    private EvaluationManager evaluationManager;  // keeps track of evaluation pairs & instances
+    public Challenge.Type challengeType;
+    public TeamsConfig teamsConfig; // holds all the data    
+    public EvaluationManager evaluationManager;  // keeps track of evaluation pairs & instances
 
     //private bool trainingModeActive = false; // are we in the training mode screen?
-    private bool isTraining = false; // actively evaluating
-    private bool trainingPaused = false;
+    public bool isTraining = false; // actively evaluating
+    public bool trainingPaused = false;
     public bool TrainingPaused
     {
         get
@@ -28,16 +28,16 @@ public class TrainingManager : MonoBehaviour {
 
         }
     }
-    public float playbackSpeed = 0.1f;
+    public float playbackSpeed = 1f;
     
     // Training Status:
-    private int playingCurGen = 0;
+    public int playingCurGen = 0;
 
     // Evaluation Settings:    
-    public float agentMutationChance = 0.1f;
-    public float agentMutationStepSize = 0.1f;
-    public float envMutationChance = 0.1f;
-    public float envMutationStepSize = 0.1f;
+    //public float agentMutationChance = 0.1f;
+    //public float agentMutationStepSize = 0.1f;
+    //public float envMutationChance = 0.1f;
+    //public float envMutationStepSize = 0.1f;
 
     // Camera: -- need to break this out away from TrainingManager
     public GameObject mainCamGroup;
@@ -115,7 +115,7 @@ public class TrainingManager : MonoBehaviour {
                 break;
         }
         // environment is evolvable, 1 player:
-        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 1, 2);        
+        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 1, 4);       
 
         playingCurGen = 0;
         
@@ -262,7 +262,7 @@ public class TrainingManager : MonoBehaviour {
     }
 
     public void TogglePlayPause() {
-        print("togglePlayPause");
+        //print("togglePlayPause");
         if(trainingPaused) {
             Time.timeScale = Mathf.Clamp(playbackSpeed, 0.1f, 100f);
         }
@@ -320,62 +320,7 @@ public class TrainingManager : MonoBehaviour {
             evaluationPairsList[currentEvalPairIndex].status = EvaluationPair.EvaluationStatus.PendingComplete;
         }*/
     }
-
-    public string GetCurrentGenText() {
-        return "Current Gen:\n" + playingCurGen.ToString();
-    }
-    public string GetContestantText() {
-        string text = "Contestant:\n";
-        /*if(isTraining) {
-            if (evaluationInstancesList[0].currentEvalPair != null) {
-                if (evaluationInstancesList[0].currentEvalPair.focusPopIndex == 0) {
-                    // environment?
-                    text += "Enviro " + (evaluationInstancesList[0].currentEvalPair.evalPairIndices[0] + 1).ToString() + " / " + teamsConfig.environmentGenomesList.Count.ToString();
-                }
-                else {
-                    // agent?
-                    text += "Agent " + (evaluationInstancesList[0].currentEvalPair.evalPairIndices[1] + 1).ToString() + " / " + teamsConfig.playersList[0].agentGenomeList.Count.ToString();
-                }
-            }
-        }*/              
-        return text;
-    }
-    public string GetOpponentText() {
-        string text = "Opponent:\n";
-        /*if (isTraining) {
-            if (evaluationInstancesList[0].currentEvalPair != null) {
-                if (evaluationInstancesList[0].currentEvalPair.focusPopIndex == 0) {
-                    // agent?
-                    text += "Agent " + (evaluationInstancesList[0].currentEvalPair.evalPairIndices[1] + 1).ToString() + " / " + teamsConfig.playersList[0].agentGenomeList.Count.ToString();
-                }
-                else {
-                    // environment?
-                    text += "Enviro " + (evaluationInstancesList[0].currentEvalPair.evalPairIndices[0] + 1).ToString() + " / " + teamsConfig.environmentGenomesList.Count.ToString();
-                }
-            }
-        } */               
-        return text;
-    }
-    public string GetTestingProgressText() {
-        string text = "Completion:\n";
-        /*if(isTraining) {
-            int numComplete = 0;
-            int numInProgress = 0;
-            int totalEvals = evaluationPairsList.Count;
-            for (int i = 0; i < evaluationPairsList.Count; i++) {
-                if (evaluationPairsList[i].status == EvaluationPair.EvaluationStatus.Complete) {
-                    numComplete++;
-                }
-                else if (evaluationPairsList[i].status == EvaluationPair.EvaluationStatus.InProgress) {
-                    numInProgress++;
-                }
-            }
-            float completionPercentage = 100f * (float)numComplete / (float)totalEvals;
-            text += "In Progress: " + numInProgress.ToString() + "   Complete: " + numComplete.ToString() + "/" + totalEvals.ToString() + "   [" + completionPercentage.ToString("F2") + "%]";
-        }*/
-        return text;
-    }
-
+    
     public void ClickCameraMode() {
         currentCameraMode++;
 
@@ -385,12 +330,12 @@ public class TrainingManager : MonoBehaviour {
     }
     
     private void NextGeneration() {
-        Debug.Log("Next Generation!");
+        Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
         particleTrajectories.Clear();
         // Crossover:
         teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness();
         for(int i = 0; i < teamsConfig.playersList.Count; i++) {
-            Debug.Log("Player " + i.ToString());
+            //Debug.Log("Player " + i.ToString());
             teamsConfig.playersList[i].fitnessManager.ProcessAndRankRawFitness();
         }
 
@@ -423,7 +368,10 @@ public class TrainingManager : MonoBehaviour {
         List<EnvironmentGenome> newGenGenomeList = new List<EnvironmentGenome>(); // new population!     
                 
         FitnessManager fitnessManager = teamsConfig.environmentPopulation.fitnessManager;
-
+        TrainingSettingsManager trainingSettingsManager = teamsConfig.environmentPopulation.trainingSettingsManager;
+        float mutationChance = trainingSettingsManager.mutationChance;
+        float mutationStepSize = trainingSettingsManager.mutationStepSize;
+        
         // Keep top-half peformers + mutations:
         for (int x = 0; x < teamsConfig.environmentPopulation.environmentGenomeList.Count; x++) {
             if (x == 0) {
@@ -432,9 +380,10 @@ public class TrainingManager : MonoBehaviour {
                 newGenGenomeList.Add(parentGenome);
             }
             else {
-                //EnvironmentGenome newGenome = new EnvironmentGenome(newGenGenomeList.Count, teamsConfig.challengeType);
-                EnvironmentGenome parentGenome = teamsConfig.environmentPopulation.environmentGenomeList[fitnessManager.rankedIndicesList[Mathf.FloorToInt(x / 2)]];
-                EnvironmentGenome newGenome = EnvironmentGenome.BirthNewGenome(parentGenome, newGenGenomeList.Count, teamsConfig.challengeType, envMutationChance, envMutationStepSize);
+                int parentIndex = fitnessManager.GetAgentIndexByLottery();
+                
+                EnvironmentGenome parentGenome = teamsConfig.environmentPopulation.environmentGenomeList[parentIndex];
+                EnvironmentGenome newGenome = EnvironmentGenome.BirthNewGenome(parentGenome, newGenGenomeList.Count, teamsConfig.challengeType, mutationChance, mutationStepSize);
                                 
                 newGenGenomeList.Add(newGenome);
             }                       
@@ -442,13 +391,15 @@ public class TrainingManager : MonoBehaviour {
 
         for (int i = 0; i < teamsConfig.environmentPopulation.environmentGenomeList.Count; i++) {
             teamsConfig.environmentPopulation.environmentGenomeList[i] = newGenGenomeList[i];
-            //EnvironmentGOList[i].GetComponent<Environment>().genome.brainGenome = newGenBrainGenomeList[i];
         }        
     }
     private void AgentCrossover(int playerIndex) {
         List<BrainGenome> newGenBrainGenomeList = new List<BrainGenome>(); // new population!        
 
         FitnessManager fitnessManager = teamsConfig.playersList[playerIndex].fitnessManager;
+        TrainingSettingsManager trainingSettingsManager = teamsConfig.playersList[playerIndex].trainingSettingsManager;
+        float mutationChance = trainingSettingsManager.mutationChance;
+        float mutationStepSize = trainingSettingsManager.mutationStepSize;
 
         // Keep top-half peformers + mutations:
         for (int x = 0; x < teamsConfig.playersList[playerIndex].agentGenomeList.Count; x++) {
@@ -459,16 +410,17 @@ public class TrainingManager : MonoBehaviour {
             else {
                 BrainGenome newBrainGenome = new BrainGenome();
                 // new BrainGenome creates new neuronList and linkList
+                int parentIndex = fitnessManager.GetAgentIndexByLottery();
 
-                BrainGenome parentGenome = teamsConfig.playersList[playerIndex].agentGenomeList[fitnessManager.rankedIndicesList[Mathf.FloorToInt(x / 2)]].brainGenome;
+                BrainGenome parentGenome = teamsConfig.playersList[playerIndex].agentGenomeList[parentIndex].brainGenome;
 
                 newBrainGenome.neuronList = parentGenome.neuronList; // UNSUSTAINABLE!!! might work now since all neuronLists are identical
                 for (int i = 0; i < parentGenome.linkList.Count; i++) {
                     LinkGenome newLinkGenome = new LinkGenome(parentGenome.linkList[i].fromModuleID, parentGenome.linkList[i].fromNeuronID, parentGenome.linkList[i].toModuleID, parentGenome.linkList[i].toNeuronID, parentGenome.linkList[i].weight, true);
                     float rand = UnityEngine.Random.Range(0f, 1f);
-                    if (rand < agentMutationChance) {
+                    if (rand < mutationChance) {
                         float randomWeight = Gaussian.GetRandomGaussian();
-                        newLinkGenome.weight = Mathf.Lerp(newLinkGenome.weight, randomWeight, agentMutationStepSize);
+                        newLinkGenome.weight = Mathf.Lerp(newLinkGenome.weight, randomWeight, mutationStepSize);
                     }
                     newBrainGenome.linkList.Add(newLinkGenome);
                 }
@@ -478,7 +430,6 @@ public class TrainingManager : MonoBehaviour {
 
         for (int i = 0; i < teamsConfig.playersList[playerIndex].agentGenomeList.Count; i++) {
             teamsConfig.playersList[playerIndex].agentGenomeList[i].brainGenome = newGenBrainGenomeList[i];
-            //agentGOList[i].GetComponent<Agent>().genome.brainGenome = newGenBrainGenomeList[i];
         }        
     }       
 }
