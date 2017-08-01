@@ -87,8 +87,8 @@ public class AgentGenome {
         }
 
         // For now this is fine -- but eventually might want to copy brainGenome from saved asset!
-        brainGenome = new BrainGenome();  // creates neuron and axonLists
-        InitializeRandomBrainGenome();
+        //brainGenome = new BrainGenome();  // creates neuron and axonLists
+        //InitializeRandomBrainGenome(0.1f);
     }
 
     /*public void TempInitializeTestGenome() {
@@ -119,7 +119,8 @@ public class AgentGenome {
         //PrintBrainGenome();
     }*/
 
-    public void InitializeRandomBrainGenome() {
+    public void InitializeRandomBrainGenome(float initialWeightMultiplier) {
+        brainGenome = new BrainGenome();
         //Debug.Log("InitializeRandomBrain");
         // Create Initial Neurons:
         for (int i = 0; i < targetSensorList.Count; i++) {
@@ -230,21 +231,21 @@ public class AgentGenome {
         // Initialize fully connected with all weights Random
         for (int i = 0; i < outputNeuronList.Count; i++) {
             for (int j = 0; j < inputNeuronList.Count; j++) {
-                float randomWeight = Gaussian.GetRandomGaussian() * 0.1f;
+                float randomWeight = Gaussian.GetRandomGaussian() * initialWeightMultiplier;
                 LinkGenome linkGenome = new LinkGenome(inputNeuronList[j].nid.moduleID, inputNeuronList[j].nid.neuronID, outputNeuronList[i].nid.moduleID, outputNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }
         }
         /*for (int i = 0; i < outputNeuronList.Count; i++) {
             for(int j = 0; j < hiddenNeuronList.Count; j++) {
-                float randomWeight = Gaussian.GetRandomGaussian() * 0.25f;
+                float randomWeight = Gaussian.GetRandomGaussian() * initialWeightMultiplier;
                 LinkGenome linkGenome = new LinkGenome(hiddenNeuronList[j].nid.moduleID, hiddenNeuronList[j].nid.neuronID, outputNeuronList[i].nid.moduleID, outputNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }
         }
         for (int i = 0; i < hiddenNeuronList.Count; i++) {
             for (int j = 0; j < inputNeuronList.Count; j++) {
-                float randomWeight = Gaussian.GetRandomGaussian() * 0.25f;
+                float randomWeight = Gaussian.GetRandomGaussian() * initialWeightMultiplier;
                 LinkGenome linkGenome = new LinkGenome(inputNeuronList[j].nid.moduleID, inputNeuronList[j].nid.neuronID, hiddenNeuronList[i].nid.moduleID, hiddenNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }

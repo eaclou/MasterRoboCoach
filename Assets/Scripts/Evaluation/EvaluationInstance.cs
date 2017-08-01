@@ -122,6 +122,13 @@ public class EvaluationInstance : MonoBehaviour {
         this.challengeType = teamsConfig.challengeType;
         this.maxTimeSteps = evalTicket.maxTimeSteps;
 
+        string debugname = "";
+        for( int i = 0; i < evalTicket.genomeIndices.Length; i++) {
+            debugname += evalTicket.genomeIndices[i].ToString() + ",";
+        }
+        debugname += evalTicket.focusPopIndex.ToString();
+        gameObject.name = debugname;
+
         // create particle key:
         int[] indices = new int[teamsConfig.playersList.Count + 2];
         indices[0] = evalTicket.focusPopIndex;
@@ -144,7 +151,8 @@ public class EvaluationInstance : MonoBehaviour {
                 emit = false;
         }
         else {
-            //Debug.Log("Eval Instance Setup FAIL " + txt);
+            if (!isExhibition)
+                //Debug.Log("Eval Instance Setup FAIL " + txt);
             emit = false;
         }
 

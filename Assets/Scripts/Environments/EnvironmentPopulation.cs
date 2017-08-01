@@ -79,15 +79,12 @@ public class EnvironmentPopulation {
         if (representativeGenomeList == null) {
             representativeGenomeList = new List<EnvironmentGenome>();
         }
-        representativeGenomeList.Clear();
+        else {
+            representativeGenomeList.Clear();
+        }        
 
-        for (int i = 0; i < numPerformanceReps; i++) {
-            if(i > environmentGenomeList.Count) {
-                Debug.LogError("more Representatives than Genomes!!!");
-            }
-            else {
-                representativeGenomeList.Add(environmentGenomeList[i]);
-            }            
+        for (int i = 0; i < numPerformanceReps; i++) {            
+            representativeGenomeList.Add(environmentGenomeList[i]);                       
         }
     }
 }

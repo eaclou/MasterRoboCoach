@@ -66,7 +66,7 @@ public class EvaluationManager {
         exhibitionParticleCurves = exhibitionParticleCurvesGO.AddComponent<ExhibitionParticleCurves>();
         exhibitionParticleCurves.CreateRepresentativeParticleSystems(teamsConfig);
     }
-
+    
     public void CreateDefaultEvaluationTickets(TeamsConfig teamsConfig) {
         allEvalsComplete = false;
         // $#%@$#%@$#
@@ -936,10 +936,13 @@ public class EvaluationManager {
         ClearEvaluationTickets();
         CreateDefaultEvaluationTickets(teamsConfig);
 
+        exhibitionParticleCurves.ClearAllSystems();
+        exhibitionParticleCurves.CreateRepresentativeParticleSystems(teamsConfig);
+
         allEvalsComplete = false;
         ResetExhibitionInstance(teamsConfig);
         exhibitionTicketCurrentIndex = 0;
-        exhibitionParticleCurves.ClearAllSystems();
+        
     }
 
     private void ToggleManualMode(bool val) {

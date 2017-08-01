@@ -115,7 +115,7 @@ public class TrainingManager : MonoBehaviour {
                 break;
         }
         // environment is evolvable, 1 player:
-        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 1, 4);       
+        teamsConfig = new TeamsConfig(numPlayers, this.challengeType, 1, 1);       
 
         playingCurGen = 0;
         
@@ -383,6 +383,7 @@ public class TrainingManager : MonoBehaviour {
             if (x == 0) {
                 // Top performer stays
                 EnvironmentGenome parentGenome = teamsConfig.environmentPopulation.environmentGenomeList[fitnessManager.rankedIndicesList[x]];
+                parentGenome.index = 0;
                 newGenGenomeList.Add(parentGenome);
             }
             else {
@@ -411,6 +412,7 @@ public class TrainingManager : MonoBehaviour {
         for (int x = 0; x < teamsConfig.playersList[playerIndex].agentGenomeList.Count; x++) {
             if(x == 0) {
                 BrainGenome parentGenome = teamsConfig.playersList[playerIndex].agentGenomeList[fitnessManager.rankedIndicesList[x]].brainGenome;
+                //parentGenome.index = 0;
                 newGenBrainGenomeList.Add(parentGenome);
             }
             else {

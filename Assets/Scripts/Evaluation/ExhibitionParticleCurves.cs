@@ -61,7 +61,17 @@ public class ExhibitionParticleCurves : MonoBehaviour {
     }
 
     public void CreateRepresentativeParticleSystems(TeamsConfig teamsConfig) {
-        particleDictionary = new Dictionary<string, ParticleSystem>();
+
+        var children = new List<GameObject>();
+        foreach (Transform child in gameObject.transform) children.Add(child.gameObject);
+        children.ForEach(child => Destroy(child));
+
+        if (particleDictionary == null) {
+            particleDictionary = new Dictionary<string, ParticleSystem>();
+        }
+        else {
+            particleDictionary.Clear();
+        }
 
         int numPlayers = teamsConfig.playersList.Count;
 
@@ -112,8 +122,10 @@ public class ExhibitionParticleCurves : MonoBehaviour {
                     for(int x = 0; x < indices.Length; x++) {
                         txt += indices[x].ToString();
                     }
-                    GameObject particleGO = new GameObject(txt);
-                    ParticleSystem particle = particleGO.AddComponent<ParticleSystem>();
+                    GameObject particleGO = Instantiate(Resources.Load("ParticleSystems/Trajectory")) as GameObject;
+                    particleGO.name = txt;
+                    particleGO.transform.parent = this.transform;
+                    ParticleSystem particle = particleGO.GetComponent<ParticleSystem>();
                     particleDictionary.Add(txt, particle);
                 }
             }

@@ -13,11 +13,14 @@ public class PlayerPopulation {
     public List<AgentGenome> representativeGenomeList;  // the list of agentGenomes that will be opponents for all other populations this round
     public List<AgentGenome> historicGenomePool;  // a collection of predecessor genomes that can be chosen from
     public List<AgentGenome> baselineGenomePool;  // a collection of blank and random genomes for fitness comparison purposes.
+    public int maxHistoricGenomePoolSize = 100;
 
     public FitnessManager fitnessManager; // keeps track of performance data from this population's agents
     public TrainingSettingsManager trainingSettingsManager;  // keeps track of core algorithm settings, like mutation rate, thoroughness, etc.
     public bool isTraining = true;
     public int numPerformanceReps = 1;
+    public int numHistoricalReps = 0;
+    public int numBaselineReps = 0;
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
     public PlayerPopulation(Challenge.Type challengeType, AgentGenome templateGenome, int numGenomes, int numReps) {
@@ -29,6 +32,7 @@ public class PlayerPopulation {
         for (int j = 0; j < numGenomes; j++) {
             AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
             agentGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
+            agentGenome.InitializeRandomBrainGenome(0.1f);
             agentGenomeList.Add(agentGenome);
         }
 
@@ -37,7 +41,15 @@ public class PlayerPopulation {
         ResetRepresentativesList();
 
         historicGenomePool = new List<AgentGenome>();
+        historicGenomePool.Add(agentGenomeList[0]); // init
         baselineGenomePool = new List<AgentGenome>();
+        int numBaselineGenomes = 20;
+        for (int j = 0; j < numBaselineGenomes; j++) {
+            AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
+            agentGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
+            agentGenome.InitializeRandomBrainGenome(0.5f * (float)j/(float)numBaselineGenomes);
+            baselineGenomePool.Add(agentGenome);
+        }
 
         fitnessManager = new FitnessManager();
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
@@ -91,6 +103,14 @@ public class PlayerPopulation {
 
         for (int i = 0; i < numPerformanceReps; i++) {
             representativeGenomeList.Add(agentGenomeList[i]);
+        }
+        for (int i = 0; i < numHistoricalReps; i++) {
+            int randIndex = Mathf.RoundToInt(UnityEngine.Random.Range(0f, (float)historicGenomePool.Count - 1f));
+            representativeGenomeList.Add(historicGenomePool[randIndex]);
+        }
+        for (int i = 0; i < numBaselineReps; i++) {
+            int randIndex = Mathf.RoundToInt(UnityEngine.Random.Range(0f, (float)baselineGenomePool.Count - 1f));
+            representativeGenomeList.Add(baselineGenomePool[randIndex]);
         }
     }
 }

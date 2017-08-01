@@ -12,6 +12,8 @@ public class FitnessManager {
     public float[] rankedFitnessList;
     public int[] rankedIndicesList;
     public float[] processedFitnessScores;
+
+    public int[] debugFitnessLottery;
     // TEMP OLD:
     //public List<float> rawFitnessScores;
     // New:
@@ -25,6 +27,16 @@ public class FitnessManager {
     }
    
     public void InitializeForNewGeneration(int populationSize) {
+        if(debugFitnessLottery == null) {
+            debugFitnessLottery = new int[populationSize];
+        }
+        else {
+            string txt = "";
+            for(int i = 0; i < debugFitnessLottery.Length; i++) {
+                txt += "index[" + i.ToString() + "] count: " + debugFitnessLottery[i].ToString() + "\n";
+            }
+            Debug.Log(txt);
+        }
         //Debug.Log("InitializeForNewGeneration: " + populationSize.ToString());
         if (FitnessEvalGroupArray == null) {
             FitnessEvalGroupArray = new List<FitnessComponentEvaluationGroup>[populationSize];
@@ -182,12 +194,12 @@ public class FitnessManager {
                 }
             }
         }
-        /*string fitnessRankText = "";
+        string fitnessRankText = "";
         for (int i = 0; i < processedFitnessScores.Length; i++) {
             fitnessRankText += "[" + rankedIndicesList[i].ToString() + "]: " + rankedFitnessList[i].ToString() + "\n";
         }
         Debug.Log(fitnessRankText);
-        */
+        
         
         // TEMP!
         AddTopHalfBonus();
@@ -195,9 +207,15 @@ public class FitnessManager {
 
     public void AddTopHalfBonus() {
         for(int i = 0; i < rankedFitnessList.Length; i++) {
+            //rankedFitnessList[rankedIndicesList[i]] = Mathf.Pow(rankedFitnessList[rankedIndicesList[i]], 4f);
             if(i*2 < rankedFitnessList.Length) {
-                rankedFitnessList[rankedIndicesList[i]] = 0f;
+                rankedFitnessList[i] = Mathf.Lerp(0f, rankedFitnessList[i], (float)i / (float)rankedFitnessList.Length);
             }
+            else {
+                rankedFitnessList[i] = Mathf.Lerp(rankedFitnessList[i], 1f, (float)i / (float)rankedFitnessList.Length);
+            }
+            //float bonus = 0.5f;
+            //rankedFitnessList[i] = Mathf.Lerp(rankedFitnessList[i], (float)i/(float)rankedFitnessList.Length, bonus);
         }
     }
 
@@ -215,11 +233,13 @@ public class FitnessManager {
             if(lotteryValue >= currentValue && lotteryValue < (currentValue + (1f - rankedFitnessList[i]))) {
                 // Jackpot!
                 selectedIndex = rankedIndicesList[i];
+                debugFitnessLottery[i]++;
                 //Debug.Log("Selected: " + selectedIndex.ToString() + "! (" + i.ToString() + ") fit= " + currentValue.ToString() + "--" + (currentValue + (1f - rankedFitnessList[i])).ToString() + " / " + totalFitness.ToString() + ", lotto# " + lotteryValue.ToString() + ", fit= " + (1f - rankedFitnessList[i]).ToString());
             }
             currentValue += (1f - rankedFitnessList[i]); // add this agent's fitness to current value for next check            
         }
 
+        
         return selectedIndex;
     }
 }

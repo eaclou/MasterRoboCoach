@@ -154,7 +154,7 @@ public class TrainingMenuUI : MonoBehaviour {
             txt += ", Genome: " + currentAgentGenome.index.ToString() + "\n";
             // Modules:
             Agent curAgent = trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
-            if (curAgent.healthModuleList != null)
+            if (curAgent.healthModuleList.Count > 0)
                 txt += "HEALTH: " + curAgent.healthModuleList[0].health.ToString() + " / " + curAgent.healthModuleList[0].maxHealth.ToString() + "\n";
             if (curAgent.targetSensorList != null) {
                 txt += "\nTARGET SENSOR: ";
@@ -188,23 +188,23 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "TORQUE: ";
                 txt += curAgent.torqueEffectorList[0].throttle[0].ToString() + "\n";
             }
-            if (curAgent.weaponProjectileList != null) {
+            if (curAgent.weaponProjectileList.Count > 0) {
                 txt += "\nWEAPON-PROJECTILE:\n";
                 txt += "Throttle = " + curAgent.weaponProjectileList[0].throttle[0].ToString() + "\n";
                 txt += "Damage Inflicted = " + curAgent.weaponProjectileList[0].damageInflicted[0].ToString() + "\n";
                 txt += "Energy = " + curAgent.weaponProjectileList[0].energy[0].ToString() + "\n";
             }
-            if (curAgent.weaponTazerList != null) {
+            if (curAgent.weaponTazerList.Count > 0) {
                 txt += "\nWEAPON-TAZER:\n";
                 txt += "Throttle = " + curAgent.weaponTazerList[0].throttle[0].ToString() + "\n";
                 txt += "Damage Inflicted = " + curAgent.weaponTazerList[0].damageInflicted[0].ToString() + "\n";
                 txt += "Energy = " + curAgent.weaponTazerList[0].energy[0].ToString() + "\n";
             }
-            if (curAgent.contactSensorList != null) {
+            if (curAgent.contactSensorList.Count > 0) {
                 txt += "\nCONTACT:\n";
                 txt += "Contact = " + curAgent.contactSensorList[0].contactSensor[0].ToString() + "\n";
             }
-            if (curAgent.healthModuleList != null) {
+            if (curAgent.healthModuleList.Count > 0) {
                 txt += "\nHEALTH:\n";
                 txt += "Health = " + curAgent.healthModuleList[0].healthSensor[0].ToString() + "\n";
                 txt += "Damage = " + curAgent.healthModuleList[0].takingDamage[0].ToString() + "\n";

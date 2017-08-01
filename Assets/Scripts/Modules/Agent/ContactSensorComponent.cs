@@ -21,8 +21,9 @@ public class ContactSensorComponent : MonoBehaviour {
     }
 
     private void OnCollisionStay(Collision collision) {
-        if (collision.collider.tag == "hazard") {
-            contact = true;
-        }
+        //if (collision.collider.tag == "hazard") {
+        //    contact = true;
+        //}
+        contact = true;
     }
 }
