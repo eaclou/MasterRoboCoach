@@ -932,7 +932,10 @@ public class EvaluationManager {
     }
 
     public void ResetForNewGeneration(TeamsConfig teamsConfig) {
-        ResetEvaluationTicketList();
+        //ResetEvaluationTicketList();
+        ClearEvaluationTickets();
+        CreateDefaultEvaluationTickets(teamsConfig);
+
         allEvalsComplete = false;
         ResetExhibitionInstance(teamsConfig);
         exhibitionTicketCurrentIndex = 0;

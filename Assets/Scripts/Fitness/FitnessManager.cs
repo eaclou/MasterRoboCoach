@@ -7,6 +7,7 @@ public class FitnessManager {
 
     // The list of types of FitnessComponents that are currently active and their weights:
     public List<FitnessComponentDefinition> fitnessComponentDefinitions;
+    public List<FitnessComponentDefinition> pendingFitnessComponentDefinitions; // edited by UI, applied each new generation
 
     public float[] rankedFitnessList;
     public int[] rankedIndicesList;
@@ -20,6 +21,7 @@ public class FitnessManager {
 
 	public FitnessManager() {
         fitnessComponentDefinitions = new List<FitnessComponentDefinition>();
+        pendingFitnessComponentDefinitions = new List<FitnessComponentDefinition>();
     }
    
     public void InitializeForNewGeneration(int populationSize) {
@@ -42,6 +44,35 @@ public class FitnessManager {
                     FitnessEvalGroupArray[i] = new List<FitnessComponentEvaluationGroup>(); // The list of fitness Component Groups                    
                 }                
             }
+        }
+
+        // copy pending changes into main List.
+        SetFitnessFunctionFromPending();
+        // then update pending list
+    }
+
+    public void SetFitnessFunctionFromPending() {
+        if (fitnessComponentDefinitions == null) {
+            fitnessComponentDefinitions = new List<FitnessComponentDefinition>();
+        }
+        else {
+            fitnessComponentDefinitions.Clear();
+        }
+        for (int i = 0; i < pendingFitnessComponentDefinitions.Count; i++) {
+            FitnessComponentDefinition definitionCopy = new FitnessComponentDefinition(pendingFitnessComponentDefinitions[i].type, pendingFitnessComponentDefinitions[i].measure, pendingFitnessComponentDefinitions[i].weight, pendingFitnessComponentDefinitions[i].biggerIsBetter);
+            fitnessComponentDefinitions.Add(definitionCopy);
+        }
+    }
+    public void SetPendingFitnessListFromMaster() {
+        if(pendingFitnessComponentDefinitions == null) {
+            pendingFitnessComponentDefinitions = new List<FitnessComponentDefinition>();
+        }
+        else {
+            pendingFitnessComponentDefinitions.Clear();
+        }
+        for(int i = 0; i < fitnessComponentDefinitions.Count; i++) {
+            FitnessComponentDefinition definitionCopy = new FitnessComponentDefinition(fitnessComponentDefinitions[i].type, fitnessComponentDefinitions[i].measure, fitnessComponentDefinitions[i].weight, fitnessComponentDefinitions[i].biggerIsBetter);
+            pendingFitnessComponentDefinitions.Add(definitionCopy);
         }
     }
 
@@ -130,7 +161,7 @@ public class FitnessManager {
     public void RankProcessedFitness() {
         rankedIndicesList = new int[processedFitnessScores.Length];
         rankedFitnessList = new float[processedFitnessScores.Length];
-
+        
         // populate arrays:
         for (int i = 0; i < processedFitnessScores.Length; i++) {
             rankedIndicesList[i] = i;
@@ -157,6 +188,17 @@ public class FitnessManager {
         }
         Debug.Log(fitnessRankText);
         */
+        
+        // TEMP!
+        AddTopHalfBonus();
+    }
+
+    public void AddTopHalfBonus() {
+        for(int i = 0; i < rankedFitnessList.Length; i++) {
+            if(i*2 < rankedFitnessList.Length) {
+                rankedFitnessList[rankedIndicesList[i]] = 0f;
+            }
+        }
     }
 
     public int GetAgentIndexByLottery() {

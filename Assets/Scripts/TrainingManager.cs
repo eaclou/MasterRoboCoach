@@ -334,7 +334,7 @@ public class TrainingManager : MonoBehaviour {
         particleTrajectories.Clear();
         // Crossover:
         teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness();
-        for(int i = 0; i < teamsConfig.playersList.Count; i++) {
+        for (int i = 0; i < teamsConfig.playersList.Count; i++) {
             //Debug.Log("Player " + i.ToString());
             teamsConfig.playersList[i].fitnessManager.ProcessAndRankRawFitness();
         }
@@ -344,8 +344,10 @@ public class TrainingManager : MonoBehaviour {
         // Cleanup for next Gen:
         // Reset fitness data:
         teamsConfig.environmentPopulation.fitnessManager.InitializeForNewGeneration(teamsConfig.environmentPopulation.environmentGenomeList.Count);
+        teamsConfig.environmentPopulation.ResetRepresentativesList();
         for (int i = 0; i < teamsConfig.playersList.Count; i++) {
             teamsConfig.playersList[i].fitnessManager.InitializeForNewGeneration(teamsConfig.playersList[i].agentGenomeList.Count);
+            teamsConfig.playersList[i].ResetRepresentativesList();
         }
         // Reset default evals + exhibition
         evaluationManager.ResetForNewGeneration(teamsConfig);
@@ -359,9 +361,13 @@ public class TrainingManager : MonoBehaviour {
         // Parallel List of the indices corresponding to those fitness scores.
         // Then the crossover/mutation functions should only need to take in the Fitness Manager in order to operate...
 
-        EnvironmentCrossover();
+        if(teamsConfig.environmentPopulation.isTraining) {
+            EnvironmentCrossover();
+        }        
         for(int i = 0; i < teamsConfig.playersList.Count; i++) {
-            AgentCrossover(i);
+            if(teamsConfig.playersList[i].isTraining) {
+                AgentCrossover(i);
+            }            
         }               
     }
     private void EnvironmentCrossover() {

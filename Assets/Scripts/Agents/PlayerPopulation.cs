@@ -34,10 +34,7 @@ public class PlayerPopulation {
 
         // Representatives:
         numPerformanceReps = numReps;
-        representativeGenomeList = new List<AgentGenome>();
-        for(int i = 0; i < numPerformanceReps; i++) {
-            representativeGenomeList.Add(agentGenomeList[i]);
-        }
+        ResetRepresentativesList();
 
         historicGenomePool = new List<AgentGenome>();
         baselineGenomePool = new List<AgentGenome>();
@@ -53,34 +50,47 @@ public class PlayerPopulation {
          
         switch(challengeType) {
             case Challenge.Type.Test:
-                FitnessComponentDefinition distToTargetSquared = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.1f, false);
+                FitnessComponentDefinition distToTargetSquared = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Avg, 0.1f, false);
                 fitnessManager.fitnessComponentDefinitions.Add(distToTargetSquared);
-                FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
+                FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, false);
                 fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
                 break;
             case Challenge.Type.Racing:
-                FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, false);
+                FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, false);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing1);
-                FitnessComponentDefinition fitCompRacing2 = new FitnessComponentDefinition(FitnessComponentType.Velocity, FitnessComponentMeasure.Average, 1f, true);
+                FitnessComponentDefinition fitCompRacing2 = new FitnessComponentDefinition(FitnessComponentType.Velocity, FitnessComponentMeasure.Avg, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing2);
                 break;
             case Challenge.Type.Combat:
-                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 0.1f, false);
+                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 0.5f, false);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat1);
                 //FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.2f, false);
                 //fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat2);
                 //FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.Velocity, FitnessComponentMeasure.Average, 0.2f, true);
                 //fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat3);
-                FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.DamageInflicted, FitnessComponentMeasure.Average, 1f, true);
+                FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.DamageInflicted, FitnessComponentMeasure.Avg, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat2);
-                FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.Health, FitnessComponentMeasure.Average, 0.1f, true);
+                FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.Health, FitnessComponentMeasure.Avg, 0.1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat3);
-                FitnessComponentDefinition fitCompCombat4 = new FitnessComponentDefinition(FitnessComponentType.WinLoss, FitnessComponentMeasure.Last, 0.5f, true);
+                FitnessComponentDefinition fitCompCombat4 = new FitnessComponentDefinition(FitnessComponentType.WinLoss, FitnessComponentMeasure.Last, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat4);
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
                 break;
+        }
+
+        fitnessManager.SetPendingFitnessListFromMaster(); // make pending list a copy of the primary
+    }
+
+    public void ResetRepresentativesList() {
+        if(representativeGenomeList == null) {
+            representativeGenomeList = new List<AgentGenome>();
+        }
+        representativeGenomeList.Clear();
+
+        for (int i = 0; i < numPerformanceReps; i++) {
+            representativeGenomeList.Add(agentGenomeList[i]);
         }
     }
 }

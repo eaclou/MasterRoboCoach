@@ -51,11 +51,11 @@ public class ExhibitionParticleCurves : MonoBehaviour {
         }
         ParticleSystem focusParticle;
         if(particleDictionary.TryGetValue(txt, out focusParticle)) {
-            Debug.Log("Found it! " + txt + ", " + test + ", " + ticket.focusPopIndex.ToString());            
+            //Debug.Log("Found it! " + txt + ", " + test + ", " + ticket.focusPopIndex.ToString());            
             focusParticle.gameObject.layer = LayerMask.NameToLayer("Default");
         }
         else {
-            Debug.Log("FAILED! " + txt);
+            //Debug.Log("FAILED! " + txt);
         }
 
     }

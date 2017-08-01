@@ -38,10 +38,7 @@ public class EnvironmentPopulation {
 
         // Representatives:
         numPerformanceReps = numReps;
-        representativeGenomeList = new List<EnvironmentGenome>();
-        for (int i = 0; i < numPerformanceReps; i++) {
-            representativeGenomeList.Add(environmentGenomeList[i]);
-        }
+        ResetRepresentativesList();        
         
         historicGenomePool = new List<EnvironmentGenome>();
         baselineGenomePool = new List<EnvironmentGenome>();
@@ -57,22 +54,40 @@ public class EnvironmentPopulation {
 
         switch (challengeType) {
             case Challenge.Type.Test:
-                FitnessComponentDefinition newComponent = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Average, 0.1f, true);
+                FitnessComponentDefinition newComponent = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Avg, 0.1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(newComponent);
-                FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, true);
+                FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
                 break;
             case Challenge.Type.Racing:
-                FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, true);
+                FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing1);
                 break;
             case Challenge.Type.Combat:
-                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Average, 1f, true);
+                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat1);
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
                 break;
+        }
+
+        fitnessManager.SetPendingFitnessListFromMaster(); // make pending list a copy of the primary
+    }
+
+    public void ResetRepresentativesList() {
+        if (representativeGenomeList == null) {
+            representativeGenomeList = new List<EnvironmentGenome>();
+        }
+        representativeGenomeList.Clear();
+
+        for (int i = 0; i < numPerformanceReps; i++) {
+            if(i > environmentGenomeList.Count) {
+                Debug.LogError("more Representatives than Genomes!!!");
+            }
+            else {
+                representativeGenomeList.Add(environmentGenomeList[i]);
+            }            
         }
     }
 }

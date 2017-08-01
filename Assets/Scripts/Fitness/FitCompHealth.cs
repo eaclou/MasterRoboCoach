@@ -13,7 +13,7 @@ public class FitCompHealth : FitCompBase {
     public override void TickScore() {
         //float velocity = vel.magnitude;
         switch (sourceDefinition.measure) {
-            case FitnessComponentMeasure.Average:
+            case FitnessComponentMeasure.Avg:
                 rawScore += health;
                 break;
             case FitnessComponentMeasure.Min:

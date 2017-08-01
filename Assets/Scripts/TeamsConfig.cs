@@ -12,7 +12,7 @@ public class TeamsConfig {
     
 
     // default population sizes:
-    private int numEnvironmentGenomes = 16;
+    private int numEnvironmentGenomes = 2;
     private int numAgentGenomesPerPlayer = 48;
 
 	public TeamsConfig(int numPlayers, Challenge.Type challengeType, int numEnvironmentReps, int numPlayerReps) {

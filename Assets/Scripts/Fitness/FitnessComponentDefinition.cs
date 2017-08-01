@@ -14,7 +14,7 @@ public enum FitnessComponentType {
 };
 [System.Serializable]
 public enum FitnessComponentMeasure {
-    Average,
+    Avg,
     Min,
     Max,
     Last

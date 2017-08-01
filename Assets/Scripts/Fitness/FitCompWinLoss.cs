@@ -14,7 +14,7 @@ public class FitCompWinLoss : FitCompBase {
     public override void TickScore() {
         
         switch (sourceDefinition.measure) {
-            case FitnessComponentMeasure.Average:
+            case FitnessComponentMeasure.Avg:
                 rawScore += score[0];
                 break;
             case FitnessComponentMeasure.Min:

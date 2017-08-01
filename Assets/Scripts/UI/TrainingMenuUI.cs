@@ -33,10 +33,18 @@ public class TrainingMenuUI : MonoBehaviour {
     public Button buttonDebugLeft;
     public Button buttonCycleDebugLeft;
 
-    public GameObject panelDebugRight;
-    public Text textDebugRight;
-    public Button buttonDebugRight;
-    public Button buttonCycleDebugRight;
+    //public GameObject panelDebugRight;
+    //public Text textDebugRight;
+    //public Button buttonDebugRight;
+    //public Button buttonCycleDebugRight;
+    public Button buttonTrainingSettings;
+    public Button buttonFitnessFunction;
+    public GameObject panelTrainingSettings;
+    public TrainingSettingsUI trainingSettingsUI;
+    public GameObject panelFitnessFunction;
+    public FitnessFunctionUI fitnessFunctionUI;
+    public bool fitnessFunctionOn = false;
+    public bool trainingSettingsOn = false;
 
     public Button buttonCycleFocusPop;
     public Button buttonPrevGenome;
@@ -85,17 +93,28 @@ public class TrainingMenuUI : MonoBehaviour {
             buttonDebugLeft.GetComponentInChildren<Text>().text = "+";
         }
 
-        if (debugRightOn) {
-            panelDebugRight.SetActive(true);
-            buttonDebugRight.GetComponentInChildren<Text>().text = "-";
-            SetDebugRightText();
+        if(fitnessFunctionOn) {
+            panelFitnessFunction.SetActive(true);
+            trainingSettingsOn = false;
+            panelTrainingSettings.SetActive(false);
+            
         }
         else {
-            panelDebugRight.SetActive(false);
-            buttonDebugRight.GetComponentInChildren<Text>().text = "+";
+            panelFitnessFunction.SetActive(false);
+        }
+        if (trainingSettingsOn) {
+            panelTrainingSettings.SetActive(true);
+            fitnessFunctionOn = false;
+            panelFitnessFunction.SetActive(false);
+
+            // original bool check should prevent this trying to gather info from Trainer before it is initialized
+            trainingSettingsUI.SetStatusFromData(trainerRef);
+        }
+        else {
+            panelTrainingSettings.SetActive(false);
         }
 
-        if(trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
+        if (trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
             buttonCycleFocusPop.GetComponentInChildren<Text>().text = "ENV";            
         }
         else {
@@ -292,17 +311,9 @@ public class TrainingMenuUI : MonoBehaviour {
                 break;
         }
     }
-    private void SetDebugRightText() {
+    
 
-    }
-
-    //public string GetCurrentGenText() {
-    //    return "Current Gen:\n" + mainMenuRef.gameManagerRef.trainerRef.playingCurGen.ToString();
-    //}
-    //public string GetExhibitionText() {
-    //    string text = "Exhibition Match:\n" + trainerRef.evaluationManager.exhibitionTicketCurrentIndex.ToString();        
-    //    return text;
-    //}
+    
     public string GetContestantsText() {
         string text = "Exhibition Match: " + trainerRef.evaluationManager.exhibitionTicketCurrentIndex.ToString() + "\n";
         if (trainerRef.isTraining) {
@@ -404,6 +415,7 @@ public class TrainingMenuUI : MonoBehaviour {
         //    focusPopIndex = 0;
         //}
         trainerRef.evaluationManager.ExhibitionCycleFocusPop(trainerRef.teamsConfig);
+        fitnessFunctionUI.SetStatusFromData(trainerRef);
     }
 
     public void ClickButtonDebugLeft() {
@@ -421,21 +433,6 @@ public class TrainingMenuUI : MonoBehaviour {
         }
         debugLeftCurrentPage = (DebugLeftCurrentPage)newPage;        
     }
-    public void ClickButtonDebugRight() {
-        //Debug.Log("ClickButtonDebugRight");
-        debugRightOn = !debugRightOn;
-    }
-    public void ClickButtonCycleDebugRight() {
-        //Debug.Log("ClickButtonCycleDebugRight");
-
-        int numPages = System.Enum.GetNames(typeof(DebugRightCurrentPage)).Length;
-        int curPage = (int)debugRightCurrentPage;
-        int newPage = curPage + 1;
-        if (newPage >= numPages) {
-            newPage = 0;
-        }
-        debugRightCurrentPage = (DebugRightCurrentPage)newPage;
-    }
 
     public void ClickButtonPrevGenome() {
         trainerRef.evaluationManager.ExhibitionPrevGenome(trainerRef.teamsConfig);
@@ -445,5 +442,25 @@ public class TrainingMenuUI : MonoBehaviour {
     }
     public void ClickButtonNextGenome() {
         trainerRef.evaluationManager.ExhibitionNextGenome(trainerRef.teamsConfig);
+    }
+
+    public void ClickButtonTrainingSettings() {
+        if(trainingSettingsOn) {
+            trainingSettingsOn = false;
+        }
+        else {
+            trainingSettingsOn = true;
+        }        
+        fitnessFunctionOn = false;
+    }
+    public void ClickButtonFitnessFunction() {
+        if (fitnessFunctionOn) {
+            fitnessFunctionOn = false;
+        }
+        else {
+            fitnessFunctionOn = true;
+            fitnessFunctionUI.SetStatusFromData(trainerRef);
+        }
+        trainingSettingsOn = false;
     }
 }

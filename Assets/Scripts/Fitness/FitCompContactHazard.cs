@@ -19,7 +19,7 @@ public class FitCompContactHazard : FitCompBase {
             contact = 0f;
         }
         switch (sourceDefinition.measure) {
-            case FitnessComponentMeasure.Average:
+            case FitnessComponentMeasure.Avg:
                 rawScore += contact;
                 break;
             case FitnessComponentMeasure.Min:

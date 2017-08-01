@@ -84,7 +84,7 @@ public class EvaluationInstance : MonoBehaviour {
         }
 
         if (emit && currentEvalTicket.focusPopIndex > 0) {  // Only Agents
-            if(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList != null) {
+            if(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList.Count > 0) {
                 emitterParamsDefault.startColor = Color.Lerp(new Color(1f, 0f, 0f, 0.25f), new Color(0f, 1f, 0f, 0.25f), currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList[0].healthSensor[0]);
                 //emitterParamsDefault.startColor.a = 0.5f;
             }
@@ -430,7 +430,7 @@ public class EvaluationInstance : MonoBehaviour {
     }
     public void AverageFitnessComponentsByTimeSteps() {
         for (int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
-            if(fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.measure == FitnessComponentMeasure.Average) {
+            if(fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.measure == FitnessComponentMeasure.Avg) {
                 fitnessComponentEvaluationGroup.fitCompList[i].rawScore /= currentTimeStep;
             }
         }

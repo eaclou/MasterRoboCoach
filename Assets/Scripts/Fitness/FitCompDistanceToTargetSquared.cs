@@ -17,7 +17,7 @@ public class FitCompDistanceToTargetSquared : FitCompBase {
     public override void TickScore() {
         float distSquared = (pointB[0] - pointA[0]).sqrMagnitude;
         switch(sourceDefinition.measure) {
-            case FitnessComponentMeasure.Average:
+            case FitnessComponentMeasure.Avg:
                 rawScore += distSquared;
                 break;
             case FitnessComponentMeasure.Min:

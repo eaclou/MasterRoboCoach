@@ -208,8 +208,8 @@ public class AgentGenome {
 
         // Create Hidden nodes TEMP!!!!
         for (int i = 0; i < numInputs; i++) {
-            NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.Hid, 20, i);
-            brainGenome.neuronList.Add(neuron);
+            //NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.Hid, 20, i);
+            //brainGenome.neuronList.Add(neuron);
         }
 
         // Create initial connections -- :
@@ -228,14 +228,14 @@ public class AgentGenome {
             }
         }
         // Initialize fully connected with all weights Random
-        /*for (int i = 0; i < outputNeuronList.Count; i++) {
+        for (int i = 0; i < outputNeuronList.Count; i++) {
             for (int j = 0; j < inputNeuronList.Count; j++) {
-                float randomWeight = Gaussian.GetRandomGaussian() * 1f;
+                float randomWeight = Gaussian.GetRandomGaussian() * 0.1f;
                 LinkGenome linkGenome = new LinkGenome(inputNeuronList[j].nid.moduleID, inputNeuronList[j].nid.neuronID, outputNeuronList[i].nid.moduleID, outputNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }
-        }*/
-        for (int i = 0; i < outputNeuronList.Count; i++) {
+        }
+        /*for (int i = 0; i < outputNeuronList.Count; i++) {
             for(int j = 0; j < hiddenNeuronList.Count; j++) {
                 float randomWeight = Gaussian.GetRandomGaussian() * 0.25f;
                 LinkGenome linkGenome = new LinkGenome(hiddenNeuronList[j].nid.moduleID, hiddenNeuronList[j].nid.neuronID, outputNeuronList[i].nid.moduleID, outputNeuronList[i].nid.neuronID, randomWeight, true);
@@ -248,7 +248,7 @@ public class AgentGenome {
                 LinkGenome linkGenome = new LinkGenome(inputNeuronList[j].nid.moduleID, inputNeuronList[j].nid.neuronID, hiddenNeuronList[i].nid.moduleID, hiddenNeuronList[i].nid.neuronID, randomWeight, true);
                 brainGenome.linkList.Add(linkGenome);
             }
-        }
+        }*/
 
         //PrintBrainGenome();
     }
