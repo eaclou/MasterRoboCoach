@@ -15,6 +15,8 @@ public class PlayerPopulation {
     public List<AgentGenome> baselineGenomePool;  // a collection of blank and random genomes for fitness comparison purposes.
     public int maxHistoricGenomePoolSize = 100;
 
+    public int popSize;
+    public int numBaseline;
     public FitnessManager fitnessManager; // keeps track of performance data from this population's agents
     public TrainingSettingsManager trainingSettingsManager;  // keeps track of core algorithm settings, like mutation rate, thoroughness, etc.
     public bool isTraining = true;
@@ -23,39 +25,51 @@ public class PlayerPopulation {
     public int numBaselineReps = 0;
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
-    public PlayerPopulation(Challenge.Type challengeType, AgentGenome templateGenome, int numGenomes, int numReps) {
-        //this.templateGenome = new AgentGenome(-1);
-        //templateGenome.CopyGenomeFromTemplate(templateGenome);
+    public PlayerPopulation(Challenge.Type challengeType, AgentGenome templateGenome, int numGenomes, int numBaseline, int numReps) {
 
+        popSize = numGenomes;
+        this.numBaseline = numBaseline;
+        
         // Create blank AgentGenomes for the standard population
         agentGenomeList = new List<AgentGenome>();
+        historicGenomePool = new List<AgentGenome>();
+        baselineGenomePool = new List<AgentGenome>();
+
         for (int j = 0; j < numGenomes; j++) {
             AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
             agentGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
-            agentGenome.InitializeRandomBrainGenome(0.1f);
+            agentGenome.InitializeRandomBrainGenome(0.25f);
             agentGenomeList.Add(agentGenome);
+
+            AgentGenome baselineGenome = new AgentGenome(j);  // empty constructor
+            baselineGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
+            baselineGenome.InitializeRandomBrainGenome(0.25f);
+            baselineGenomePool.Add(baselineGenome);
         }
+        AppendBaselineGenomes();
 
         // Representatives:
         numPerformanceReps = numReps;
         ResetRepresentativesList();
-
-        historicGenomePool = new List<AgentGenome>();
         historicGenomePool.Add(agentGenomeList[0]); // init
-        baselineGenomePool = new List<AgentGenome>();
-        int numBaselineGenomes = 20;
-        for (int j = 0; j < numBaselineGenomes; j++) {
-            AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
-            agentGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
-            agentGenome.InitializeRandomBrainGenome(0.5f * (float)j/(float)numBaselineGenomes);
-            baselineGenomePool.Add(agentGenome);
-        }
 
         fitnessManager = new FitnessManager();
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
-        fitnessManager.InitializeForNewGeneration(numGenomes);
+        fitnessManager.InitializeForNewGeneration(agentGenomeList.Count);
         
         trainingSettingsManager = new TrainingSettingsManager(0.005f, 0.5f);
+    }
+
+    public void TrimBaselineGenomes() {
+        agentGenomeList.RemoveRange(popSize, numBaseline);
+    }
+    public void AppendBaselineGenomes() {
+        for (int j = 0; j < numBaseline; j++) {
+            // randomly select x baseline genomes to add into primary genomeList
+            // these will be tested alongside the primary pool
+            int randIndex = Mathf.RoundToInt(UnityEngine.Random.Range(0f, (float)baselineGenomePool.Count - 1f));
+            agentGenomeList.Add(baselineGenomePool[randIndex]);
+        }
     }
 
     private void SetUpDefaultFitnessComponents(Challenge.Type challengeType, FitnessManager fitnessManager) {
@@ -112,5 +126,12 @@ public class PlayerPopulation {
             int randIndex = Mathf.RoundToInt(UnityEngine.Random.Range(0f, (float)baselineGenomePool.Count - 1f));
             representativeGenomeList.Add(baselineGenomePool[randIndex]);
         }
+
+        //string txt = "RepresentativeList:";
+        //for(int i = 0; i < representativeGenomeList.Count; i++) {
+        //    txt += i.ToString() + ", " + representativeGenomeList[i].index.ToString() + "... ";
+        //}
+        //Debug.Log(txt);
     }
+    
 }

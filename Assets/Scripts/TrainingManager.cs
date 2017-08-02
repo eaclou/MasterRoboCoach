@@ -333,22 +333,37 @@ public class TrainingManager : MonoBehaviour {
         Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
         particleTrajectories.Clear();
         // Crossover:
-        teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness();
+        teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness(teamsConfig.environmentPopulation.popSize);
+        // Record and Remove Baseline Genomes:
+        teamsConfig.environmentPopulation.TrimBaselineGenomes();
         for (int i = 0; i < teamsConfig.playersList.Count; i++) {
             //Debug.Log("Player " + i.ToString());
-            teamsConfig.playersList[i].fitnessManager.ProcessAndRankRawFitness();
+            teamsConfig.playersList[i].fitnessManager.ProcessAndRankRawFitness(teamsConfig.playersList[i].popSize);
+            // Record and Remove Baseline Genomes:
+            teamsConfig.playersList[i].TrimBaselineGenomes();
         }
-
+        
         Crossover();
 
         // Cleanup for next Gen:
         // Reset fitness data:
+        // RE-Sample and Add Baseline Genomes:
+        teamsConfig.environmentPopulation.AppendBaselineGenomes();
         teamsConfig.environmentPopulation.fitnessManager.InitializeForNewGeneration(teamsConfig.environmentPopulation.environmentGenomeList.Count);
+        teamsConfig.environmentPopulation.historicGenomePool.Add(teamsConfig.environmentPopulation.environmentGenomeList[0]);
         teamsConfig.environmentPopulation.ResetRepresentativesList();
+        
         for (int i = 0; i < teamsConfig.playersList.Count; i++) {
+            // RE-Sample and Add Baseline Genomes:
+            teamsConfig.playersList[i].AppendBaselineGenomes();
             teamsConfig.playersList[i].fitnessManager.InitializeForNewGeneration(teamsConfig.playersList[i].agentGenomeList.Count);
+            teamsConfig.playersList[i].historicGenomePool.Add(teamsConfig.playersList[i].agentGenomeList[0]);
             teamsConfig.playersList[i].ResetRepresentativesList();
+            
         }
+
+
+
         // Reset default evals + exhibition
         evaluationManager.ResetForNewGeneration(teamsConfig);
 

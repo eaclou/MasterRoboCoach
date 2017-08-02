@@ -13,7 +13,9 @@ public class FitnessManager {
     public int[] rankedIndicesList;
     public float[] processedFitnessScores;
 
-    public int[] debugFitnessLottery;
+    public List<float> baselineScoresAvgList;
+
+    //public int[] debugFitnessLottery;
     // TEMP OLD:
     //public List<float> rawFitnessScores;
     // New:
@@ -24,19 +26,11 @@ public class FitnessManager {
 	public FitnessManager() {
         fitnessComponentDefinitions = new List<FitnessComponentDefinition>();
         pendingFitnessComponentDefinitions = new List<FitnessComponentDefinition>();
+        baselineScoresAvgList = new List<float>();
     }
    
     public void InitializeForNewGeneration(int populationSize) {
-        if(debugFitnessLottery == null) {
-            debugFitnessLottery = new int[populationSize];
-        }
-        else {
-            string txt = "";
-            for(int i = 0; i < debugFitnessLottery.Length; i++) {
-                txt += "index[" + i.ToString() + "] count: " + debugFitnessLottery[i].ToString() + "\n";
-            }
-            Debug.Log(txt);
-        }
+        
         //Debug.Log("InitializeForNewGeneration: " + populationSize.ToString());
         if (FitnessEvalGroupArray == null) {
             FitnessEvalGroupArray = new List<FitnessComponentEvaluationGroup>[populationSize];
@@ -97,8 +91,37 @@ public class FitnessManager {
         FitnessEvalGroupArray[genomeIndex].Add(groupCopy);
     }
 
-    public void ProcessAndRankRawFitness() {
+    public void ProcessAndRankRawFitness(int popSize) {
         ProcessRawFitness();
+
+        float totalBaselineScore = 0f;
+        for(int i = popSize; i < processedFitnessScores.Length; i++) {
+            totalBaselineScore += processedFitnessScores[i];
+        }
+        float baselineScoresAvg = totalBaselineScore / (processedFitnessScores.Length - popSize);
+
+        float[] trimmedFitnessScoresArray = new float[popSize];
+        for(int j = 0; j < popSize; j++) {
+            trimmedFitnessScoresArray[j] = processedFitnessScores[j];
+        }
+        processedFitnessScores = trimmedFitnessScoresArray;
+
+
+        // Debug:
+        float totalScore = 0f;
+        for (int i = 0; i < popSize; i++) {
+            totalScore += processedFitnessScores[i];
+        }
+        totalScore = totalScore / popSize;
+
+        //Debug.Log("PrimaryScore: " + totalScore.ToString() + ", baselineScore: " + baselineScoresAvg.ToString() + ", Ratio: " + (totalScore / baselineScoresAvg).ToString());
+        baselineScoresAvgList.Add(totalScore / baselineScoresAvg);
+        string txt = "FitnessRatios: \n";
+        int numLines = Mathf.RoundToInt(Mathf.Min(20, baselineScoresAvgList.Count));
+        for(int i = numLines; i > 0; i--) {
+            txt += baselineScoresAvgList[i - 1].ToString() + "\n";
+        }
+        Debug.Log(txt);
         RankProcessedFitness();
     }
 
@@ -233,7 +256,7 @@ public class FitnessManager {
             if(lotteryValue >= currentValue && lotteryValue < (currentValue + (1f - rankedFitnessList[i]))) {
                 // Jackpot!
                 selectedIndex = rankedIndicesList[i];
-                debugFitnessLottery[i]++;
+                
                 //Debug.Log("Selected: " + selectedIndex.ToString() + "! (" + i.ToString() + ") fit= " + currentValue.ToString() + "--" + (currentValue + (1f - rankedFitnessList[i])).ToString() + " / " + totalFitness.ToString() + ", lotto# " + lotteryValue.ToString() + ", fit= " + (1f - rankedFitnessList[i]).ToString());
             }
             currentValue += (1f - rankedFitnessList[i]); // add this agent's fitness to current value for next check            

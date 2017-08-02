@@ -14,6 +14,7 @@ public class TeamsConfig {
     // default population sizes:
     private int numEnvironmentGenomes = 2;
     private int numAgentGenomesPerPlayer = 48;
+    private int numBaselineGenomes = 4;
 
 	public TeamsConfig(int numPlayers, Challenge.Type challengeType, int numEnvironmentReps, int numPlayerReps) {
         this.challengeType = challengeType;
@@ -23,7 +24,7 @@ public class TeamsConfig {
         // Teams:
         // Environment
         EnvironmentGenome templateEnvironmentGenome = GetDefaultTemplateEnvironmentGenome(challengeType);
-        environmentPopulation = new EnvironmentPopulation(challengeType, templateEnvironmentGenome, numEnvironmentGenomes, numEnvironmentReps);
+        environmentPopulation = new EnvironmentPopulation(challengeType, templateEnvironmentGenome, numEnvironmentGenomes, numBaselineGenomes, numEnvironmentReps);
         
         // Players:
         playersList = new List<PlayerPopulation>();
@@ -31,7 +32,7 @@ public class TeamsConfig {
             // Might have to revisit how to pass agent templates per population...
             AgentGenome templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
             // List of Agent Genomes
-            PlayerPopulation player = new PlayerPopulation(challengeType, templateAgentGenome, numAgentGenomesPerPlayer, numPlayerReps);
+            PlayerPopulation player = new PlayerPopulation(challengeType, templateAgentGenome, numAgentGenomesPerPlayer, numBaselineGenomes, numPlayerReps);
 
             playersList.Add(player);
         }

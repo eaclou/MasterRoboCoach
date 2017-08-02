@@ -16,9 +16,15 @@ public class TrainingSettingsUI : MonoBehaviour {
     public Button buttonMutationStepSizeIncrease;
     public Text textMutationStepSizeValue;
 
-    public Button buttonRepresentativesDecrease;
-    public Button buttonRepresentativesIncrease;
-    public Text textRepresentativesValue;
+    public Button buttonRepresentativesPerfDecrease;
+    public Button buttonRepresentativesPerfIncrease;
+    public Text textRepresentativesPerfValue;
+    public Button buttonRepresentativesHistDecrease;
+    public Button buttonRepresentativesHistIncrease;
+    public Text textRepresentativesHistValue;
+    public Button buttonRepresentativesBaseDecrease;
+    public Button buttonRepresentativesBaseIncrease;
+    public Text textRepresentativesBaseValue;
 
     public Button buttonEvolving;
 
@@ -36,21 +42,29 @@ public class TrainingSettingsUI : MonoBehaviour {
     public void SetStatusFromData(TrainingManager trainerRef) {
         this.trainerRef = trainerRef;
         int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
-        int numReps = 1;
+        int numPerfReps = 0;
+        int numHistReps = 0;
+        int numBaseReps = 0;
         bool isEvolving;
         if (focusPop < 1) {
             // env
-            numReps = trainerRef.teamsConfig.environmentPopulation.numPerformanceReps;
+            numPerfReps = trainerRef.teamsConfig.environmentPopulation.numPerformanceReps;
+            numHistReps = trainerRef.teamsConfig.environmentPopulation.numHistoricalReps;
+            numBaseReps = trainerRef.teamsConfig.environmentPopulation.numBaselineReps;
             currentTrainingSettingsRef = trainerRef.teamsConfig.environmentPopulation.trainingSettingsManager;
             isEvolving = trainerRef.teamsConfig.environmentPopulation.isTraining;
         }
         else {
-            numReps = trainerRef.teamsConfig.playersList[focusPop - 1].numPerformanceReps;
+            numPerfReps = trainerRef.teamsConfig.playersList[focusPop - 1].numPerformanceReps;
+            numHistReps = trainerRef.teamsConfig.playersList[focusPop - 1].numHistoricalReps;
+            numBaseReps = trainerRef.teamsConfig.playersList[focusPop - 1].numBaselineReps;
             currentTrainingSettingsRef = trainerRef.teamsConfig.playersList[focusPop - 1].trainingSettingsManager;
             isEvolving = trainerRef.teamsConfig.playersList[focusPop - 1].isTraining;
         }
 
-        textRepresentativesValue.text = numReps.ToString();
+        textRepresentativesPerfValue.text = numPerfReps.ToString();
+        textRepresentativesHistValue.text = numHistReps.ToString();
+        textRepresentativesBaseValue.text = numBaseReps.ToString();
         textMutationChanceValue.text = (100f * currentTrainingSettingsRef.mutationChance).ToString("F3") + "%";
         textMutationStepSizeValue.text = (100f * currentTrainingSettingsRef.mutationStepSize).ToString("F1") + "%";
 
@@ -91,7 +105,7 @@ public class TrainingSettingsUI : MonoBehaviour {
         }
     }
 
-    public void ClickButtonRepresentativesDecrease() {
+    public void ClickButtonRepsPerfDecrease() {
         int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
         
         if (focusPop < 1) {
@@ -108,7 +122,7 @@ public class TrainingSettingsUI : MonoBehaviour {
             }
         }
     }
-    public void ClickButtonRepresentativesIncrease() {
+    public void ClickButtonRepsPerfIncrease() {
         int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
 
         if (focusPop < 1) {
@@ -122,6 +136,76 @@ public class TrainingSettingsUI : MonoBehaviour {
             trainerRef.teamsConfig.playersList[focusPop - 1].numPerformanceReps += 1;
             if (trainerRef.teamsConfig.playersList[focusPop - 1].numPerformanceReps > 10) {
                 trainerRef.teamsConfig.playersList[focusPop - 1].numPerformanceReps = 10;
+            }
+        }
+    }
+
+    public void ClickButtonRepsHistDecrease() {
+        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+
+        if (focusPop < 1) {
+            // env
+            trainerRef.teamsConfig.environmentPopulation.numHistoricalReps -= 1;
+            if (trainerRef.teamsConfig.environmentPopulation.numHistoricalReps < 0) {
+                trainerRef.teamsConfig.environmentPopulation.numHistoricalReps = 0;
+            }
+        }
+        else {
+            trainerRef.teamsConfig.playersList[focusPop - 1].numHistoricalReps -= 1;
+            if (trainerRef.teamsConfig.playersList[focusPop - 1].numHistoricalReps < 0) {
+                trainerRef.teamsConfig.playersList[focusPop - 1].numHistoricalReps = 0;
+            }
+        }
+    }
+    public void ClickButtonRepsHistIncrease() {
+        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+
+        if (focusPop < 1) {
+            // env
+            trainerRef.teamsConfig.environmentPopulation.numHistoricalReps += 10;
+            if (trainerRef.teamsConfig.environmentPopulation.numHistoricalReps > 10) {
+                trainerRef.teamsConfig.environmentPopulation.numHistoricalReps = 10;
+            }
+        }
+        else {
+            trainerRef.teamsConfig.playersList[focusPop - 1].numHistoricalReps += 1;
+            if (trainerRef.teamsConfig.playersList[focusPop - 1].numHistoricalReps > 10) {
+                trainerRef.teamsConfig.playersList[focusPop - 1].numHistoricalReps = 10;
+            }
+        }
+    }
+
+    public void ClickButtonRepsBaseDecrease() {
+        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+
+        if (focusPop < 1) {
+            // env
+            trainerRef.teamsConfig.environmentPopulation.numBaselineReps -= 1;
+            if (trainerRef.teamsConfig.environmentPopulation.numBaselineReps < 0) {
+                trainerRef.teamsConfig.environmentPopulation.numBaselineReps = 0;
+            }
+        }
+        else {
+            trainerRef.teamsConfig.playersList[focusPop - 1].numBaselineReps -= 1;
+            if (trainerRef.teamsConfig.playersList[focusPop - 1].numBaselineReps < 0) {
+                trainerRef.teamsConfig.playersList[focusPop - 1].numBaselineReps = 0;
+            }
+        }
+    }
+    public void ClickButtonRepsBaseIncrease() {
+        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+
+        if (focusPop < 1) {
+            // env
+            trainerRef.teamsConfig.environmentPopulation.numBaselineReps += 10;
+            if (trainerRef.teamsConfig.environmentPopulation.numBaselineReps > 10) {
+                trainerRef.teamsConfig.environmentPopulation.numBaselineReps = 10;
+            }
+        }
+        else {
+            trainerRef.teamsConfig.playersList[focusPop - 1].numBaselineReps += 1;
+            if (trainerRef.teamsConfig.playersList[focusPop - 1].numBaselineReps > 10) {
+                trainerRef.teamsConfig.playersList[focusPop - 1].numBaselineReps = 10;
             }
         }
     }

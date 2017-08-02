@@ -35,17 +35,17 @@ public class FitnessCompRowUI : MonoBehaviour {
     }
 
     public void ToggleBiggerIsBetter(bool value) {
-        Debug.Log("ToggleBiggerIsBetter(bool " + value.ToString() + ")");
+        //Debug.Log("ToggleBiggerIsBetter(bool " + value.ToString() + ")");
         fitnessFunctionUI.currentFitnessManagerRef.pendingFitnessComponentDefinitions[fitnessIndex].biggerIsBetter = value;
     }
     public void SliderWeight(float value) {
         
         fitnessFunctionUI.currentFitnessManagerRef.pendingFitnessComponentDefinitions[fitnessIndex].weight = value;
         textWeightValue.text = sliderWeight.value.ToString();
-        Debug.Log("SliderWeight(float " + fitnessFunctionUI.currentFitnessManagerRef.pendingFitnessComponentDefinitions[fitnessIndex].weight.ToString() + ")");
+        //Debug.Log("SliderWeight(float " + fitnessFunctionUI.currentFitnessManagerRef.pendingFitnessComponentDefinitions[fitnessIndex].weight.ToString() + ")");
     }
     public void ClickMeasure() {
-        Debug.Log("ClickMeasure()");
+        //Debug.Log("ClickMeasure()");
         int numMeasure = System.Enum.GetNames(typeof(FitnessComponentMeasure)).Length;
         int curMeasure = (int)fitnessFunctionUI.currentFitnessManagerRef.pendingFitnessComponentDefinitions[fitnessIndex].measure;
         int newMeasure = curMeasure + 1;
@@ -56,7 +56,7 @@ public class FitnessCompRowUI : MonoBehaviour {
         buttonMeasure.GetComponentInChildren<Text>().text = fitnessFunctionUI.currentFitnessManagerRef.pendingFitnessComponentDefinitions[fitnessIndex].measure.ToString();
     }
     public void ClickDelete() {
-        Debug.Log("ClickDelete()");
+        //Debug.Log("ClickDelete()");
         fitnessFunctionUI.currentFitnessManagerRef.pendingFitnessComponentDefinitions.RemoveAt(fitnessIndex);
         fitnessFunctionUI.SetStatusFromData(trainerRef);
     }
