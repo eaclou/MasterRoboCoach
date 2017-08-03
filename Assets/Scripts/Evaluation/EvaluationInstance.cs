@@ -357,7 +357,7 @@ public class EvaluationInstance : MonoBehaviour {
                     break;
                 case FitnessComponentType.ContactHazard:
                     FitCompContactHazard fitCompContactHazard = (FitCompContactHazard)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompContactHazard;
-                    fitCompContactHazard.contactingHazard = currentAgentsArray[populationIndex].segmentList[0].GetComponent<ContactSensorComponent>().contact;
+                    fitCompContactHazard.contactingHazard = currentAgentsArray[populationIndex].segmentList[0].GetComponent<ContactSensorComponent>().hazard;
                     //fitCompContactHazard
                     break;
                 case FitnessComponentType.DamageInflicted:

@@ -12,6 +12,8 @@ public class AgentGenome {
     // Segment List -- nodeList
     public int index = -1;
 
+    //public GameObject bodyGO;
+
     public BrainGenome brainGenome;
     public List<SegmentGenome> segmentList;
     // Modules:

@@ -83,7 +83,7 @@ public class Environment : MonoBehaviour {
             ground.AddComponent<MeshCollider>().sharedMesh = topology;
             ground.transform.parent = gameObject.transform;
             ground.transform.localPosition = new Vector3(0f, 0f, 0f);
-            ground.GetComponent<Collider>().material = noFriction;
+            //ground.GetComponent<Collider>().material = noFriction;
         }        
 
         //=============WALLS===========

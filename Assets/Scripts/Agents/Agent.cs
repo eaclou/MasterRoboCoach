@@ -9,6 +9,7 @@ public class Agent : MonoBehaviour {
 
     public List<GameObject> segmentList;
 
+    [SerializeField]
     public List<InputValue> inputValueList;
     public List<ContactSensor> contactSensorList;
     public List<HealthModule> healthModuleList;
@@ -316,11 +317,11 @@ public class Agent : MonoBehaviour {
         for (int i = 0; i < thrusterEffectorList.Count; i++) {
             //Debug.Log("RunModules! AddRelativeForce " + segmentList[thrusterEffectorList[i].parentID].name);
             //Debug.Log("thruster neuron value: " + thrusterEffectorList[i].throttle[0].ToString());
-            segmentList[thrusterEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0f, 0f, thrusterEffectorList[i].throttle[0]) * 200f, ForceMode.Force);
-            segmentList[thrusterEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeForce(new Vector3(thrusterEffectorList[i].strafe[0], 0f, 0f) * 20f, ForceMode.Force);
+            segmentList[thrusterEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0f, 0.01f, thrusterEffectorList[i].throttle[0]) * 9000f, ForceMode.Force);
+            segmentList[thrusterEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeForce(new Vector3(thrusterEffectorList[i].strafe[0], 0f, 0f) * 0f, ForceMode.Force);
         }
         for (int i = 0; i < torqueEffectorList.Count; i++) {
-            segmentList[torqueEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeTorque(new Vector3(0f, torqueEffectorList[i].throttle[0], 0f) * 10f, ForceMode.Force);
+            segmentList[torqueEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeTorque(new Vector3(0f, torqueEffectorList[i].throttle[0], 0f) * 0f, ForceMode.Force);
         }
 
         for (int i = 0; i < weaponProjectileList.Count; i++) {
@@ -444,8 +445,8 @@ public class Agent : MonoBehaviour {
             segmentGO.transform.localScale = genome.segmentList[i].scale;
             segmentGO.transform.localPosition = new Vector3(0f, 0f, 0f);
             segmentGO.transform.localRotation = Quaternion.identity;
-            segmentGO.AddComponent<Rigidbody>().drag = 5f;
-            segmentGO.GetComponent<Rigidbody>().angularDrag = 5f;
+            //segmentGO.AddComponent<Rigidbody>().drag = 5f;
+            //segmentGO.GetComponent<Rigidbody>().angularDrag = 5f;
         }
 
         // Construct Modules:
@@ -545,6 +546,10 @@ public class Agent : MonoBehaviour {
             case CustomMeshID.CombatBody:
                 //Debug.Log("test mesh");
                 preset = Instantiate(Resources.Load("SegmentPresets/combatBody")) as GameObject;
+                break;
+            case CustomMeshID.CombatCar:
+                //Debug.Log("test mesh");
+                preset = Instantiate(Resources.Load("SegmentPresets/combatCar")) as GameObject;
                 break;
             default:
                 Debug.Log("error default");

@@ -12,9 +12,9 @@ public class TeamsConfig {
     
 
     // default population sizes:
-    private int numEnvironmentGenomes = 2;
+    private int numEnvironmentGenomes = 32;
     private int numAgentGenomesPerPlayer = 48;
-    private int numBaselineGenomes = 4;
+    private int numBaselineGenomes = 6;
 
 	public TeamsConfig(int numPlayers, Challenge.Type challengeType, int numEnvironmentReps, int numPlayerReps) {
         this.challengeType = challengeType;
@@ -68,7 +68,7 @@ public class TeamsConfig {
                 templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateRacingBot.asset", typeof(AgentGenomeTemplate))).templateGenome;
                 break;
             case Challenge.Type.Combat:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate))).templateGenome;
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatCar.asset", typeof(AgentGenomeTemplate))).templateGenome;
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());

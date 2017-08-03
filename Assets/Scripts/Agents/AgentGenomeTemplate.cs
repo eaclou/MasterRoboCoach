@@ -7,6 +7,7 @@ using UnityEngine;
 [CreateAssetMenuAttribute(fileName = "AgentGenomeTemplate", menuName = "AgentGenomeTemplates/New", order = 0)]
 public class AgentGenomeTemplate : ScriptableObject {
 
+    public Agent templateBody;
     public AgentGenome templateGenome;
 
 }

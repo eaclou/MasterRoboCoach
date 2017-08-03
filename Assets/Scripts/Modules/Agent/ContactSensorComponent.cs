@@ -5,6 +5,7 @@ using UnityEngine;
 public class ContactSensorComponent : MonoBehaviour {
     
     public bool contact = false;
+    public bool hazard = false;
 
     public ContactSensor sensor;
 
@@ -14,6 +15,7 @@ public class ContactSensorComponent : MonoBehaviour {
 
     private void FixedUpdate() {
         contact = false;
+        hazard = false;
     }
 
     private void OnCollisionEnter(Collision collision) {
@@ -21,9 +23,9 @@ public class ContactSensorComponent : MonoBehaviour {
     }
 
     private void OnCollisionStay(Collision collision) {
-        //if (collision.collider.tag == "hazard") {
-        //    contact = true;
-        //}
+        if (collision.collider.tag == "hazard") {
+            hazard = true;
+        }
         contact = true;
     }
 }

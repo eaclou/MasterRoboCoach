@@ -118,8 +118,8 @@ public class FitnessManager {
         baselineScoresAvgList.Add(totalScore / baselineScoresAvg);
         string txt = "FitnessRatios: \n";
         int numLines = Mathf.RoundToInt(Mathf.Min(20, baselineScoresAvgList.Count));
-        for(int i = numLines; i > 0; i--) {
-            txt += baselineScoresAvgList[i - 1].ToString() + "\n";
+        for(int i = 0; i < numLines; i++) {
+            txt += baselineScoresAvgList[baselineScoresAvgList.Count - i - 1].ToString() + "\n";
         }
         Debug.Log(txt);
         RankProcessedFitness();

@@ -127,7 +127,7 @@ public class TrainingSettingsUI : MonoBehaviour {
 
         if (focusPop < 1) {
             // env
-            trainerRef.teamsConfig.environmentPopulation.numPerformanceReps += 10;
+            trainerRef.teamsConfig.environmentPopulation.numPerformanceReps += 1;
             if (trainerRef.teamsConfig.environmentPopulation.numPerformanceReps > 10) {
                 trainerRef.teamsConfig.environmentPopulation.numPerformanceReps = 10;
             }
@@ -162,7 +162,7 @@ public class TrainingSettingsUI : MonoBehaviour {
 
         if (focusPop < 1) {
             // env
-            trainerRef.teamsConfig.environmentPopulation.numHistoricalReps += 10;
+            trainerRef.teamsConfig.environmentPopulation.numHistoricalReps += 1;
             if (trainerRef.teamsConfig.environmentPopulation.numHistoricalReps > 10) {
                 trainerRef.teamsConfig.environmentPopulation.numHistoricalReps = 10;
             }
@@ -197,7 +197,7 @@ public class TrainingSettingsUI : MonoBehaviour {
 
         if (focusPop < 1) {
             // env
-            trainerRef.teamsConfig.environmentPopulation.numBaselineReps += 10;
+            trainerRef.teamsConfig.environmentPopulation.numBaselineReps += 1;
             if (trainerRef.teamsConfig.environmentPopulation.numBaselineReps > 10) {
                 trainerRef.teamsConfig.environmentPopulation.numBaselineReps = 10;
             }

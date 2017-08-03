@@ -5,7 +5,8 @@ using UnityEngine;
 public enum CustomMeshID {
     Default,
     Test,
-    CombatBody
+    CombatBody,
+    CombatCar
 }
 
 public class CustomMeshes {
