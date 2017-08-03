@@ -156,7 +156,7 @@ public class TrainingMenuUI : MonoBehaviour {
             Agent curAgent = trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
             if (curAgent.healthModuleList.Count > 0)
                 txt += "HEALTH: " + curAgent.healthModuleList[0].health.ToString() + " / " + curAgent.healthModuleList[0].maxHealth.ToString() + "\n";
-            if (curAgent.targetSensorList != null) {
+            if (curAgent.targetSensorList.Count > 0) {
                 txt += "\nTARGET SENSOR: ";
                 if (curAgent.targetSensorList[0].targetPosition != null)
                     txt += curAgent.targetSensorList[0].targetPosition.position.ToString() + "\n";
@@ -170,7 +170,7 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "Health = " + curAgent.targetSensorList[0].targetHealth[0].ToString() + "\n";
                 txt += "Attacking = " + curAgent.targetSensorList[0].targetAttacking[0].ToString() + "\n";
             }
-            if (curAgent.raycastSensorList != null) {
+            if (curAgent.raycastSensorList.Count > 0) {
                 txt += "\nRAYCAST SENSOR:\n";
                 txt += "Left = " + curAgent.raycastSensorList[0].distanceLeft[0].ToString() + "\n";
                 txt += "LeftCenter = " + curAgent.raycastSensorList[0].distanceLeftCenter[0].ToString() + "\n";
@@ -180,11 +180,11 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "CenterLong = " + curAgent.raycastSensorList[0].distanceCenter[0].ToString() + "\n";
                 txt += "Back = " + curAgent.raycastSensorList[0].distanceBack[0].ToString() + "\n";
             }
-            if (curAgent.thrusterEffectorList != null) {
+            if (curAgent.thrusterEffectorList.Count > 0) {
                 txt += "\nTHRUSTER: ";
                 txt += curAgent.thrusterEffectorList[0].throttle[0].ToString() + "\n";
             }
-            if (curAgent.torqueEffectorList != null) {
+            if (curAgent.torqueEffectorList.Count > 0) {
                 txt += "TORQUE: ";
                 txt += curAgent.torqueEffectorList[0].throttle[0].ToString() + "\n";
             }
@@ -208,6 +208,12 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "\nHEALTH:\n";
                 txt += "Health = " + curAgent.healthModuleList[0].healthSensor[0].ToString() + "\n";
                 txt += "Damage = " + curAgent.healthModuleList[0].takingDamage[0].ToString() + "\n";
+            }
+            if (curAgent.basicAxleList.Count > 0) {
+                txt += "\nBASIC AXLE:\n";
+                txt += "Throttle = " + curAgent.basicAxleList[0].throttle[0].ToString() + "\n";
+                txt += "SteerAngle = " + curAgent.basicAxleList[0].steerAngle[0].ToString() + "\n";
+                txt += "Brake = " + curAgent.basicAxleList[0].brake[0].ToString() + "\n";
             }
         }
         return txt;

@@ -9,7 +9,16 @@ public class InputValue {
     public float[] value;
 
 	public InputValue(ValueInputGenome genome) {
+        Debug.Log("InputValue(ValueInputGenome genome)");
         parentID = genome.parentID; 
+        inno = genome.inno;
+        value = new float[1];
+        value[0] = genome.val;
+    }
+
+    public void Initialize(ValueInputGenome genome) {
+        //Debug.Log("InputValue(ValueInputGenome genome)");
+        //parentID = genome.parentID;
         inno = genome.inno;
         value = new float[1];
         value[0] = genome.val;

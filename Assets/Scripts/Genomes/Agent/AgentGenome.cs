@@ -15,7 +15,7 @@ public class AgentGenome {
     //public GameObject bodyGO;
 
     public BrainGenome brainGenome;
-    public List<SegmentGenome> segmentList;
+    //public List<SegmentGenome> segmentList;
     // Modules:
     public List<HealthGenome> healthModuleList;
     public List<ContactGenome> contactSensorList;
@@ -27,6 +27,7 @@ public class AgentGenome {
     public List<ValueInputGenome> valueInputList;
     public List<WeaponProjectileGenome> weaponProjectileList;
     public List<WeaponTazerGenome> weaponTazerList;
+    public List<BasicAxleGenome> basicAxleList;
 
     // Constructor
     public AgentGenome(int index) {
@@ -36,11 +37,11 @@ public class AgentGenome {
     public void CopyGenomeFromTemplate(AgentGenome templateGenome) {
         // This method creates a clone of the provided ScriptableObject Genome - should have no shared references!!!
         // copy segment list:
-        segmentList = new List<SegmentGenome>();
+        /*segmentList = new List<SegmentGenome>();
         for(int i = 0; i < templateGenome.segmentList.Count; i++) {
             SegmentGenome segmentCopy = new SegmentGenome(templateGenome.segmentList[i]);
             segmentList.Add(segmentCopy);
-        }      
+        }*/     
         // copy module lists:
         targetSensorList = new List<TargetSensorGenome>();
         for(int i = 0; i < templateGenome.targetSensorList.Count; i++) {
@@ -86,6 +87,11 @@ public class AgentGenome {
         for (int i = 0; i < templateGenome.contactSensorList.Count; i++) {
             ContactGenome genomeCopy = new ContactGenome(templateGenome.contactSensorList[i]);
             contactSensorList.Add(genomeCopy);
+        }
+        basicAxleList = new List<BasicAxleGenome>();
+        for (int i = 0; i < templateGenome.basicAxleList.Count; i++) {
+            BasicAxleGenome genomeCopy = new BasicAxleGenome(templateGenome.basicAxleList[i]);
+            basicAxleList.Add(genomeCopy);
         }
 
         // For now this is fine -- but eventually might want to copy brainGenome from saved asset!
@@ -197,6 +203,14 @@ public class AgentGenome {
         for (int i = 0; i < contactSensorList.Count; i++) {
             NeuronGenome neuron1 = new NeuronGenome(NeuronGenome.NeuronType.In, contactSensorList[i].inno, 0);
             brainGenome.neuronList.Add(neuron1);
+        }
+        for (int i = 0; i < basicAxleList.Count; i++) {
+            NeuronGenome throttle = new NeuronGenome(NeuronGenome.NeuronType.Out, basicAxleList[i].inno, 0);
+            NeuronGenome steerAngle = new NeuronGenome(NeuronGenome.NeuronType.Out, basicAxleList[i].inno, 1);
+            NeuronGenome brake = new NeuronGenome(NeuronGenome.NeuronType.Out, basicAxleList[i].inno, 2);
+            brainGenome.neuronList.Add(throttle);
+            brainGenome.neuronList.Add(steerAngle);
+            brainGenome.neuronList.Add(brake);
         }
 
         int numInputs = 0;

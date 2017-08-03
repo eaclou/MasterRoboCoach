@@ -24,8 +24,11 @@ public class PlayerPopulation {
     public int numHistoricalReps = 0;
     public int numBaselineReps = 0;
 
+    public AgentGenomeTemplate template;
+
     // Representative system will be expanded later - for now, just defaults to Top # of performers
-    public PlayerPopulation(Challenge.Type challengeType, AgentGenome templateGenome, int numGenomes, int numBaseline, int numReps) {
+    public PlayerPopulation(Challenge.Type challengeType, AgentGenomeTemplate template, int numGenomes, int numBaseline, int numReps) {
+        this.template = template;
 
         popSize = numGenomes;
         this.numBaseline = numBaseline;
@@ -37,12 +40,12 @@ public class PlayerPopulation {
 
         for (int j = 0; j < numGenomes; j++) {
             AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
-            agentGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
+            agentGenome.CopyGenomeFromTemplate(template.templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
             agentGenome.InitializeRandomBrainGenome(0.25f);
             agentGenomeList.Add(agentGenome);
 
             AgentGenome baselineGenome = new AgentGenome(j);  // empty constructor
-            baselineGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
+            baselineGenome.CopyGenomeFromTemplate(template.templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
             baselineGenome.InitializeRandomBrainGenome(0.25f);
             baselineGenomePool.Add(baselineGenome);
         }
