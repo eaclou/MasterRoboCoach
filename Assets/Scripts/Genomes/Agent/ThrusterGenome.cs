@@ -17,4 +17,10 @@ public class ThrusterGenome {
         this.inno = template.inno;
     }
 
+    public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
+        NeuronGenome neuronZ = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 0);
+        NeuronGenome neuronX = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 1);
+        neuronList.Add(neuronZ);
+        neuronList.Add(neuronX);
+    }
 }

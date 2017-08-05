@@ -245,17 +245,17 @@ public class TrainingManager : MonoBehaviour {
             mainCam.transform.rotation = cameraRotTop;
         }
         else {
-            /*if(evaluationInstancesList[0].currentEvalPair != null) {
-                if(evaluationInstancesList[0].currentAgent != null) {
-                    if (evaluationInstancesList[0].currentAgent.segmentList != null) {
-                        if (evaluationInstancesList[0].currentAgent.segmentList[0] != null) {
-                            mainCamGroup.transform.position = evaluationInstancesList[0].currentAgent.segmentList[0].transform.position;
-                            mainCamGroup.transform.rotation = evaluationInstancesList[0].currentAgent.segmentList[0].transform.rotation;
+            if(evaluationManager.exhibitionInstance != null) {
+                if(evaluationManager.exhibitionInstance.currentAgentsArray != null) {
+                    if (evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1] != null) {
+                        if (evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].rootObject != null) {
+                            mainCamGroup.transform.position = evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].rootObject.transform.position;
+                            //mainCamGroup.transform.rotation = evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].rootObject.transform.rotation;
                                                         
                         }                       
                     }
                 }
-            }*/
+            }
             mainCam.transform.localPosition = cameraPosShoulder;
             mainCam.transform.localRotation = cameraRotShoulder;
         }        

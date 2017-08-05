@@ -12,13 +12,71 @@ public class WeaponTazer {
     public float[] damageInflicted;
 
     public ParticleSystem particles;
+    public GameObject parentBody;
+    public Vector3 muzzleLocation;
 
     public WeaponTazer(WeaponTazerGenome genome) {
+        /*parentID = genome.parentID;
+        inno = genome.inno;
+        throttle = new float[1];
+        energy = new float[1];
+        damageInflicted = new float[1];*/
+    }
+
+    public void Initialize(WeaponTazerGenome genome) {
         parentID = genome.parentID;
         inno = genome.inno;
         throttle = new float[1];
         energy = new float[1];
         damageInflicted = new float[1];
+        muzzleLocation = genome.muzzleLocation;
+    }
+
+    public void MapNeuron(NID nid, Neuron neuron) {
+        if (inno == nid.moduleID) {
+            if (nid.neuronID == 0) {
+                neuron.currentValue = energy;
+                neuron.neuronType = NeuronGenome.NeuronType.In;
+            }
+            if (nid.neuronID == 1) {
+                neuron.currentValue = throttle;
+                neuron.neuronType = NeuronGenome.NeuronType.Out;
+            }
+        }
+    }
+
+    public void Tick(bool isVisible) {
+        float rayMaxDistance = 5f;
+        damageInflicted[0] = 0f;
+
+        if (isVisible) {
+            ParticleSystem.EmissionModule emission = particles.emission;
+            emission.enabled = false;
+        }
+
+        if (throttle[0] > 0f) {
+            if (energy[0] > 0.1f) {
+                energy[0] -= 0.1f; // costs energy to fire
+
+                Vector3 rayOrigin = parentBody.transform.position + muzzleLocation;
+                Vector3 rayDir = parentBody.transform.TransformDirection(new Vector3(0f, 0f, 1f));
+                RaycastHit hit;
+                if (Physics.Raycast(rayOrigin, rayDir, out hit, rayMaxDistance)) {
+                    if (hit.collider.GetComponent<HealthModuleComponent>() != null) {
+                        hit.collider.GetComponent<HealthModuleComponent>().TakeDamage(25f);
+                        damageInflicted[0] = 25f;
+                    }
+                }
+
+                if (isVisible) {
+                    ParticleSystem.EmissionModule emission = particles.emission;
+                    emission.enabled = true;
+                }
+            }
+        }
+        else {
+            energy[0] += 0.01f;
+        }
     }
 
     public string GetParticleSystemURL() {

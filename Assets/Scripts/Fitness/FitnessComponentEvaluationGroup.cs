@@ -42,6 +42,10 @@ public class FitnessComponentEvaluationGroup {
                     FitCompWinLoss fitCompWinLoss = new FitCompWinLoss(fitnessManager.fitnessComponentDefinitions[i]);
                     fitCompList.Add(fitCompWinLoss);
                     break;
+                case FitnessComponentType.DistToOrigin:
+                    FitCompDistFromOrigin fitCompDistFromOrigin = new FitCompDistFromOrigin(fitnessManager.fitnessComponentDefinitions[i]);
+                    fitCompList.Add(fitCompDistFromOrigin);
+                    break;
                 default:
                     Debug.LogError("No such component type! (" + fitnessManager.fitnessComponentDefinitions[i].type.ToString() + ")");
                     break;

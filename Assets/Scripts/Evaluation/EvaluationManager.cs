@@ -512,6 +512,7 @@ public class EvaluationManager {
                         else { // 4
                             //teamsConfig.playersList[3].fitnessManager.rawFitnessScores[evaluationInstancesList[i].currentEvalTicket.genomeIndices[4]] += evaluationInstancesList[i].score;
                         }
+                        evaluationInstancesList[i].DeleteAllGameObjects();
                         evaluationInstancesList[i].currentEvalTicket.status = EvaluationTicket.EvaluationStatus.Complete;
                         evaluationInstancesList[i].currentEvalTicket = null;
                     }

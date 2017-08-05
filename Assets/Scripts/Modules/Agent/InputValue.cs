@@ -23,4 +23,16 @@ public class InputValue {
         value = new float[1];
         value[0] = genome.val;
     }
+
+    public void MapNeuron(NID nid, Neuron neuron) {
+        if (inno == nid.moduleID) {
+            //Debug.Log("neuron match!!! inputValue");
+            neuron.currentValue = value;
+            neuron.neuronType = NeuronGenome.NeuronType.In;
+        }
+    }
+
+    public void Tick() {
+
+    }
 }

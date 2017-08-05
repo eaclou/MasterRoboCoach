@@ -162,13 +162,15 @@ public class TrainingMenuUI : MonoBehaviour {
                     txt += curAgent.targetSensorList[0].targetPosition.position.ToString() + "\n";
                 txt += "DotX = " + curAgent.targetSensorList[0].dotX[0].ToString() + "\n";
                 txt += "DotZ = " + curAgent.targetSensorList[0].dotZ[0].ToString() + "\n";
-                txt += "Forward = " + curAgent.targetSensorList[0].forward[0].ToString() + "\n";
-                txt += "Horizontal = " + curAgent.targetSensorList[0].horizontal[0].ToString() + "\n";
-                txt += "InTarget = " + curAgent.targetSensorList[0].inTarget[0].ToString() + "\n";
-                txt += "VelX = " + curAgent.targetSensorList[0].velX[0].ToString() + "\n";
-                txt += "VelZ = " + curAgent.targetSensorList[0].velZ[0].ToString() + "\n";
-                txt += "Health = " + curAgent.targetSensorList[0].targetHealth[0].ToString() + "\n";
-                txt += "Attacking = " + curAgent.targetSensorList[0].targetAttacking[0].ToString() + "\n";
+                txt += "Dist = " + curAgent.targetSensorList[0].dist[0].ToString() + "\n";
+                txt += "InvDist = " + curAgent.targetSensorList[0].invDist[0].ToString() + "\n";
+                //txt += "Forward = " + curAgent.targetSensorList[0].forward[0].ToString() + "\n";
+                //txt += "Horizontal = " + curAgent.targetSensorList[0].horizontal[0].ToString() + "\n";
+                //txt += "InTarget = " + curAgent.targetSensorList[0].inTarget[0].ToString() + "\n";
+                //txt += "VelX = " + curAgent.targetSensorList[0].velX[0].ToString() + "\n";
+                //txt += "VelZ = " + curAgent.targetSensorList[0].velZ[0].ToString() + "\n";
+                //txt += "Health = " + curAgent.targetSensorList[0].targetHealth[0].ToString() + "\n";
+                //txt += "Attacking = " + curAgent.targetSensorList[0].targetAttacking[0].ToString() + "\n";
             }
             if (curAgent.raycastSensorList.Count > 0) {
                 txt += "\nRAYCAST SENSOR:\n";
@@ -214,6 +216,7 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "Throttle = " + curAgent.basicAxleList[0].throttle[0].ToString() + "\n";
                 txt += "SteerAngle = " + curAgent.basicAxleList[0].steerAngle[0].ToString() + "\n";
                 txt += "Brake = " + curAgent.basicAxleList[0].brake[0].ToString() + "\n";
+                txt += "Speed = " + curAgent.basicAxleList[0].speed[0].ToString() + "\n";
             }
         }
         return txt;

@@ -6,6 +6,8 @@ using UnityEngine;
 public class HealthGenome {
     public int parentID;
     public int inno;
+    public int maxHealth;
+
 
     public HealthGenome(int parentID, int inno) {
         this.parentID = parentID;
@@ -15,5 +17,13 @@ public class HealthGenome {
     public HealthGenome(HealthGenome template) {
         this.parentID = template.parentID;
         this.inno = template.inno;
+        this.maxHealth = template.maxHealth;
+    }
+
+    public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
+        NeuronGenome health = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 0);
+        NeuronGenome takingDamage = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 1);
+        neuronList.Add(health);
+        neuronList.Add(takingDamage);
     }
 }

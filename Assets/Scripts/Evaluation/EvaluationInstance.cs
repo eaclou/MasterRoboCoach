@@ -38,7 +38,7 @@ public class EvaluationInstance : MonoBehaviour {
 
         for (int i = 0; i < currentAgentsArray.Length; i++) {
             currentAgentsArray[i].TickBrain();
-            currentAgentsArray[i].RunModules();
+            currentAgentsArray[i].RunModules(currentTimeStep);
         }        
 
         if(CheckForEvaluationEnd()) {
@@ -88,8 +88,8 @@ public class EvaluationInstance : MonoBehaviour {
                 emitterParamsDefault.startColor = Color.Lerp(new Color(1f, 0f, 0f, 0.25f), new Color(0f, 1f, 0f, 0.25f), currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList[0].healthSensor[0]);
                 //emitterParamsDefault.startColor.a = 0.5f;
             }
-            //emitterParamsDefault.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
-            //particleCurves.Emit(emitterParamsDefault, 1);
+            emitterParamsDefault.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+            particleCurves.Emit(emitterParamsDefault, 1);
             
         }       
     }    
@@ -99,9 +99,11 @@ public class EvaluationInstance : MonoBehaviour {
 
         if(currentTimeStep > maxTimeSteps) {
             isEnded = true;
+            //DeleteAllGameObjects();
         }
         if(gameWonOrLost) {
             isEnded = true;
+            //DeleteAllGameObjects();
         }
         
         return isEnded;
@@ -112,8 +114,16 @@ public class EvaluationInstance : MonoBehaviour {
         DeleteAllGameObjects();
     }
     public void DeleteAllGameObjects() {
+        if(currentAgentsArray != null) {
+            for (int i = 0; i < currentAgentsArray.Length; i++) {
+                if(currentAgentsArray[i] != null) {
+                    currentAgentsArray[i].gameObject.SetActive(false);
+                }                
+            }
+        }        
         var children = new List<GameObject>();
         foreach (Transform child in gameObject.transform) children.Add(child.gameObject);
+        //children.ForEach(child => gameObject.SetActive(false));
         children.ForEach(child => Destroy(child));
     }
 
@@ -203,6 +213,7 @@ public class EvaluationInstance : MonoBehaviour {
             agentGO.transform.localPosition = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartPosition;
             agentGO.transform.localRotation = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartRotation;
             Agent agentScript = agentGO.GetComponent<Agent>();
+            agentScript.rootObject.GetComponent<Rigidbody>().centerOfMass = agentScript.rootCOM;
             agentScript.isVisible = visible;
             if(currentEvalTicket.focusPopIndex == i+1) {  // if this Agent is the focusPop, use main agentArray index
                 //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
@@ -324,15 +335,17 @@ public class EvaluationInstance : MonoBehaviour {
                 }
                 break;
             case Challenge.Type.Racing:
-                //ChallengeRacing challengeRacing = challengeGO.AddComponent<ChallengeRacing>();
-                //currentChallenge = challengeRacing;
+                // TEMP!
+                for (int i = 0; i < currentAgentsArray[0].targetSensorList.Count; i++) {
+                    currentAgentsArray[0].targetSensorList[i].targetPosition = currentEnvironment.transform;
+                }
                 break;
             case Challenge.Type.Combat:
                 for (int i = 0; i < currentAgentsArray[0].targetSensorList.Count; i++) {
-                    //currentAgentsArray[0].targetSensorList[i].targetPosition = currentAgentsArray[1].segmentList[0].transform;
+                    currentAgentsArray[0].targetSensorList[i].targetPosition = currentAgentsArray[1].rootObject.transform;
                 }
                 for (int i = 0; i < currentAgentsArray[1].targetSensorList.Count; i++) {
-                   // currentAgentsArray[1].targetSensorList[i].targetPosition = currentAgentsArray[0].segmentList[0].transform;
+                   currentAgentsArray[1].targetSensorList[i].targetPosition = currentAgentsArray[0].rootObject.transform;
                 }
                 break;
             default:
@@ -349,9 +362,8 @@ public class EvaluationInstance : MonoBehaviour {
             switch (fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type) {
                 case FitnessComponentType.DistanceToTargetSquared:
                     FitCompDistanceToTargetSquared fitCompDistToTargetSquared = (FitCompDistanceToTargetSquared)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompDistanceToTargetSquared;
-                    fitCompDistToTargetSquared.pointA[0] = currentAgentsArray[populationIndex].rootObject.transform.position;
-                    //Debug.Log(currentAgentsArray[populationIndex].targetSensorList.ToString());
-                    fitCompDistToTargetSquared.pointB[0] = currentAgentsArray[populationIndex].targetSensorList[0].targetPosition.position; //currentEnvironment.targetColumn.gameObject.transform.position;
+                    fitCompDistToTargetSquared.pointA = currentAgentsArray[populationIndex].rootObject.transform.localPosition;                    
+                    fitCompDistToTargetSquared.pointB = currentAgentsArray[populationIndex].targetSensorList[0].targetPosition.localPosition;
                     break;
                 case FitnessComponentType.Velocity:
                     FitCompVelocity fitCompVelocity = (FitCompVelocity)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompVelocity;
@@ -359,7 +371,7 @@ public class EvaluationInstance : MonoBehaviour {
                     break;
                 case FitnessComponentType.ContactHazard:
                     FitCompContactHazard fitCompContactHazard = (FitCompContactHazard)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompContactHazard;
-                    fitCompContactHazard.contactingHazard = currentAgentsArray[populationIndex].rootObject.GetComponent<ContactSensorComponent>().hazard;
+                    fitCompContactHazard.contactingHazard = currentAgentsArray[populationIndex].rootObject.GetComponent<ContactSensorComponent>().contact;
                     //fitCompContactHazard
                     break;
                 case FitnessComponentType.DamageInflicted:
@@ -376,6 +388,11 @@ public class EvaluationInstance : MonoBehaviour {
                 case FitnessComponentType.WinLoss:
                     FitCompWinLoss fitCompWinLoss = (FitCompWinLoss)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompWinLoss;                    
                     fitCompWinLoss.score = agentGameScoresArray[populationIndex];
+                    break;
+                case FitnessComponentType.DistToOrigin:
+                    FitCompDistFromOrigin fitCompDistFromOrigin = (FitCompDistFromOrigin)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompDistFromOrigin;
+                    fitCompDistFromOrigin.pointA = currentAgentsArray[populationIndex].rootObject.transform.localPosition;
+                    fitCompDistFromOrigin.pointB = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[populationIndex].agentStartPosition;
                     break;
                 default:
                     Debug.LogError("ERROR!!! Fitness Type found!!! " + fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString());
@@ -401,69 +418,72 @@ public class EvaluationInstance : MonoBehaviour {
 
         }
         else {
-            agentGameScoresArray[0][0] = 0f;
-            if (currentAgentsArray.Length > 1)
-                agentGameScoresArray[1][0] = 0f;  // undecided
+            if(challengeType == Challenge.Type.Combat) {
+                agentGameScoresArray[0][0] = 0f;
+                if (currentAgentsArray.Length > 1)
+                    agentGameScoresArray[1][0] = 0f;  // undecided
 
-            if(currentAgentsArray[0].rootObject.GetComponent<HealthModuleComponent>()) {
-                // if player 0 dead:
-                if (currentAgentsArray[0].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
-                    // if 2 players:
-                    if (currentAgentsArray.Length > 1) {
-                        //if player 0 dead AND player 1 dead:
-                        if (currentAgentsArray[1].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
-                            // ...then they died simultaneously -- DRAW
-                        }
-                        else { // player 0 dead and player 1 alive
-                               // Player 1 WINS!
-                            agentGameScoresArray[0][0] = -1f;
-                            agentGameScoresArray[1][0] = 1f;
-                            gameWonOrLost = true;
-                            //Debug.Log("Player 1 WINS!");
-                            
-                            if (emit && currentEvalTicket.focusPopIndex == 2) {  // Only Agents
-                                //emitterParamsWin.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
-                                //particleCurves.Emit(emitterParamsWin, 8);
-                            }
-                            if (emit && currentEvalTicket.focusPopIndex == 1) {  // Only Agents
-                                //emitterParamsLose.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
-                                //particleCurves.Emit(emitterParamsLose, 8);
-                            }
-                        }
-                    }
-                    else { // player0 died and is only player
-                        agentGameScoresArray[0][0] = -1f;
-                        gameWonOrLost = true;
-                    }
-                }
-                else {  // if Player 0 is alive:
+                if (currentAgentsArray[0].rootObject.GetComponent<HealthModuleComponent>()) {
+                    // if player 0 dead:
+                    if (currentAgentsArray[0].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
                         // if 2 players:
-                    if (currentAgentsArray.Length > 1) {
-                        //if player 0 alive but player 1 dead:
-                        if (currentAgentsArray[1].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
-                            // Player 0 WINS!
-                            agentGameScoresArray[0][0] = 1f;
-                            agentGameScoresArray[1][0] = -1f;
-                            gameWonOrLost = true;
-                            //Debug.Log("Player 0 WINS!");
-                            if (emit && currentEvalTicket.focusPopIndex == 1) {  // Only Agents
-                                //emitterParamsWin.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
-                                //particleCurves.Emit(emitterParamsWin, 8);
+                        if (currentAgentsArray.Length > 1) {
+                            //if player 0 dead AND player 1 dead:
+                            if (currentAgentsArray[1].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
+                                // ...then they died simultaneously -- DRAW
                             }
-                            if (emit && currentEvalTicket.focusPopIndex == 2) {  // Only Agents
-                                //emitterParamsLose.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].segmentList[0].transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
-                                //particleCurves.Emit(emitterParamsLose, 8);
+                            else { // player 0 dead and player 1 alive
+                                   // Player 1 WINS!
+                                agentGameScoresArray[0][0] = -1f;
+                                agentGameScoresArray[1][0] = 1f;
+                                gameWonOrLost = true;
+                                //Debug.Log("Player 1 WINS!");
+
+                                if (emit && currentEvalTicket.focusPopIndex == 2) {  // Only Agents
+                                    emitterParamsWin.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                    particleCurves.Emit(emitterParamsWin, 8);
+                                }
+                                if (emit && currentEvalTicket.focusPopIndex == 1) {  // Only Agents
+                                    emitterParamsLose.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                    particleCurves.Emit(emitterParamsLose, 8);
+                                }
                             }
                         }
-                        else { // both players are alive!
-
+                        else { // player0 died and is only player
+                            Debug.Log("Only Player managed to kill itself!");
+                            agentGameScoresArray[0][0] = -1f;
+                            gameWonOrLost = true;
                         }
                     }
-                    else { // player0 alive and is only player
+                    else {  // if Player 0 is alive:
+                            // if 2 players:
+                        if (currentAgentsArray.Length > 1) {
+                            //if player 0 alive but player 1 dead:
+                            if (currentAgentsArray[1].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
+                                // Player 0 WINS!
+                                agentGameScoresArray[0][0] = 1f;
+                                agentGameScoresArray[1][0] = -1f;
+                                gameWonOrLost = true;
+                                //Debug.Log("Player 0 WINS!");
+                                if (emit && currentEvalTicket.focusPopIndex == 1) {  // Only Agents
+                                    emitterParamsWin.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                    particleCurves.Emit(emitterParamsWin, 8);
+                                }
+                                if (emit && currentEvalTicket.focusPopIndex == 2) {  // Only Agents
+                                    emitterParamsLose.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+                                    particleCurves.Emit(emitterParamsLose, 8);
+                                }
+                            }
+                            else { // both players are alive!
 
+                            }
+                        }
+                        else { // player0 alive and is only player
+
+                        }
                     }
                 }
-            }            
+            }                        
         }
     }
     public void AverageFitnessComponentsByTimeSteps() {

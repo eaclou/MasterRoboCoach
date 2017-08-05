@@ -10,27 +10,33 @@ public class Agent : MonoBehaviour {
     //public List<GameObject> segmentList;
     [SerializeField]
     public GameObject rootObject;
+    public Vector3 rootCOM;
 
     [SerializeField]
-    public List<InputValue> inputValueList;
+    public List<BasicAxle> basicAxleList;
+    [SerializeField]
+    public List<BasicJoint> basicJointList;
     [SerializeField]
     public List<ContactSensor> contactSensorList;
     [SerializeField]
-    public List<HealthModule> healthModuleList;
+    public List<HealthModule> healthModuleList;    
     [SerializeField]
-    public List<TargetSensor> targetSensorList;
+    public List<InputOscillator> oscillatorList;
     [SerializeField]
     public List<RaycastSensor> raycastSensorList;
     [SerializeField]
+    public List<TargetSensor> targetSensorList;    
+    [SerializeField]
     public List<ThrusterEffector> thrusterEffectorList;
     [SerializeField]
-    public List<TorqueEffector> torqueEffectorList;
+    public List<TorqueEffector> torqueEffectorList;    
+    [SerializeField]
+    public List<InputValue> valueList;
     [SerializeField]
     public List<WeaponProjectile> weaponProjectileList;
     [SerializeField]
-    public List<WeaponTazer> weaponTazerList;
-    [SerializeField]
-    public List<BasicAxle> basicAxleList;
+    public List<WeaponTazer> weaponTazerList;    
+    
 
     public bool isVisible = false;
 
@@ -39,169 +45,43 @@ public class Agent : MonoBehaviour {
         //Debug.Log("New Agent!");
     }
 
-
     public void MapNeuronToModule(NID nid, Neuron neuron) {
-        for (int i = 0; i < inputValueList.Count; i++) {
-            if(inputValueList[i].inno == nid.moduleID) {
-                //Debug.Log("neuron match!!! inputValue");
-                neuron.currentValue = inputValueList[i].value;
-                neuron.neuronType = NeuronGenome.NeuronType.In;
-            }
+        for (int i = 0; i < basicAxleList.Count; i++) {
+            basicAxleList[i].MapNeuron(nid, neuron);
         }
-        for (int i = 0; i < targetSensorList.Count; i++) {
-            if (targetSensorList[i].inno == nid.moduleID) {
-                if(nid.neuronID == 0) {
-                    //Debug.Log("neuron match!!! targetSensorX");
-                    neuron.currentValue = targetSensorList[i].dotX;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 1) {
-                    //Debug.Log("neuron match!!! targetSensorZ");
-                    neuron.currentValue = targetSensorList[i].dotZ;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 2) {
-                    neuron.currentValue = targetSensorList[i].forward;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 3) {
-                    neuron.currentValue = targetSensorList[i].horizontal;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 4) {
-                    neuron.currentValue = targetSensorList[i].inTarget;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 5) {
-                    neuron.currentValue = targetSensorList[i].velX;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 6) {
-                    neuron.currentValue = targetSensorList[i].velZ;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 7) {
-                    neuron.currentValue = targetSensorList[i].targetHealth;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 8) {
-                    neuron.currentValue = targetSensorList[i].targetAttacking;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-            }
-        }
-        for (int i = 0; i < raycastSensorList.Count; i++) {
-            if (raycastSensorList[i].inno == nid.moduleID) {
-                if (nid.neuronID == 0) {
-                    neuron.currentValue = raycastSensorList[i].distanceLeft;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 1) {
-                    neuron.currentValue = raycastSensorList[i].distanceLeftCenter;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 2) {
-                    neuron.currentValue = raycastSensorList[i].distanceCenter;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 3) {
-                    neuron.currentValue = raycastSensorList[i].distanceRightCenter;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 4) {
-                    neuron.currentValue = raycastSensorList[i].distanceRight;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 5) {
-                    neuron.currentValue = raycastSensorList[i].distanceBack;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 6) {
-                    neuron.currentValue = raycastSensorList[i].distanceCenterShort;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-            }
-        }
-        for (int i = 0; i < thrusterEffectorList.Count; i++) {
-            if (thrusterEffectorList[i].inno == nid.moduleID) {
-                //Debug.Log("neuron match!!! thrusterEffector");
-                if (nid.neuronID == 0) {
-                    neuron.currentValue = thrusterEffectorList[i].throttle;
-                    neuron.neuronType = NeuronGenome.NeuronType.Out;
-                }
-                if (nid.neuronID == 1) {
-                    neuron.currentValue = thrusterEffectorList[i].strafe;
-                    neuron.neuronType = NeuronGenome.NeuronType.Out;
-                }
-            }
-        }
-        for (int i = 0; i < torqueEffectorList.Count; i++) {
-            if (torqueEffectorList[i].inno == nid.moduleID) {
-                //Debug.Log("neuron match!!! torqueEffector");
-                neuron.currentValue = torqueEffectorList[i].throttle;
-                neuron.neuronType = NeuronGenome.NeuronType.Out;
-            }
-        }
-        for (int i = 0; i < weaponProjectileList.Count; i++) {
-            if (weaponProjectileList[i].inno == nid.moduleID) {
-                if (nid.neuronID == 0) {
-                    neuron.currentValue = weaponProjectileList[i].energy;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;                    
-                }
-                if (nid.neuronID == 1) {
-                    neuron.currentValue = weaponProjectileList[i].throttle;
-                    neuron.neuronType = NeuronGenome.NeuronType.Out;
-                }                
-            }
-        }
-        for (int i = 0; i < weaponTazerList.Count; i++) {
-            if (weaponTazerList[i].inno == nid.moduleID) {
-                if (nid.neuronID == 0) {
-                    neuron.currentValue = weaponTazerList[i].energy;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 1) {
-                    neuron.currentValue = weaponTazerList[i].throttle;
-                    neuron.neuronType = NeuronGenome.NeuronType.Out;
-                }
-            }
-        }
-        for (int i = 0; i < healthModuleList.Count; i++) {
-            if (healthModuleList[i].inno == nid.moduleID) {
-                if (nid.neuronID == 0) {
-                    neuron.currentValue = healthModuleList[i].healthSensor;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-                if (nid.neuronID == 1) {
-                    neuron.currentValue = healthModuleList[i].takingDamage;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-            }
+        for (int i = 0; i < basicJointList.Count; i++) {
+            basicJointList[i].MapNeuron(nid, neuron);
         }
         for (int i = 0; i < contactSensorList.Count; i++) {
-            if (contactSensorList[i].inno == nid.moduleID) {
-                if (nid.neuronID == 0) {
-                    neuron.currentValue = contactSensorList[i].contactSensor;
-                    neuron.neuronType = NeuronGenome.NeuronType.In;
-                }
-            }
+            contactSensorList[i].MapNeuron(nid, neuron);
         }
-        for (int i = 0; i < basicAxleList.Count; i++) {
-            if (basicAxleList[i].inno == nid.moduleID) {
-                if (nid.neuronID == 0) {
-                    neuron.currentValue = basicAxleList[i].throttle;
-                    neuron.neuronType = NeuronGenome.NeuronType.Out;
-                }
-                if (nid.neuronID == 1) {
-                    neuron.currentValue = basicAxleList[i].steerAngle;
-                    neuron.neuronType = NeuronGenome.NeuronType.Out;
-                }
-                if (nid.neuronID == 2) {
-                    neuron.currentValue = basicAxleList[i].brake;
-                    neuron.neuronType = NeuronGenome.NeuronType.Out;
-                }
-            }
+        for (int i = 0; i < healthModuleList.Count; i++) {
+            healthModuleList[i].MapNeuron(nid, neuron);
+        }        
+        for (int i = 0; i < oscillatorList.Count; i++) {
+            oscillatorList[i].MapNeuron(nid, neuron);            
         }
+        for (int i = 0; i < raycastSensorList.Count; i++) {
+            raycastSensorList[i].MapNeuron(nid, neuron);
+        }
+        for (int i = 0; i < targetSensorList.Count; i++) {
+            targetSensorList[i].MapNeuron(nid, neuron);            
+        }        
+        for (int i = 0; i < thrusterEffectorList.Count; i++) {
+            thrusterEffectorList[i].MapNeuron(nid, neuron);            
+        }
+        for (int i = 0; i < torqueEffectorList.Count; i++) {
+            torqueEffectorList[i].MapNeuron(nid, neuron);            
+        }
+        for (int i = 0; i < valueList.Count; i++) {
+            valueList[i].MapNeuron(nid, neuron);
+        }
+        for (int i = 0; i < weaponProjectileList.Count; i++) {
+            weaponProjectileList[i].MapNeuron(nid, neuron);            
+        }
+        for (int i = 0; i < weaponTazerList.Count; i++) {
+            weaponTazerList[i].MapNeuron(nid, neuron);            
+        }    
     }
 
     public void TickBrain() {
@@ -211,261 +91,102 @@ public class Agent : MonoBehaviour {
         brain.BrainMasterFunction();
         //brain.PrintBrain();
     }
-    public void RunModules() {
-        //for (int i = 0; i < inputValueList.Count; i++) {            
-        //}
-        /*for (int i = 0; i < targetSensorList.Count; i++) {  
-            // NORMALIZED!!!!
-            Vector3 segmentToTargetVect = new Vector3(targetSensorList[i].targetPosition.position.x - this.segmentList[0].transform.position.x, targetSensorList[i].targetPosition.position.y - this.segmentList[0].transform.position.y, targetSensorList[i].targetPosition.position.z - this.segmentList[0].transform.position.z);
-            Vector3 segmentToTargetVectNormalized = segmentToTargetVect.normalized;
-            Vector3 rightVector;
-            Vector3 forwardVector;
-
-            rightVector = segmentList[targetSensorList[i].parentID].transform.right;
-            forwardVector = segmentList[targetSensorList[i].parentID].transform.forward;
-
-            // Not Normalized!
-            float dotRight = Vector3.Dot(segmentToTargetVectNormalized, rightVector);
-            float dotForward = Vector3.Dot(segmentToTargetVectNormalized, forwardVector);
-
-            targetSensorList[i].dotX[0] = dotRight;
-            targetSensorList[i].dotZ[0] = dotForward;
-
-            //relative = transform.InverseTransformDirection(0, 0, 1);
-            targetSensorList[i].forward[0] = Vector3.Dot(segmentToTargetVect, forwardVector) * targetSensorList[i].sensitivity;
-            targetSensorList[i].horizontal[0] = Vector3.Dot(segmentToTargetVect, rightVector) * targetSensorList[i].sensitivity;
-            float inTarget = 0f;
-            if (segmentToTargetVect.sqrMagnitude <= 12f) { // hardcoded radius
-                inTarget = 1f; // ?? better to just give inverse distance??
-            }
-            targetSensorList[i].inTarget[0] = inTarget;
-
-            Vector3 relativeVelocity;
-            if (targetSensorList[i].targetPosition.gameObject.GetComponent<Rigidbody>()) {
-                relativeVelocity = targetSensorList[i].targetPosition.gameObject.GetComponent<Rigidbody>().velocity - this.segmentList[0].gameObject.GetComponent<Rigidbody>().velocity;
-                Agent agentOpponent = targetSensorList[i].targetPosition.gameObject.transform.parent.GetComponent<Agent>();
-                float attacking = 0f;
-                if(agentOpponent.weaponProjectileList[0].throttle[0] > 0 && agentOpponent.weaponProjectileList[0].energy[0] >= 0.1f) {
-                    attacking = 1f;
-                }
-                if (agentOpponent.weaponTazerList[0].throttle[0] > 0 && agentOpponent.weaponTazerList[0].energy[0] >= 0.01f) {
-                    attacking = 1f;
-                }
-                targetSensorList[i].targetAttacking[0] = attacking;
-            }
-            else {
-                relativeVelocity = this.segmentList[0].gameObject.GetComponent<Rigidbody>().velocity;
-            }
-            targetSensorList[i].velX[0] = relativeVelocity.x * targetSensorList[i].sensitivity;
-            targetSensorList[i].velZ[0] = relativeVelocity.z * targetSensorList[i].sensitivity;
-                        
-            if (targetSensorList[i].targetPosition.gameObject.GetComponent<HealthModuleComponent>()) {
-                targetSensorList[i].targetHealth[0] = targetSensorList[i].targetPosition.gameObject.GetComponent<HealthModuleComponent>().healthModule.health / targetSensorList[i].targetPosition.gameObject.GetComponent<HealthModuleComponent>().healthModule.maxHealth;
-            }
-        }*/
-
-        for(int i = 0; i < raycastSensorList.Count; i++) {
-            Vector3 rayOrigin = raycastSensorList[i].parentObject.transform.position + raycastSensorList[i].sensorPosition;
-            Vector3 left = raycastSensorList[i].parentObject.transform.TransformDirection(new Vector3(-1f, 0f, 0f).normalized);
-            Vector3 leftCenter = raycastSensorList[i].parentObject.transform.TransformDirection(new Vector3(-1f, 0f, 1f).normalized);
-            Vector3 center = raycastSensorList[i].parentObject.transform.TransformDirection(new Vector3(0f, 0f, 1f));
-            Vector3 rightCenter = raycastSensorList[i].parentObject.transform.TransformDirection(new Vector3(1f, 0f, 1f).normalized);
-            Vector3 right = raycastSensorList[i].parentObject.transform.TransformDirection(new Vector3(1f, 0f, 0f).normalized);
-            Vector3 back = raycastSensorList[i].parentObject.transform.TransformDirection(new Vector3(0f, 0f, -1f));
-
-            RaycastHit hit;
-
-            float rayMaxDistance = 25f;
-            float sensitivity = 1f / rayMaxDistance;
-            //Debug.Log("raycastSensorList: ");
-            raycastSensorList[i].distanceLeft[0] = rayMaxDistance * sensitivity;
-            raycastSensorList[i].distanceLeftCenter[0] = rayMaxDistance * sensitivity;
-            raycastSensorList[i].distanceCenter[0] = rayMaxDistance * sensitivity;
-            raycastSensorList[i].distanceRightCenter[0] = rayMaxDistance * sensitivity;
-            raycastSensorList[i].distanceRight[0] = rayMaxDistance * sensitivity;
-            raycastSensorList[i].distanceBack[0] = rayMaxDistance * sensitivity;
-            raycastSensorList[i].distanceCenterShort[0] = rayMaxDistance * sensitivity;
-
-            if (Physics.Raycast(rayOrigin, left, out hit, rayMaxDistance)) {
-                if(hit.collider.tag == "hazard")
-                    raycastSensorList[i].distanceLeft[0] = hit.distance * sensitivity;
-            }
-            if (Physics.Raycast(rayOrigin, leftCenter, out hit, rayMaxDistance)) {
-                if (hit.collider.tag == "hazard")
-                    raycastSensorList[i].distanceLeftCenter[0] = hit.distance * sensitivity;
-            }
-            if (Physics.Raycast(rayOrigin, center, out hit, rayMaxDistance * 3f)) {
-                if (hit.collider.tag == "hazard")
-                    raycastSensorList[i].distanceCenter[0] = hit.distance * sensitivity / 3f;
-            }
-            if (Physics.Raycast(rayOrigin, rightCenter, out hit, rayMaxDistance)) {
-                if (hit.collider.tag == "hazard")
-                    raycastSensorList[i].distanceRightCenter[0] = hit.distance * sensitivity;
-            }
-            if (Physics.Raycast(rayOrigin, right, out hit, rayMaxDistance)) {
-                if (hit.collider.tag == "hazard")
-                    raycastSensorList[i].distanceRight[0] = hit.distance * sensitivity;
-            }
-            if (Physics.Raycast(rayOrigin, back, out hit, rayMaxDistance)) {
-                if (hit.collider.tag == "hazard")
-                    raycastSensorList[i].distanceBack[0] = hit.distance * sensitivity;
-            }
-            if (Physics.Raycast(rayOrigin, center, out hit, rayMaxDistance)) {
-                if (hit.collider.tag == "hazard")
-                    raycastSensorList[i].distanceCenterShort[0] = hit.distance * sensitivity;
-            }
-
-            raycastSensorList[i].distanceLeft[0] = 1f - raycastSensorList[i].distanceLeft[0];
-            raycastSensorList[i].distanceLeftCenter[0] = 1f - raycastSensorList[i].distanceLeftCenter[0];
-            raycastSensorList[i].distanceCenter[0] = 1f - raycastSensorList[i].distanceCenter[0];
-            raycastSensorList[i].distanceRightCenter[0] = 1f - raycastSensorList[i].distanceRightCenter[0];
-            raycastSensorList[i].distanceRight[0] = 1f - raycastSensorList[i].distanceRight[0];
-            raycastSensorList[i].distanceBack[0] = 1f - raycastSensorList[i].distanceBack[0];
-            raycastSensorList[i].distanceCenterShort[0] = 1f - raycastSensorList[i].distanceCenterShort[0];
-        }
-
-        /*for (int i = 0; i < thrusterEffectorList.Count; i++) {
-            //Debug.Log("RunModules! AddRelativeForce " + segmentList[thrusterEffectorList[i].parentID].name);
-            //Debug.Log("thruster neuron value: " + thrusterEffectorList[i].throttle[0].ToString());
-            segmentList[thrusterEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0f, 0.01f, thrusterEffectorList[i].throttle[0]) * 9000f, ForceMode.Force);
-            segmentList[thrusterEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeForce(new Vector3(thrusterEffectorList[i].strafe[0], 0f, 0f) * 0f, ForceMode.Force);
-        }*/
-        /*for (int i = 0; i < torqueEffectorList.Count; i++) {
-            segmentList[torqueEffectorList[i].parentID].GetComponent<Rigidbody>().AddRelativeTorque(new Vector3(0f, torqueEffectorList[i].throttle[0], 0f) * 0f, ForceMode.Force);
-        }*/
-
-        /*for (int i = 0; i < weaponProjectileList.Count; i++) {
-            
-            float rayMaxDistance = 30f;
-            weaponProjectileList[i].damageInflicted[0] = 0f;
-
-            if(isVisible) {
-                ParticleSystem.EmissionModule emission = weaponProjectileList[i].particles.emission;
-                emission.enabled = false;
-            }
-
-            if (weaponProjectileList[i].throttle[0] > 0f) {
-                if (weaponProjectileList[i].energy[0] > 0.01f) {
-                    weaponProjectileList[i].energy[0] -= 0.01f; // costs energy to fire
-
-                    Vector3 rayOrigin = this.segmentList[0].GetComponent<Rigidbody>().transform.position + new Vector3(0f, 0.5f, 0f);
-                    Vector3 center = this.segmentList[0].GetComponent<Rigidbody>().transform.TransformDirection(new Vector3(0f, 0f, 1f));
-                    RaycastHit hit;
-                    //debugProjectileEnd = rayOrigin + center.normalized * rayMaxDistance;
-                    if (Physics.Raycast(rayOrigin, center, out hit, rayMaxDistance)) {
-                        if (hit.collider.GetComponent<HealthModuleComponent>() != null) {
-                            hit.collider.GetComponent<HealthModuleComponent>().TakeDamage(5f);
-                            weaponProjectileList[i].damageInflicted[0] = 5f;
-                            //debugProjectileEnd = rayOrigin + center.normalized * hit.distance;                            
-                        }
-                    }
-                    else {
-
-                    }
-                    //debugProjectileOn = true;
-                    //debugProjectileSource = rayOrigin;
-                    //debugProjectileEnd = rayOrigin + center.normalized * rayMaxDistance;
-
-                    if(isVisible) {                        
-                        ParticleSystem.EmissionModule emission = weaponProjectileList[i].particles.emission;
-                        emission.enabled = true;                        
-                    }
-                }
-            }
-            else {
-                weaponProjectileList[i].energy[0] += 0.01f;
-            }
-        }*/
-        /*for (int i = 0; i < weaponTazerList.Count; i++) {
-            
-            float rayMaxDistance = 5f;
-            weaponTazerList[i].damageInflicted[0] = 0f;
-
-            if (isVisible) {
-                ParticleSystem.EmissionModule emission = weaponTazerList[i].particles.emission;
-                emission.enabled = false;
-            }
-
-            if (weaponTazerList[i].throttle[0] > 0f) {
-                if (weaponTazerList[i].energy[0] > 0.1f) {
-                    weaponTazerList[i].energy[0] -= 0.1f; // costs energy to fire
-                    
-                    Vector3 rayOrigin = this.segmentList[0].GetComponent<Rigidbody>().transform.position + new Vector3(0f, 0.5f, 0f);
-                    Vector3 center = this.segmentList[0].GetComponent<Rigidbody>().transform.TransformDirection(new Vector3(0f, 0f, 1f));
-                    RaycastHit hit;                    
-                    if (Physics.Raycast(rayOrigin, center, out hit, rayMaxDistance)) {
-                        if (hit.collider.GetComponent<HealthModuleComponent>() != null) {
-                            hit.collider.GetComponent<HealthModuleComponent>().TakeDamage(25f);
-                            weaponTazerList[i].damageInflicted[0] = 25f;
-                        }
-                    }
-
-                    if (isVisible) {
-                        ParticleSystem.EmissionModule emission = weaponTazerList[i].particles.emission;
-                        emission.enabled = true;
-                    }
-                }
-            }
-            else {
-                weaponTazerList[i].energy[0] += 0.01f;
-            }
-        }*/
-        /*for (int i = 0; i < healthModuleList.Count; i++) {
-            healthModuleList[i].healthSensor[0] = healthModuleList[i].health / healthModuleList[i].maxHealth;
-            if(healthModuleList[i].health != healthModuleList[i].prevHealth) {
-                //healthModuleList[i].takingDamage[0] = 1f;                
-            }
-            else {
-                //healthModuleList[i].takingDamage[0] = 0f;                
-            }
-            //healthModuleList[i].prevHealth = healthModuleList[i].health;
-            healthModuleList[i].takingDamage[0] = (healthModuleList[i].maxHealth - healthModuleList[i].health) / healthModuleList[i].maxHealth;
-        }*/
-        for (int i = 0; i < contactSensorList.Count; i++) {
-            float contact = 0f;
-            if(contactSensorList[i].component.contact) {
-                contact = 1f;
-            }
-            contactSensorList[i].contactSensor[0] = contact;
-        }
+    public void RunModules(int timeStep) {
         for (int i = 0; i < basicAxleList.Count; i++) {
             basicAxleList[i].Tick();
+        }
+        for (int i = 0; i < basicJointList.Count; i++) {
+            basicJointList[i].Tick();
+        }
+        for (int i = 0; i < contactSensorList.Count; i++) {
+            contactSensorList[i].Tick();
+        }
+        for (int i = 0; i < healthModuleList.Count; i++) {
+            healthModuleList[i].Tick();
+        }        
+        for (int i = 0; i < oscillatorList.Count; i++) {
+            oscillatorList[i].Tick(timeStep);
+        }
+        for (int i = 0; i < raycastSensorList.Count; i++) {
+            raycastSensorList[i].Tick();
+        }
+        for (int i = 0; i < targetSensorList.Count; i++) {
+            targetSensorList[i].Tick();
+        }        
+        for (int i = 0; i < thrusterEffectorList.Count; i++) {
+            thrusterEffectorList[i].Tick();            
+        }
+        for (int i = 0; i < torqueEffectorList.Count; i++) {
+            torqueEffectorList[i].Tick();            
+        }
+        //for (int i = 0; i < valueList.Count; i++) {            
+        //}
+        for (int i = 0; i < weaponProjectileList.Count; i++) {
+            weaponProjectileList[i].Tick(isVisible);            
+        }
+        for (int i = 0; i < weaponTazerList.Count; i++) {
+            weaponTazerList[i].Tick(isVisible);            
         }
     }
 
     public void InitializeModules(AgentGenome genome) {
-        for (int i = 0; i < inputValueList.Count; i++) {
-            inputValueList[i].Initialize(genome.valueInputList[i]);
+        for (int i = 0; i < basicAxleList.Count; i++) {
+            basicAxleList[i].Initialize(genome.basicAxleList[i]);
         }
-
-        for (int i = 0; i < targetSensorList.Count; i++) {  
-            
-        }
-
-        for (int i = 0; i < raycastSensorList.Count; i++) {
-            raycastSensorList[i].Initialize(genome.raycastSensorList[i]);
-        }
-
-        for (int i = 0; i < thrusterEffectorList.Count; i++) {
-            
-        }
-        for (int i = 0; i < torqueEffectorList.Count; i++) {
-            
-        }
-        for (int i = 0; i < weaponProjectileList.Count; i++) {
-           
-        }
-        for (int i = 0; i < weaponTazerList.Count; i++) {
-            
-        }
-        for (int i = 0; i < healthModuleList.Count; i++) {
-            
+        for (int i = 0; i < basicJointList.Count; i++) {
+            basicJointList[i].Initialize(genome.basicJointList[i]);
         }
         for (int i = 0; i < contactSensorList.Count; i++) {
             contactSensorList[i].Initialize(genome.contactSensorList[i]);
         }
-        for (int i = 0; i < basicAxleList.Count; i++) {
-            basicAxleList[i].Initialize(genome.basicAxleList[i]);
+        for (int i = 0; i < healthModuleList.Count; i++) {
+            healthModuleList[i].Initialize(genome.healthModuleList[i]);
+        }        
+        for (int i = 0; i < oscillatorList.Count; i++) {
+            oscillatorList[i].Initialize(genome.oscillatorInputList[i]);
+        }
+        for (int i = 0; i < raycastSensorList.Count; i++) {
+            raycastSensorList[i].Initialize(genome.raycastSensorList[i]);
+        }
+        for (int i = 0; i < targetSensorList.Count; i++) {
+            targetSensorList[i].Initialize(genome.targetSensorList[i]);
+        }        
+        for (int i = 0; i < thrusterEffectorList.Count; i++) {
+            thrusterEffectorList[i].Initialize(genome.thrusterList[i]);
+        }
+        for (int i = 0; i < torqueEffectorList.Count; i++) {
+            torqueEffectorList[i].Initialize(genome.torqueList[i]);
+        }
+        for (int i = 0; i < valueList.Count; i++) {
+            valueList[i].Initialize(genome.valueInputList[i]);
+        }
+        for (int i = 0; i < weaponProjectileList.Count; i++) {
+            weaponProjectileList[i].Initialize(genome.weaponProjectileList[i]);
+
+            if (isVisible) {
+                GameObject particleGO = Instantiate(Resources.Load(weaponProjectileList[i].GetParticleSystemURL())) as GameObject;
+                ParticleSystem particle = particleGO.GetComponent<ParticleSystem>();
+                ParticleSystem.EmissionModule emission = particle.emission;
+                emission.enabled = false;
+                particle.gameObject.transform.parent = rootObject.transform;
+                particle.gameObject.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+                particle.gameObject.transform.localRotation = Quaternion.identity;
+                weaponProjectileList[i].particles = particle; // save reference                 
+            }
+        }
+        for (int i = 0; i < weaponTazerList.Count; i++) {
+            weaponTazerList[i].Initialize(genome.weaponTazerList[i]);
+
+            if (isVisible) {
+                GameObject particleGO = Instantiate(Resources.Load(weaponTazerList[i].GetParticleSystemURL())) as GameObject;
+                ParticleSystem particle = particleGO.GetComponent<ParticleSystem>();
+                ParticleSystem.EmissionModule emission = particle.emission;
+                emission.enabled = false;
+                particle.gameObject.transform.parent = weaponTazerList[i].parentBody.transform;
+                particle.gameObject.transform.localPosition = weaponTazerList[i].muzzleLocation;
+                particle.gameObject.transform.localRotation = Quaternion.identity;
+                weaponTazerList[i].particles = particle; // save reference                 
+            }
         }
     }
 

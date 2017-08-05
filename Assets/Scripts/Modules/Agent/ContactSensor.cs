@@ -20,5 +20,24 @@ public class ContactSensor {
         contactSensor = new float[1];
         parentID = genome.parentID;
         inno = genome.inno;
+
+        component.sensor = this;
+    }
+
+    public void MapNeuron(NID nid, Neuron neuron) {
+        if (inno == nid.moduleID) {
+            if (nid.neuronID == 0) {
+                neuron.currentValue = contactSensor;
+                neuron.neuronType = NeuronGenome.NeuronType.In;
+            }
+        }
+    }
+
+    public void Tick() {
+        float contact = 0f;
+        if (component.contact) {
+            contact = 1f;
+        }
+        contactSensor[0] = contact;
     }
 }

@@ -28,7 +28,8 @@ public class Brain {
             else {
                 neuron.neuronType = NeuronGenome.NeuronType.Hid;
                 neuron.currentValue = new float[1];
-            }            
+            }
+            //Debug.Log("Add: Key=" + genome.neuronList[i].nid.moduleID.ToString() + "," + genome.neuronList[i].nid.neuronID.ToString() + "  Val=" + i.ToString());
             IDs.Add(genome.neuronList[i].nid, i);
             neuronList.Add(neuron);
         }
@@ -71,9 +72,10 @@ public class Brain {
     }
 
     public void PrintBrain() {
+        Debug.Log("neuronCount: " + neuronList.Count.ToString());
         string neuronText = "";
         for(int i = 0; i < neuronList.Count; i++) {
-            neuronText += "Neuron " + i.ToString() + ": " + neuronList[i].currentValue[0].ToString() + "\n";
+            neuronText += "Neuron " + i.ToString() + ": " + neuronList[i].currentValue.Length.ToString() + "\n"; //neuronList[i].currentValue[0].ToString() + "\n";
         }        
         string axonText = "";
         for(int j = 0; j < axonList.Count; j++) {

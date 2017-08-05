@@ -19,4 +19,8 @@ public class ValueInputGenome {
         this.val = template.val;
     }
 
+    public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
+        NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 0);
+        neuronList.Add(neuron);
+    }
 }

@@ -17,4 +17,11 @@ public class WeaponProjectileGenome {
         this.parentID = template.parentID;
         this.inno = template.inno;
     }
+
+    public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
+        NeuronGenome neuron1 = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 0);
+        NeuronGenome neuron2 = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 1);
+        neuronList.Add(neuron1);
+        neuronList.Add(neuron2);
+    }
 }

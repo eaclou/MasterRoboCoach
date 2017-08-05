@@ -23,4 +23,15 @@ public class BasicAxleGenome {
         this.maxSteering = template.maxSteering;
         this.brakePower = template.brakePower;
     }
+
+    public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
+        NeuronGenome throttle = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 0);
+        NeuronGenome steerAngle = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 1);
+        NeuronGenome brake = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 2);
+        NeuronGenome speed = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 3);
+        neuronList.Add(throttle);
+        neuronList.Add(steerAngle);
+        neuronList.Add(brake);
+        neuronList.Add(speed);
+    }
 }

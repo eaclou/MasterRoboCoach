@@ -16,4 +16,9 @@ public class TorqueGenome {
         this.parentID = template.parentID;
         this.inno = template.inno;
     }
+
+    public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
+        NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 0);
+        neuronList.Add(neuron);
+    }
 }

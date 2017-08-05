@@ -10,7 +10,8 @@ public enum FitnessComponentType {
     DamageInflicted,
     Health,
     Random,
-    WinLoss
+    WinLoss,
+    DistToOrigin
 };
 [System.Serializable]
 public enum FitnessComponentMeasure {

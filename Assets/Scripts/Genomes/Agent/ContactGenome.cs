@@ -16,4 +16,9 @@ public class ContactGenome {
         this.parentID = template.parentID;
         this.inno = template.inno;
     }
+
+    public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
+        NeuronGenome neuron1 = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 0);
+        neuronList.Add(neuron1);
+    }
 }

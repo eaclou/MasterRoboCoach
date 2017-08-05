@@ -62,13 +62,13 @@ public class TeamsConfig {
         AgentGenomeTemplate templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateVacuumBot.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateQuadSpiderMini.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateTestCar.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Combat:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatCar.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
