@@ -2,17 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
+[System.Serializable]
 public class FitnessManager {
 
     // The list of types of FitnessComponents that are currently active and their weights:
     public List<FitnessComponentDefinition> fitnessComponentDefinitions;
+
+    [System.NonSerialized]
     public List<FitnessComponentDefinition> pendingFitnessComponentDefinitions; // edited by UI, applied each new generation
 
+    [System.NonSerialized]
     public float[] rankedFitnessList;
+    [System.NonSerialized]
     public int[] rankedIndicesList;
+    [System.NonSerialized]
     public float[] processedFitnessScores;
 
+    [System.NonSerialized]
     public List<float> baselineScoresAvgList;
 
     //public int[] debugFitnessLottery;
@@ -21,6 +27,7 @@ public class FitnessManager {
     // New:
     // Outer list is all the population's genomes
     // Inner list contains group of fitComp's per evaluation instance for that genome
+    [System.NonSerialized]
     public List<FitnessComponentEvaluationGroup>[] FitnessEvalGroupArray; // each index is one genome
 
 	public FitnessManager() {
@@ -55,6 +62,33 @@ public class FitnessManager {
         // copy pending changes into main List.
         SetFitnessFunctionFromPending();
         // then update pending list
+    }
+    public void InitializeLoadedData(int populationSize) {
+
+        SetPendingFitnessListFromMaster(); // master fitness list exists, make the pending definitions list a copy of it
+
+        baselineScoresAvgList = new List<float>();  // initialize!
+
+        // get evaluation groups ready:
+        if (FitnessEvalGroupArray == null) {
+            FitnessEvalGroupArray = new List<FitnessComponentEvaluationGroup>[populationSize];
+            for (int i = 0; i < populationSize; i++) { // for each genome:                
+                FitnessEvalGroupArray[i] = new List<FitnessComponentEvaluationGroup>(); // The list of fitness Component Groups
+            }
+        }
+        else {  // Not null
+            if (FitnessEvalGroupArray.Length != populationSize) {  // but incorrectly sized - population size has changed
+                FitnessEvalGroupArray = new List<FitnessComponentEvaluationGroup>[populationSize];
+            }
+            for (int i = 0; i < populationSize; i++) { // for each genome:
+                if (FitnessEvalGroupArray[i] != null) {
+                    FitnessEvalGroupArray[i].Clear();
+                }
+                else {
+                    FitnessEvalGroupArray[i] = new List<FitnessComponentEvaluationGroup>(); // The list of fitness Component Groups                    
+                }
+            }
+        }
     }
 
     public void SetFitnessFunctionFromPending() {

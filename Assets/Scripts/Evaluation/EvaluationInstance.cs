@@ -84,11 +84,12 @@ public class EvaluationInstance : MonoBehaviour {
         }
 
         if (emit && currentEvalTicket.focusPopIndex > 0) {  // Only Agents
-            if(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList.Count > 0) {
+            //emitterParamsDefault.startColor = new Color(1f, 1f, 1f, 0.2f);
+            if (currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList.Count > 0) {
                 emitterParamsDefault.startColor = Color.Lerp(new Color(1f, 0f, 0f, 0.25f), new Color(0f, 1f, 0f, 0.25f), currentAgentsArray[currentEvalTicket.focusPopIndex - 1].healthModuleList[0].healthSensor[0]);
                 //emitterParamsDefault.startColor.a = 0.5f;
             }
-            emitterParamsDefault.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + new Vector3(0f, 0.25f, 0f)) - gameObject.transform.position;
+            emitterParamsDefault.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootCOM) - gameObject.transform.position;
             particleCurves.Emit(emitterParamsDefault, 1);
             
         }       
@@ -173,8 +174,8 @@ public class EvaluationInstance : MonoBehaviour {
         currentEvalTicket.status = EvaluationTicket.EvaluationStatus.InProgress;
 
 
-        emitterParamsDefault.startSize = 0.25f;
-        emitterParamsDefault.startColor = new Color(1f, 1f, 1f, 0.25f);
+        emitterParamsDefault.startSize = 0.08f;
+        emitterParamsDefault.startColor = new Color(1f, 1f, 1f, 0.1f);
         
         emitterParamsWin.startSize = 1.2f;
         emitterParamsWin.startColor = new Color(0.1f, 1f, 0.1f, 1f);
@@ -257,8 +258,9 @@ public class EvaluationInstance : MonoBehaviour {
 
         //SetInvisibleTraverse(gameObject);
         if (visible) {
-            currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
-            SetVisibleTraverse(gameObject);
+            //Debug.Log("IS VISIBLE" + gameObject.name);
+            //currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
+            //SetVisibleTraverse(gameObject);
         }
         else {
             SetInvisibleTraverse(gameObject);
@@ -266,6 +268,7 @@ public class EvaluationInstance : MonoBehaviour {
 
         if(isExhibition) {
             currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
+            SetVisibleTraverse(gameObject);
         }
         else {
             // Fitness Crap only if NON-exhibition!:

@@ -24,6 +24,7 @@ public class PlayerPopulation {
     public int numHistoricalReps = 0;
     public int numBaselineReps = 0;
 
+    [System.NonSerialized]
     public AgentGenomeTemplate template;
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
@@ -61,6 +62,18 @@ public class PlayerPopulation {
         fitnessManager.InitializeForNewGeneration(agentGenomeList.Count);
         
         trainingSettingsManager = new TrainingSettingsManager(0.005f, 0.5f);
+    }
+    public void InitializeLoadedPopulation() {
+        // Assumes template has been set from defaults!
+        ResetRepresentativesList();
+        fitnessManager.InitializeLoadedData(agentGenomeList.Count);
+
+        // ENV:
+        //ResetRepresentativesList();
+        // Fitness Manager
+        //fitnessManager.InitializeLoadedData(popSize);
+        // Training Settings Manager:
+        // -- so simple at this point no init is needed, it's just 2 floats
     }
 
     public void TrimBaselineGenomes() {

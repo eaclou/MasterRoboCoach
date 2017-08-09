@@ -75,11 +75,11 @@ public class TrainingManager : MonoBehaviour {
     }
 
     void Update() {
-        SetCamera();
+        //SetCamera();
     }
 
     void FixedUpdate() {
-        if (isTraining) {
+        if (isTraining) { // && debugFrameCounter < 5) {
             if(evaluationManager.allEvalsComplete) {
                 // NEXT GEN!!!
                 NextGeneration();
@@ -127,11 +127,28 @@ public class TrainingManager : MonoBehaviour {
         isTraining = true;        
     }
     public void LoadTrainingMode() {
-        /*
+        
+        
         Debug.Log("LoadTrainingMode(TeamsConfig teamsConfig)!");
-        Debug.Log(teamsConfig.environmentGenomesList[0].color.ToString());
+        //Debug.Log(teamsConfig.environmentPopulation.environmentGenomeList[0]..ToString());
         Debug.Log(teamsConfig.challengeType.ToString());
 
+        // Initialize!
+        teamsConfig.InitializeFromLoadedData();  // Sets up non-serialized data so it's ready for training
+          
+
+        playingCurGen = 0; // for now - eventually I can save this too, but it doesn't seem critically important
+
+        evaluationManager = new EvaluationManager();
+        // Need to make sure all populations have their representatives set up before calling this:
+        // Right now this is done through the teamsConfig Constructor
+        evaluationManager.InitializeNewTraining(teamsConfig, challengeType); // should I just roll this into the Constructor?
+
+        isTraining = true; // at first while debugging!
+
+
+
+        /*
         Challenge.Type challengeType = teamsConfig.challengeType;
 
         // Initialize
@@ -342,6 +359,8 @@ public class TrainingManager : MonoBehaviour {
             // Record and Remove Baseline Genomes:
             teamsConfig.playersList[i].TrimBaselineGenomes();
         }
+
+        teamsConfig.ReloadAgentTemplates(); // see if I can hot-edit templates
         
         Crossover();
 

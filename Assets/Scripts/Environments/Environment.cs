@@ -12,7 +12,9 @@ public class Environment : MonoBehaviour {
     //public GameObject staticCollision;
 
     // Environment needs to keep references to its child objects so that they can be manipulated or enhanced with renderable parts later
-    public GameObject ground;
+    public GameObject groundCollision;
+    public GameObject groundRenderable;
+    public GameObject groundVista;
     public List<GameObject> arenaWalls;
     public List<GameObject> obstacles;
     public TargetColumn targetColumn;
@@ -42,22 +44,22 @@ public class Environment : MonoBehaviour {
         Material mat = new Material(Shader.Find("Standard"));
         mat.color = new Color(genome.terrainGenome.color.x, genome.terrainGenome.color.y, genome.terrainGenome.color.z);
 
-        if(ground.GetComponent<MeshFilter>() == null) {
-            ground.AddComponent<MeshFilter>().sharedMesh = ground.GetComponent<MeshCollider>().sharedMesh;
-        }
-        else {
-            ground.GetComponent<MeshFilter>().sharedMesh = ground.GetComponent<MeshCollider>().sharedMesh;
-        }
-        if(ground.GetComponent<MeshRenderer>() == null) {
-            ground.AddComponent<MeshRenderer>().material = mat;
-        }
-        else {
-            ground.GetComponent<MeshRenderer>().material = mat;
-        }
-        
+        groundRenderable = new GameObject("groundRenderable");
+        Mesh topology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
+        groundRenderable.AddComponent<MeshFilter>().sharedMesh = topology;
+        groundRenderable.AddComponent<MeshRenderer>().material = mat;
+        groundRenderable.transform.parent = gameObject.transform;
+        groundRenderable.transform.localPosition = new Vector3(0f, 0f, 0f);
+
+        groundVista = new GameObject("groundVista");
+        Mesh vistaTopology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x * 10, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 10);
+        groundVista.AddComponent<MeshFilter>().sharedMesh = vistaTopology;
+        groundVista.AddComponent<MeshRenderer>().material = mat;
+        groundVista.transform.parent = gameObject.transform;
+        groundVista.transform.localPosition = new Vector3(0f, 0f, 0f);        
 
         // Target !!!
-        if(genome.useTargetColumn) {
+        if (genome.useTargetColumn) {
             targetColumn.GetComponent<MeshRenderer>().enabled = true; // hide
         }        
 
@@ -78,11 +80,11 @@ public class Environment : MonoBehaviour {
         noFriction.frictionCombine = PhysicMaterialCombine.Minimum;
 
         if(genome.useTerrain) {
-            ground = new GameObject("ground");
-            Mesh topology = GetTerrainMesh(genome);
-            ground.AddComponent<MeshCollider>().sharedMesh = topology;
-            ground.transform.parent = gameObject.transform;
-            ground.transform.localPosition = new Vector3(0f, 0f, 0f);
+            groundCollision = new GameObject("ground");
+            Mesh topology = GetTerrainMesh(genome, 32, 32, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
+            groundCollision.AddComponent<MeshCollider>().sharedMesh = topology;
+            groundCollision.transform.parent = gameObject.transform;
+            groundCollision.transform.localPosition = new Vector3(0f, 0f, 0f);
             //ground.GetComponent<Collider>().material = noFriction;
         }        
 
@@ -190,13 +192,13 @@ public class Environment : MonoBehaviour {
         return height;        
     }
 
-    private Mesh GetTerrainMesh(EnvironmentGenome genome) {
+    private Mesh GetTerrainMesh(EnvironmentGenome genome, int xResolution, int zResolution, float xSize, float zSize) {
         
-        int xResolution = 32;
-        int zResolution = 32;
-        float xSize = Challenge.GetChallengeArenaBounds(genome.challengeType).x / (float)xResolution;
-        float zSize = Challenge.GetChallengeArenaBounds(genome.challengeType).z / (float)zResolution;
-        Vector3 offset = new Vector3(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 0.5f, 0f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 0.5f);
+        //int xResolution = 32;
+        //int zResolution = 32;
+        float xQuadSize = xSize / (float)xResolution;
+        float zQuadSize = zSize / (float)zResolution;
+        Vector3 offset = new Vector3(xSize * 0.5f, 0f, zSize * 0.5f);
 
         Vector3[] vertices;
 
@@ -210,8 +212,8 @@ public class Environment : MonoBehaviour {
         Vector4 tangent = new Vector4(1f, 0f, 0f, -1f);
         for (int i = 0, z = 0; z <= zResolution; z++) {
             for (int x = 0; x <= xResolution; x++, i++) {
-                float altitude = GetAltitude(genome, x * xSize - offset.x, z * zSize - offset.z);
-                vertices[i] = new Vector3(x * xSize, altitude, z * zSize) - offset;
+                float altitude = GetAltitude(genome, x * xQuadSize - offset.x, z * zQuadSize - offset.z);
+                vertices[i] = new Vector3(x * xQuadSize, altitude, z * zQuadSize) - offset;
                 uv[i] = new Vector2((float)x / xResolution, (float)z / zResolution);
                 tangents[i] = tangent;
             }

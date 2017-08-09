@@ -56,12 +56,12 @@ public class TerrainGenome {
             newGenome.terrainWaves[i] = new Vector3(parentGenome.terrainWaves[i].x, parentGenome.terrainWaves[i].y, parentGenome.terrainWaves[i].z);
             rand = UnityEngine.Random.Range(0f, 1f);
             if (rand < mutationRate) {
-                float newFreq = UnityEngine.Random.Range(0.01f, 1f);
+                float newFreq = UnityEngine.Random.Range(0.01f, 2f);
                 newGenome.terrainWaves[i].x = Mathf.Lerp(newGenome.terrainWaves[i].x, newFreq, mutationDriftAmount);
             }
             rand = UnityEngine.Random.Range(0f, 1f);
             if (rand < mutationRate) {
-                float newAmp = UnityEngine.Random.Range(0f, 0f);
+                float newAmp = UnityEngine.Random.Range(0f, 4f);
                 newGenome.terrainWaves[i].y = Mathf.Lerp(newGenome.terrainWaves[i].y, newAmp, mutationDriftAmount);
             }
             rand = UnityEngine.Random.Range(0f, 1f);

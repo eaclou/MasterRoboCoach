@@ -12,9 +12,9 @@ public class TeamsConfig {
     
 
     // default population sizes:
-    private int numEnvironmentGenomes = 32;
-    private int numAgentGenomesPerPlayer = 48;
-    private int numBaselineGenomes = 6;
+    private int numEnvironmentGenomes = 8;
+    private int numAgentGenomesPerPlayer = 40;
+    private int numBaselineGenomes = 4;
 
 	public TeamsConfig(int numPlayers, Challenge.Type challengeType, int numEnvironmentReps, int numPlayerReps) {
         this.challengeType = challengeType;
@@ -31,6 +31,7 @@ public class TeamsConfig {
         for(int i = 0; i < numPlayers; i++) {
             // Might have to revisit how to pass agent templates per population...
             AgentGenomeTemplate templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
+            
             // List of Agent Genomes
             PlayerPopulation player = new PlayerPopulation(challengeType, templateAgentGenome, numAgentGenomesPerPlayer, numBaselineGenomes, numPlayerReps);
 
@@ -38,6 +39,28 @@ public class TeamsConfig {
         }
     }
 
+    public void InitializeFromLoadedData() {
+        ReloadAgentTemplates();  // get templates so Agents can be Instantiated!
+        // load template from prefab. This will have to be changed in order to support modular upgrades...
+
+
+        // Initialize the Populations:
+        environmentPopulation.InitializeLoadedPopulation();
+
+        for(int i = 0; i < playersList.Count; i++) {
+            playersList[i].InitializeLoadedPopulation();
+        }
+    }
+
+    public void ReloadAgentTemplates() {        
+        // Players:        
+        for (int i = 0; i < playersList.Count; i++) {
+            // Might have to revisit how to pass agent templates per population...
+            AgentGenomeTemplate templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
+            playersList[i].template = templateAgentGenome;
+        }
+    }
+    
     private EnvironmentGenome GetDefaultTemplateEnvironmentGenome(Challenge.Type challengeType) {
         EnvironmentGenome templateGenome;
         switch (challengeType) {
@@ -65,7 +88,7 @@ public class TeamsConfig {
                 templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateQuadSpiderMini.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateDogCar.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Combat:
                 templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
