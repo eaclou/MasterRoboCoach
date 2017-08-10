@@ -80,7 +80,9 @@ public class TestProceduralCubemap : MonoBehaviour {
         cubemap.Apply();
 
         skyboxMaterial.mainTexture = skyboxMainTexture;
-        skyboxMaterial.SetTexture(Shader.PropertyToID("_Tex"), cubemap);        
+        skyboxMaterial.SetTexture(Shader.PropertyToID("_Tex"), cubemap);
+
+        DynamicGI.UpdateEnvironment();
     }
 
     public Color GetGradientColor(float x, float y, float z) {

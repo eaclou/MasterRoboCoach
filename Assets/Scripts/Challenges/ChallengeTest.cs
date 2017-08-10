@@ -10,7 +10,7 @@ public class ChallengeTest : ChallengeBase {
 
     public override void HookUpModules() {
         for (int i = 0; i < agent.targetSensorList.Count; i++) {
-            agent.targetSensorList[i].targetPosition = environment.targetColumn.gameObject.transform;
+            agent.targetSensorList[i].targetPosition = environment.environmentGameplay.targetColumn.gameObject.transform;
         }
     }
 }

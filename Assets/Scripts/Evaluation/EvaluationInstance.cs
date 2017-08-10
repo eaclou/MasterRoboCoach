@@ -287,7 +287,35 @@ public class EvaluationInstance : MonoBehaviour {
         }        
     }
     private void CreateEnvironment() {
-        if(currentEvalTicket.focusPopIndex == 0) { // if env is focus
+        EnvironmentGenome genome;
+        // focus determines if genome is grabbed from representative or primary genome pool list:
+        if(currentEvalTicket.focusPopIndex == 0) {
+            genome = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]];
+        }
+        else {
+            genome = teamsConfig.environmentPopulation.representativeGenomeList[currentEvalTicket.genomeIndices[0]];
+        }
+
+        GameObject environmentGO = new GameObject("environment" + currentEvalTicket.genomeIndices[0].ToString());
+        Environment environmentScript = environmentGO.AddComponent<Environment>();
+        currentEnvironment = environmentScript;
+        environmentGO.transform.parent = gameObject.transform;
+        environmentGO.transform.localPosition = new Vector3(0f, 0f, 0f);
+
+        if (teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].gameplayPrefab == null) {            
+            // This might only work if environment is completely static!!!! otherwise it could change inside original evalInstance and then that
+            // changed environment would be instantiated as fresh Environments for subsequent Evals!            
+            environmentScript.CreateCollisionAndGameplayContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
+        }
+        else {
+            // Already built
+            EnvironmentGameplay environmentGameplayScript = Instantiate<EnvironmentGameplay>(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].gameplayPrefab) as EnvironmentGameplay;
+            currentEnvironment.environmentGameplay = environmentGameplayScript;
+            currentEnvironment.environmentGameplay.gameObject.transform.parent = currentEnvironment.gameObject.transform;
+            currentEnvironment.environmentGameplay.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
+        }
+
+        /*if (currentEvalTicket.focusPopIndex == 0) { // if env is focus
                                                    // Check if this has already been built.
                                                    // If it has NOT:
             if (teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab == null) {
@@ -326,7 +354,7 @@ public class EvaluationInstance : MonoBehaviour {
                 currentEnvironment.gameObject.transform.parent = gameObject.transform;
                 currentEnvironment.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
             }
-        }        
+        }*/
     }
 
     public void HookUpModules() {
@@ -334,7 +362,7 @@ public class EvaluationInstance : MonoBehaviour {
         switch (challengeType) {
             case Challenge.Type.Test:
                 for (int i = 0; i < currentAgentsArray[0].targetSensorList.Count; i++) {
-                    currentAgentsArray[0].targetSensorList[i].targetPosition = currentEnvironment.targetColumn.gameObject.transform;
+                    currentAgentsArray[0].targetSensorList[i].targetPosition = currentEnvironment.environmentGameplay.targetColumn.gameObject.transform;
                 }
                 break;
             case Challenge.Type.Racing:

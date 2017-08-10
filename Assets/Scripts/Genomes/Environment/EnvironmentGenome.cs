@@ -10,13 +10,17 @@ public class EnvironmentGenome {
     public Challenge.Type challengeType;
     public Vector3 arenaBounds;
 
-    // I don't really like this!!! Try to revisit in the future!
+    // I don't really like this!!! Try to revisit in the future! -- maybe I can store this somewhere other than the genome...
+    //[System.NonSerialized]
+    //public Environment environmentPrefab; // reference to disabled starting conditions of Environment that is then cloned for actual use
     [System.NonSerialized]
-    public Environment environmentPrefab; // reference to disabled starting conditions of Environment that is then cloned for actual use
+    public EnvironmentGameplay gameplayPrefab;
     // This prefab would be the invisible, purely-collision, functional skeleton of the environment, for use in hidden EvaluationInstances
     // If it is to be used in the exhibition instance, would need to call a function on Environment script to create all the renderable stuff
 
-    // Environment should be split between static/dynamic and visible/collision
+    
+        
+        // Environment should be split between static/dynamic and visible/collision
     // !$#$!#$!#
     // Think about how to split terrain/objects into chunks of a grid so they can be loaded only when necessary
     // %$#%@$#%@$#%@34
@@ -92,7 +96,7 @@ public class EnvironmentGenome {
     }
 
     public void ClearEnvironmentPrefab() {
-        environmentPrefab = null;
+        gameplayPrefab = null;
     }
 
     public static EnvironmentGenome BirthNewGenome(EnvironmentGenome parentGenome, int index, Challenge.Type challengeType, float mutationRate, float mutationDriftAmount) {

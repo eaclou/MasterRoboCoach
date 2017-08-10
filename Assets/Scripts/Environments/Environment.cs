@@ -12,14 +12,10 @@ public class Environment : MonoBehaviour {
     //public GameObject staticCollision;
 
     // Environment needs to keep references to its child objects so that they can be manipulated or enhanced with renderable parts later
-    public GameObject groundCollision;
-    public GameObject groundRenderable;
-    public GameObject groundVista;
-    public List<GameObject> arenaWalls;
-    public List<GameObject> obstacles;
-    public TargetColumn targetColumn;
-    public Material groundMaterial;  // will need to pool these eventually
-    public PhysicMaterial groundPhysicMaterial;
+    public EnvironmentGameplay environmentGameplay;
+    public EnvironmentRenderable environmentRenderable;
+
+    
     // public List<GameObject> cosmeticDebris;
     // etc.
 
@@ -38,41 +34,72 @@ public class Environment : MonoBehaviour {
     }
 
     public void AddRenderableContent(EnvironmentGenome genome) {
-        // Adds meshRenderer & meshFilter components to all environmental objects
-        // assumes that the instance already has minimum collision objects created
+        // Wrappe Object:
+        GameObject environmentRenderableGO = new GameObject("environmentRenderable");
+        environmentRenderable = environmentRenderableGO.AddComponent<EnvironmentRenderable>();
+        environmentRenderable.transform.parent = gameObject.transform;
+        environmentRenderable.transform.localPosition = new Vector3(0f, 0f, 0f);
 
         Material mat = new Material(Shader.Find("Standard"));
         mat.color = new Color(genome.terrainGenome.color.x, genome.terrainGenome.color.y, genome.terrainGenome.color.z);
 
-        groundRenderable = new GameObject("groundRenderable");
-        Mesh topology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
-        groundRenderable.AddComponent<MeshFilter>().sharedMesh = topology;
-        groundRenderable.AddComponent<MeshRenderer>().material = mat;
-        groundRenderable.transform.parent = gameObject.transform;
-        groundRenderable.transform.localPosition = new Vector3(0f, 0f, 0f);
+        GameObject terrainManagerGO = new GameObject("terrainManager");
+        terrainManagerGO.transform.parent = environmentRenderable.transform;
+        terrainManagerGO.transform.localPosition = Vector3.zero;
+        TerrainManager terrainManager = terrainManagerGO.AddComponent<TerrainManager>();
+        terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 15f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 15f), 6);
 
-        groundVista = new GameObject("groundVista");
-        Mesh vistaTopology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x * 10, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 10);
-        groundVista.AddComponent<MeshFilter>().sharedMesh = vistaTopology;
-        groundVista.AddComponent<MeshRenderer>().material = mat;
-        groundVista.transform.parent = gameObject.transform;
-        groundVista.transform.localPosition = new Vector3(0f, 0f, 0f);        
+        /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");
+        Mesh topology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
+        environmentRenderable.groundRenderable.AddComponent<MeshFilter>().sharedMesh = topology;
+        environmentRenderable.groundRenderable.AddComponent<MeshRenderer>().material = mat;
+        environmentRenderable.groundRenderable.transform.parent = environmentRenderable.gameObject.transform;
+        environmentRenderable.groundRenderable.transform.localPosition = new Vector3(0f, 0f, 0f); */
 
         // Target !!!
         if (genome.useTargetColumn) {
-            targetColumn.GetComponent<MeshRenderer>().enabled = true; // hide
+            GameObject targetColumn = Instantiate(Resources.Load("ObjectPrefabs/targetLocation")) as GameObject;
+            targetColumn.transform.parent = environmentRenderable.gameObject.transform;
+            targetColumn.transform.localPosition = environmentGameplay.targetColumn.gameObject.transform.localPosition;
+            //environmentGameplay.targetColumn.GetComponent<MeshRenderer>().enabled = true; // hide
         }        
 
         // Obstacles:
         if(genome.useBasicObstacles) {
-            for (int i = 0; i < obstacles.Count; i++) {
-                obstacles[i].GetComponent<MeshRenderer>().material = mat;
-                obstacles[i].GetComponent<MeshRenderer>().enabled = true; // reveal
+            for (int i = 0; i < environmentGameplay.obstacles.Count; i++) {
+                GameObject obstacle = Instantiate(Resources.Load("ObjectPrefabs/obstacle")) as GameObject;
+                //obstacle.GetComponent<MeshFilter>().sharedMesh = DeformMesh(obstacle.GetComponent<MeshFilter>().sharedMesh);
+                obstacle.transform.parent = environmentRenderable.gameObject.transform;
+                obstacle.transform.localPosition = environmentGameplay.obstacles[i].gameObject.transform.localPosition;
+                obstacle.transform.localScale = environmentGameplay.obstacles[i].gameObject.transform.localScale;
+                obstacle.GetComponent<MeshRenderer>().material = mat;
+                //environmentGameplay.obstacles[i].GetComponent<MeshRenderer>().material = mat;
+                //environmentGameplay.obstacles[i].GetComponent<MeshRenderer>().enabled = true; // reveal
             }
-        }        
+        }       
     }
 
+    /*public Mesh DeformMesh(Mesh mesh) {
+        Mesh deformedMesh = new Mesh();
+        
+        List<Vector3> verts = new List<Vector3>();
+        for(int i = 0; i < mesh.vertices.Length; i++) {
+            float randomExtrude = UnityEngine.Random.Range(-1f, 1f) * 0.05f;
+            verts.Add(mesh.vertices[i] + mesh.normals[i] * randomExtrude);
+        }
+        deformedMesh.SetVertices(verts);
+        deformedMesh.triangles = mesh.triangles;
+        deformedMesh.normals = mesh.normals;
+        deformedMesh.RecalculateNormals();
+        return deformedMesh;
+    }*/
+
     public void CreateCollisionAndGameplayContent(EnvironmentGenome genome) {
+        GameObject environmentGameplayGO = new GameObject("environmentGameplay");
+        environmentGameplay = environmentGameplayGO.AddComponent<EnvironmentGameplay>();
+        environmentGameplay.transform.parent = gameObject.transform;
+        environmentGameplay.transform.localPosition = new Vector3(0f, 0f, 0f);
+
         // Construct Ground Physics Material:
         PhysicMaterial noFriction = new PhysicMaterial();
         noFriction.dynamicFriction = 0f;
@@ -80,65 +107,65 @@ public class Environment : MonoBehaviour {
         noFriction.frictionCombine = PhysicMaterialCombine.Minimum;
 
         if(genome.useTerrain) {
-            groundCollision = new GameObject("ground");
+            environmentGameplay.groundCollision = new GameObject("ground");
             Mesh topology = GetTerrainMesh(genome, 32, 32, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
-            groundCollision.AddComponent<MeshCollider>().sharedMesh = topology;
-            groundCollision.transform.parent = gameObject.transform;
-            groundCollision.transform.localPosition = new Vector3(0f, 0f, 0f);
+            environmentGameplay.groundCollision.AddComponent<MeshCollider>().sharedMesh = topology;
+            environmentGameplay.groundCollision.transform.parent = environmentGameplay.gameObject.transform;
+            environmentGameplay.groundCollision.transform.localPosition = new Vector3(0f, 0f, 0f);
             //ground.GetComponent<Collider>().material = noFriction;
-        }        
+        }
 
         //=============WALLS===========
-        arenaWalls = new List<GameObject>();
+        environmentGameplay.arenaWalls = new List<GameObject>();
 
         GameObject northWall = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        northWall.transform.parent = gameObject.transform;
+        northWall.transform.parent = environmentGameplay.gameObject.transform;
         northWall.transform.localPosition = new Vector3(0f, 0f, genome.arenaBounds.z * 0.5f);
         northWall.transform.localScale = new Vector3(genome.arenaBounds.x, genome.arenaBounds.y, genome.arenaBounds.z);
         northWall.GetComponent<MeshRenderer>().enabled = false;
         northWall.GetComponent<Collider>().material = noFriction;
         northWall.tag = "hazard";
-        arenaWalls.Add(northWall);
+        environmentGameplay.arenaWalls.Add(northWall);
 
         GameObject southWall = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        southWall.transform.parent = gameObject.transform;
+        southWall.transform.parent = environmentGameplay.gameObject.transform;
         southWall.transform.localPosition = new Vector3(0f, 0f, -genome.arenaBounds.z * 0.5f);
         southWall.transform.localScale = new Vector3(genome.arenaBounds.x, genome.arenaBounds.y, genome.arenaBounds.z);
         southWall.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
         southWall.GetComponent<MeshRenderer>().enabled = false;
         southWall.GetComponent<Collider>().material = noFriction;
         southWall.tag = "hazard";
-        arenaWalls.Add(southWall);
+        environmentGameplay.arenaWalls.Add(southWall);
 
         GameObject eastWall = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        eastWall.transform.parent = gameObject.transform;
+        eastWall.transform.parent = environmentGameplay.gameObject.transform;
         eastWall.transform.localPosition = new Vector3(genome.arenaBounds.x * 0.5f, 0f, 0f);
         eastWall.transform.localScale = new Vector3(genome.arenaBounds.z, genome.arenaBounds.y, genome.arenaBounds.z);
         eastWall.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
         eastWall.GetComponent<MeshRenderer>().enabled = false;
         eastWall.GetComponent<Collider>().material = noFriction;
         eastWall.tag = "hazard";
-        arenaWalls.Add(eastWall);
+        environmentGameplay.arenaWalls.Add(eastWall);
 
         GameObject westWall = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        westWall.transform.parent = gameObject.transform;
+        westWall.transform.parent = environmentGameplay.gameObject.transform;
         westWall.transform.localPosition = new Vector3(-genome.arenaBounds.x * 0.5f, 0f, 0f);
         westWall.transform.localScale = new Vector3(genome.arenaBounds.z, genome.arenaBounds.y, genome.arenaBounds.z);
         westWall.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
         westWall.GetComponent<MeshRenderer>().enabled = false;
         westWall.GetComponent<Collider>().material = noFriction;
         westWall.tag = "hazard";
-        arenaWalls.Add(westWall);
+        environmentGameplay.arenaWalls.Add(westWall);
 
         GameObject ceiling = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        ceiling.transform.parent = gameObject.transform;
+        ceiling.transform.parent = environmentGameplay.gameObject.transform;
         ceiling.transform.localPosition = new Vector3(0f, genome.arenaBounds.y * 0.5f, 0f);
         ceiling.transform.localScale = new Vector3(genome.arenaBounds.z, genome.arenaBounds.y, 1f);
         ceiling.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
         ceiling.GetComponent<MeshRenderer>().enabled = false;
         ceiling.GetComponent<Collider>().material = noFriction;
         ceiling.tag = "hazard";
-        arenaWalls.Add(ceiling);
+        environmentGameplay.arenaWalls.Add(ceiling);
 
         // ======================================================================
 
@@ -146,18 +173,18 @@ public class Environment : MonoBehaviour {
         // Target !!!
         if (genome.useTargetColumn) {
             GameObject targetColumnGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            targetColumnGO.transform.parent = gameObject.transform;
-            targetColumn = targetColumnGO.AddComponent<TargetColumn>();
-            targetColumn.GetComponent<MeshRenderer>().enabled = false; // hide
-            targetColumn.Initialize(genome.targetColumnGenome);
+            targetColumnGO.transform.parent = environmentGameplay.gameObject.transform;
+            environmentGameplay.targetColumn = targetColumnGO.AddComponent<TargetColumn>();
+            environmentGameplay.targetColumn.GetComponent<MeshRenderer>().enabled = false; // hide
+            environmentGameplay.targetColumn.Initialize(genome.targetColumnGenome);
         }
         
         // Obstacles:
         if (genome.useBasicObstacles) {
-            obstacles = new List<GameObject>();
+            environmentGameplay.obstacles = new List<GameObject>();
             for (int i = 0; i < genome.basicObstaclesGenome.obstaclePositions.Length; i++) {
                 GameObject obstacle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                obstacle.transform.parent = gameObject.transform;
+                obstacle.transform.parent = environmentGameplay.gameObject.transform;
                 float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
                 float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
                 float y = GetAltitude(genome, x, z) + 0.5f;
@@ -166,12 +193,12 @@ public class Environment : MonoBehaviour {
                 obstacle.GetComponent<Collider>().material = noFriction;
                 obstacle.tag = "hazard";
                 obstacle.GetComponent<MeshRenderer>().enabled = false; // hide
-                obstacles.Add(obstacle);
+                environmentGameplay.obstacles.Add(obstacle);
             }
         }        
 
         // Set Genome's prefab environment:
-        genome.environmentPrefab = this;
+        genome.gameplayPrefab = environmentGameplay;
     }
 
     private float GetAltitude(EnvironmentGenome genome, float x, float z) {

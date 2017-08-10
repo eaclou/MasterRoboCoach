@@ -22,10 +22,10 @@ public class TerrainGenome {
     }
 
     public void InitializeRandomGenome() {
-        float r = UnityEngine.Random.Range(0f, 1f);
-        float g = UnityEngine.Random.Range(0f, 1f);
-        float b = UnityEngine.Random.Range(0f, 1f);
-        color = new Vector3(r, g, b);
+        float r = UnityEngine.Random.Range(0.4f, 1f);
+        //float g = UnityEngine.Random.Range(0f, 1f);
+        //float b = UnityEngine.Random.Range(0f, 1f);
+        color = new Vector3(r, r, r);
 
         for (int i = 0; i < terrainWaves.Length; i++) {
             terrainWaves[i] = new Vector3(0.1f, 0f, 0f);
@@ -37,10 +37,10 @@ public class TerrainGenome {
         newGenome.color = parentGenome.color;
         float rand = UnityEngine.Random.Range(0f, 1f);
         if (rand < mutationRate) {
-            float r = UnityEngine.Random.Range(0f, 1f);
-            newGenome.color = new Vector3(Mathf.Lerp(newGenome.color.x, r, mutationDriftAmount), newGenome.color.y, newGenome.color.z);
+            float r = UnityEngine.Random.Range(0.4f, 1f);
+            newGenome.color = new Vector3(Mathf.Lerp(newGenome.color.x, r, mutationDriftAmount), Mathf.Lerp(newGenome.color.y, r, mutationDriftAmount), Mathf.Lerp(newGenome.color.z, r, mutationDriftAmount));
         }
-        rand = UnityEngine.Random.Range(0f, 1f);
+        /*rand = UnityEngine.Random.Range(0f, 1f);
         if (rand < mutationRate) {
             float g = UnityEngine.Random.Range(0f, 1f);
             newGenome.color = new Vector3(newGenome.color.x, Mathf.Lerp(newGenome.color.y, g, mutationDriftAmount), newGenome.color.z);
@@ -49,7 +49,7 @@ public class TerrainGenome {
         if (rand < mutationRate) {
             float b = UnityEngine.Random.Range(0f, 1f);
             newGenome.color = new Vector3(newGenome.color.x, newGenome.color.y, Mathf.Lerp(newGenome.color.z, b, mutationDriftAmount));
-        }
+        }*/
         // TERRAIN:
         newGenome.terrainWaves = new Vector3[parentGenome.terrainWaves.Length];
         for (int i = 0; i < parentGenome.terrainWaves.Length; i++) {
