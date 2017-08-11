@@ -40,14 +40,14 @@ public class Environment : MonoBehaviour {
         environmentRenderable.transform.parent = gameObject.transform;
         environmentRenderable.transform.localPosition = new Vector3(0f, 0f, 0f);
 
-        Material mat = new Material(Shader.Find("Standard"));
+        Material mat = Resources.Load("Materials/Environments/terrainDefault", typeof(Material)) as Material;  //new Material(Shader.Find("Standard"));
         mat.color = new Color(genome.terrainGenome.color.x, genome.terrainGenome.color.y, genome.terrainGenome.color.z);
 
         GameObject terrainManagerGO = new GameObject("terrainManager");
         terrainManagerGO.transform.parent = environmentRenderable.transform;
         terrainManagerGO.transform.localPosition = Vector3.zero;
         TerrainManager terrainManager = terrainManagerGO.AddComponent<TerrainManager>();
-        terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 15f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 15f), 6);
+        terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 17f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 17f), 6);
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");
         Mesh topology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
@@ -58,7 +58,7 @@ public class Environment : MonoBehaviour {
 
         // Target !!!
         if (genome.useTargetColumn) {
-            GameObject targetColumn = Instantiate(Resources.Load("ObjectPrefabs/targetLocation")) as GameObject;
+            GameObject targetColumn = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/targetLocation")) as GameObject;
             targetColumn.transform.parent = environmentRenderable.gameObject.transform;
             targetColumn.transform.localPosition = environmentGameplay.targetColumn.gameObject.transform.localPosition;
             //environmentGameplay.targetColumn.GetComponent<MeshRenderer>().enabled = true; // hide
@@ -67,16 +67,158 @@ public class Environment : MonoBehaviour {
         // Obstacles:
         if(genome.useBasicObstacles) {
             for (int i = 0; i < environmentGameplay.obstacles.Count; i++) {
-                GameObject obstacle = Instantiate(Resources.Load("ObjectPrefabs/obstacle")) as GameObject;
-                //obstacle.GetComponent<MeshFilter>().sharedMesh = DeformMesh(obstacle.GetComponent<MeshFilter>().sharedMesh);
+                GameObject obstacle;
+                int meshID = Mathf.RoundToInt(UnityEngine.Random.Range(0f, 2f));
+                
+                if(meshID == 0) {
+                    obstacle = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder00")) as GameObject;
+                }
+                else if (meshID == 1) {
+                    obstacle = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder01")) as GameObject;
+                }
+                else {
+                    obstacle = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder02")) as GameObject;
+                }
+                //obstacle.GetComponent<MeshFilter>().sharedMesh = boulderMesh;
                 obstacle.transform.parent = environmentRenderable.gameObject.transform;
-                obstacle.transform.localPosition = environmentGameplay.obstacles[i].gameObject.transform.localPosition;
-                obstacle.transform.localScale = environmentGameplay.obstacles[i].gameObject.transform.localScale;
+                obstacle.transform.localPosition = environmentGameplay.obstacles[i].gameObject.transform.localPosition - new Vector3(0f, UnityEngine.Random.Range(0f, 1f), 0f);
+                obstacle.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(-10f, 10f), UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-10f, 10f));
+                obstacle.transform.localScale = environmentGameplay.obstacles[i].gameObject.transform.localScale + new Vector3(0f, UnityEngine.Random.Range(0f, 1f), 0f);
                 obstacle.GetComponent<MeshRenderer>().material = mat;
                 //environmentGameplay.obstacles[i].GetComponent<MeshRenderer>().material = mat;
                 //environmentGameplay.obstacles[i].GetComponent<MeshRenderer>().enabled = true; // reveal
+
+                //  SUB-BOULDERS!!!
+                int numSubBoulders = Mathf.RoundToInt(UnityEngine.Random.Range(2f, 4f));
+                for (int j = 0; j < numSubBoulders; j++) {
+                    GameObject subBoulder;
+                    int boulderID = Mathf.RoundToInt(UnityEngine.Random.Range(0f, 2f));
+                    if (boulderID == 0) {
+                        subBoulder = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder00")) as GameObject;
+                    }
+                    else if (boulderID == 1) {
+                        subBoulder = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder01")) as GameObject;
+                    }
+                    else {
+                        subBoulder = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder02")) as GameObject;
+                    }
+                    float randScale = UnityEngine.Random.Range(0.2f, 0.6f);
+                    //float randScaleY = UnityEngine.Random.Range(0.2f, 0.6f);
+                    //float randScaleZ = UnityEngine.Random.Range(0.2f, 0.6f);
+                    subBoulder.transform.parent = environmentRenderable.gameObject.transform;
+
+                    float radius = UnityEngine.Random.Range(environmentGameplay.obstacles[i].gameObject.transform.localScale.x * 0.5f, environmentGameplay.obstacles[i].gameObject.transform.localScale.x * 0.95f);
+                    float randAngle = UnityEngine.Random.Range(-Mathf.PI, Mathf.PI);
+                    float xPos = Mathf.Sin(randAngle) * radius;
+                    float zPos = Mathf.Cos(randAngle) * radius;
+                    float yPos = TerrainConstructor.GetAltitude(genome, xPos + environmentGameplay.obstacles[i].gameObject.transform.localPosition.x, zPos + environmentGameplay.obstacles[i].gameObject.transform.localPosition.z);
+                    Vector3 pos = new Vector3(Mathf.Sin(randAngle) * radius + environmentGameplay.obstacles[i].gameObject.transform.localPosition.x, yPos - UnityEngine.Random.Range(randScale * 0.05f, randScale * 0.2f) * environmentGameplay.obstacles[i].gameObject.transform.localScale.y, Mathf.Cos(randAngle) + environmentGameplay.obstacles[i].gameObject.transform.localPosition.z);
+                    
+                    subBoulder.transform.localPosition = pos;
+                    subBoulder.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-180f, 180f));
+                    Vector3 scale = new Vector3(environmentGameplay.obstacles[i].gameObject.transform.localScale.x * randScale, environmentGameplay.obstacles[i].gameObject.transform.localScale.y * randScale, environmentGameplay.obstacles[i].gameObject.transform.localScale.z * randScale);
+                    subBoulder.transform.localScale = scale;
+                    subBoulder.GetComponent<MeshRenderer>().material = mat;
+                }
+
+                //  PEBBLES!!!
+                int numPebbles = Mathf.RoundToInt(UnityEngine.Random.Range(5f, 20f));
+                for (int k = 0; k < numPebbles; k++) {
+                    GameObject pebble;
+                    int boulderID = Mathf.RoundToInt(UnityEngine.Random.Range(0f, 2f));
+                    if (boulderID == 0) {
+                        pebble = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder00")) as GameObject;
+                    }
+                    else if (boulderID == 1) {
+                        pebble = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder01")) as GameObject;
+                    }
+                    else {
+                        pebble = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder02")) as GameObject;
+                    }
+                    float randScale = UnityEngine.Random.Range(0.05f, 0.25f);
+                    //float randScaleY = UnityEngine.Random.Range(0.05f, 0.25f);
+                    //float randScaleZ = UnityEngine.Random.Range(0.05f, 0.25f);
+                    pebble.transform.parent = environmentRenderable.gameObject.transform;
+
+                    float radius = UnityEngine.Random.Range(environmentGameplay.obstacles[i].gameObject.transform.localScale.x * 0.5f, environmentGameplay.obstacles[i].gameObject.transform.localScale.x * 5f);
+                    float randAngle = UnityEngine.Random.Range(-Mathf.PI, Mathf.PI);
+                    float xPos = Mathf.Sin(randAngle) * radius;
+                    float zPos = Mathf.Cos(randAngle) * radius;
+                    float yPos = TerrainConstructor.GetAltitude(genome, xPos + environmentGameplay.obstacles[i].gameObject.transform.localPosition.x, zPos + environmentGameplay.obstacles[i].gameObject.transform.localPosition.z);
+                    Vector3 pos = new Vector3(Mathf.Sin(randAngle) * radius + environmentGameplay.obstacles[i].gameObject.transform.localPosition.x, yPos - UnityEngine.Random.Range(randScale * 0.05f, randScale * 0.2f) * environmentGameplay.obstacles[i].gameObject.transform.localScale.y, Mathf.Cos(randAngle) * radius + environmentGameplay.obstacles[i].gameObject.transform.localPosition.z);
+                    pebble.transform.localPosition = pos;
+                    pebble.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-180f, 180f));
+                    Vector3 scale = new Vector3(environmentGameplay.obstacles[i].gameObject.transform.localScale.x * randScale, environmentGameplay.obstacles[i].gameObject.transform.localScale.y * randScale, environmentGameplay.obstacles[i].gameObject.transform.localScale.z * randScale);
+                    pebble.transform.localScale = scale;
+                    pebble.GetComponent<MeshRenderer>().material = mat;
+                }
+
+                // Exterior Boulders!!!
+                //  PEBBLES!!!
+                int numVistaRocks = Mathf.RoundToInt(UnityEngine.Random.Range(20f, 40f));
+                for (int m = 0; m < numVistaRocks; m++) {
+                    GameObject vistaRock;
+                    int boulderID = Mathf.RoundToInt(UnityEngine.Random.Range(0f, 2f));
+                    if (boulderID == 0) {
+                        vistaRock = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder00")) as GameObject;
+                    }
+                    else if (boulderID == 1) {
+                        vistaRock = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder01")) as GameObject;
+                    }
+                    else {
+                        vistaRock = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleBoulder02")) as GameObject;
+                    }
+                    float randScale = UnityEngine.Random.Range(0.5f, 3.6f);
+                    //float randScaleY = UnityEngine.Random.Range(0.05f, 0.25f);
+                    //float randScaleZ = UnityEngine.Random.Range(0.05f, 0.25f);
+                    vistaRock.transform.parent = environmentRenderable.gameObject.transform;
+
+                    float radius = UnityEngine.Random.Range(Challenge.GetChallengeArenaBounds(Challenge.Type.Test).x * 1.33f, Challenge.GetChallengeArenaBounds(Challenge.Type.Test).x * 4f);
+                    float randAngle = UnityEngine.Random.Range(-Mathf.PI, Mathf.PI);
+                    float xPos = Mathf.Sin(randAngle) * radius;
+                    float zPos = Mathf.Cos(randAngle) * radius;
+                    float yPos = TerrainConstructor.GetAltitude(genome, xPos + environmentGameplay.obstacles[i].gameObject.transform.localPosition.x, zPos + environmentGameplay.obstacles[i].gameObject.transform.localPosition.z);
+                    Vector3 pos = new Vector3(xPos, yPos - UnityEngine.Random.Range(randScale * 0.05f, randScale * 0.2f), zPos);
+                    vistaRock.transform.localPosition = pos;
+                    vistaRock.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-180f, 180f));
+                    Vector3 scale = new Vector3(environmentGameplay.obstacles[i].gameObject.transform.localScale.x * randScale, environmentGameplay.obstacles[i].gameObject.transform.localScale.y * randScale, environmentGameplay.obstacles[i].gameObject.transform.localScale.z * randScale);
+                    vistaRock.transform.localScale = scale;
+                    vistaRock.GetComponent<MeshRenderer>().material = mat;
+                }
             }
-        }       
+            // PArticle Pebbles!
+            GameObject particlePebbles = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleParticles")) as GameObject;
+            particlePebbles.transform.parent = environmentRenderable.transform;
+            ParticleSystem.ShapeModule emitterShape = particlePebbles.GetComponent<ParticleSystem>().shape;
+            emitterShape.mesh = environmentGameplay.groundCollision.GetComponent<MeshCollider>().sharedMesh;
+            Debug.Log(emitterShape.mesh.ToString());
+            ParticleSystem.EmissionModule emission = particlePebbles.GetComponent<ParticleSystem>().emission;
+            emission.enabled = true;
+        }
+
+        // WALLS:
+        GameObject northWall = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/arenaWall")) as GameObject; // GameObject.CreatePrimitive(PrimitiveType.Quad);
+        northWall.transform.parent = environmentRenderable.gameObject.transform;
+        northWall.transform.localPosition = new Vector3(0f, 0f, genome.arenaBounds.z * 0.5f);
+        northWall.transform.localScale = new Vector3(genome.arenaBounds.x, genome.arenaBounds.y, genome.arenaBounds.z);
+
+        GameObject southWall = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/arenaWall")) as GameObject;
+        southWall.transform.parent = environmentRenderable.gameObject.transform;
+        southWall.transform.localPosition = new Vector3(0f, 0f, -genome.arenaBounds.z * 0.5f);
+        southWall.transform.localScale = new Vector3(genome.arenaBounds.x, genome.arenaBounds.y, genome.arenaBounds.z);
+        southWall.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+
+        GameObject eastWall = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/arenaWall")) as GameObject;
+        eastWall.transform.parent = environmentRenderable.gameObject.transform;
+        eastWall.transform.localPosition = new Vector3(genome.arenaBounds.x * 0.5f, 0f, 0f);
+        eastWall.transform.localScale = new Vector3(genome.arenaBounds.z, genome.arenaBounds.y, genome.arenaBounds.z);
+        eastWall.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+
+        GameObject westWall = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/arenaWall")) as GameObject;
+        westWall.transform.parent = environmentRenderable.gameObject.transform;
+        westWall.transform.localPosition = new Vector3(-genome.arenaBounds.x * 0.5f, 0f, 0f);
+        westWall.transform.localScale = new Vector3(genome.arenaBounds.z, genome.arenaBounds.y, genome.arenaBounds.z);
+        westWall.transform.rotation = Quaternion.Euler(0f, -90f, 0f);
     }
 
     /*public Mesh DeformMesh(Mesh mesh) {
@@ -108,7 +250,7 @@ public class Environment : MonoBehaviour {
 
         if(genome.useTerrain) {
             environmentGameplay.groundCollision = new GameObject("ground");
-            Mesh topology = GetTerrainMesh(genome, 32, 32, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
+            Mesh topology = TerrainConstructor.GetTerrainMesh(genome, 32, 32, 0f, 0f, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
             environmentGameplay.groundCollision.AddComponent<MeshCollider>().sharedMesh = topology;
             environmentGameplay.groundCollision.transform.parent = environmentGameplay.gameObject.transform;
             environmentGameplay.groundCollision.transform.localPosition = new Vector3(0f, 0f, 0f);
@@ -187,7 +329,7 @@ public class Environment : MonoBehaviour {
                 obstacle.transform.parent = environmentGameplay.gameObject.transform;
                 float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
                 float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
-                float y = GetAltitude(genome, x, z) + 0.5f;
+                float y = TerrainConstructor.GetAltitude(genome, x, z) + 0.5f;
                 obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], 1f, genome.basicObstaclesGenome.obstacleScales[i]);
                 obstacle.transform.localPosition = new Vector3(x, y, z);
                 obstacle.GetComponent<Collider>().material = noFriction;
@@ -201,7 +343,7 @@ public class Environment : MonoBehaviour {
         genome.gameplayPrefab = environmentGameplay;
     }
 
-    private float GetAltitude(EnvironmentGenome genome, float x, float z) {
+    /*private float GetAltitude(EnvironmentGenome genome, float x, float z) {
         float total = 0f;
         for(int i = 0; i < genome.terrainGenome.terrainWaves.Length; i++) {
             if(i % 2 == 0) {
@@ -217,9 +359,9 @@ public class Environment : MonoBehaviour {
             height = Mathf.Lerp(0f, height, Mathf.Max(distToSpawn - 4f, 0f) / 8f);
         }
         return height;        
-    }
+    }*/
 
-    private Mesh GetTerrainMesh(EnvironmentGenome genome, int xResolution, int zResolution, float xSize, float zSize) {
+    /*private Mesh GetTerrainMesh(EnvironmentGenome genome, int xResolution, int zResolution, float xSize, float zSize) {
         
         //int xResolution = 32;
         //int zResolution = 32;
@@ -264,5 +406,5 @@ public class Environment : MonoBehaviour {
         mesh.RecalculateNormals();
 
         return mesh;
-    }
+    }*/
 }

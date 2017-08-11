@@ -100,7 +100,7 @@ public class ExhibitionParticleCurves : MonoBehaviour {
                         for (int x = 0; x < indices.Length; x++) {
                             txt += indices[x].ToString();
                         }
-                        GameObject particleGO = Instantiate(Resources.Load("ParticleSystems/Trajectory")) as GameObject;
+                        GameObject particleGO = Instantiate(Resources.Load("Prefabs/ParticleSystems/Trajectory")) as GameObject;
                         particleGO.name = txt;
                         particleGO.transform.parent = this.transform;
                         ParticleSystem particle = particleGO.GetComponent<ParticleSystem>();
@@ -122,7 +122,7 @@ public class ExhibitionParticleCurves : MonoBehaviour {
                     for(int x = 0; x < indices.Length; x++) {
                         txt += indices[x].ToString();
                     }
-                    GameObject particleGO = Instantiate(Resources.Load("ParticleSystems/Trajectory")) as GameObject;
+                    GameObject particleGO = Instantiate(Resources.Load("Prefabs/ParticleSystems/Trajectory")) as GameObject;
                     particleGO.name = txt;
                     particleGO.transform.parent = this.transform;
                     ParticleSystem particle = particleGO.GetComponent<ParticleSystem>();

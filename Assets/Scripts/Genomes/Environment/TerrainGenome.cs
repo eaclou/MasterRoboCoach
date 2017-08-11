@@ -28,7 +28,7 @@ public class TerrainGenome {
         color = new Vector3(r, r, r);
 
         for (int i = 0; i < terrainWaves.Length; i++) {
-            terrainWaves[i] = new Vector3(0.1f, 0f, 0f);
+            terrainWaves[i] = new Vector3(0.001f, 0f, 0f);
         }
     }
 
@@ -56,17 +56,17 @@ public class TerrainGenome {
             newGenome.terrainWaves[i] = new Vector3(parentGenome.terrainWaves[i].x, parentGenome.terrainWaves[i].y, parentGenome.terrainWaves[i].z);
             rand = UnityEngine.Random.Range(0f, 1f);
             if (rand < mutationRate) {
-                float newFreq = UnityEngine.Random.Range(0.01f, 2f);
+                float newFreq = UnityEngine.Random.Range(0.001f, 0.005f);
                 newGenome.terrainWaves[i].x = Mathf.Lerp(newGenome.terrainWaves[i].x, newFreq, mutationDriftAmount);
             }
             rand = UnityEngine.Random.Range(0f, 1f);
             if (rand < mutationRate) {
-                float newAmp = UnityEngine.Random.Range(0f, 4f);
+                float newAmp = UnityEngine.Random.Range(0f, 1f);
                 newGenome.terrainWaves[i].y = Mathf.Lerp(newGenome.terrainWaves[i].y, newAmp, mutationDriftAmount);
             }
             rand = UnityEngine.Random.Range(0f, 1f);
             if (rand < mutationRate) {
-                float newOff = UnityEngine.Random.Range(-10f, 10f);
+                float newOff = UnityEngine.Random.Range(-100f, 100f);
                 newGenome.terrainWaves[i].z = Mathf.Lerp(newGenome.terrainWaves[i].z, newOff, mutationDriftAmount);
             }
         }

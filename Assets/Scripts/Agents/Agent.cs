@@ -323,15 +323,15 @@ public class Agent : MonoBehaviour {
                 break;
             case CustomMeshID.Test:
                 //Debug.Log("test mesh");
-                preset = Instantiate(Resources.Load("SegmentPresets/test")) as GameObject;
+                preset = Instantiate(Resources.Load("Prefabs/SegmentPresets/test")) as GameObject;
                 break;
             case CustomMeshID.CombatBody:
                 //Debug.Log("test mesh");
-                preset = Instantiate(Resources.Load("SegmentPresets/combatBody")) as GameObject;
+                preset = Instantiate(Resources.Load("Prefabs/SegmentPresets/combatBody")) as GameObject;
                 break;
             case CustomMeshID.CombatCar:
                 //Debug.Log("test mesh");
-                preset = Instantiate(Resources.Load("SegmentPresets/combatCar")) as GameObject;
+                preset = Instantiate(Resources.Load("Prefabs/SegmentPresets/combatCar")) as GameObject;
                 break;
             default:
                 Debug.Log("error default");

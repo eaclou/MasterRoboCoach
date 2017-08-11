@@ -56,7 +56,7 @@ public class EnvironmentPopulation {
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.InitializeForNewGeneration(environmentGenomeList.Count);
 
-        trainingSettingsManager = new TrainingSettingsManager(0.02f, 0.5f);
+        trainingSettingsManager = new TrainingSettingsManager(1f, 1f);
     }
 
     public void InitializeLoadedPopulation() {
@@ -84,18 +84,16 @@ public class EnvironmentPopulation {
 
         switch (challengeType) {
             case Challenge.Type.Test:
-                FitnessComponentDefinition newComponent = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Avg, 0.1f, true);
+                FitnessComponentDefinition newComponent = new FitnessComponentDefinition(FitnessComponentType.Random, FitnessComponentMeasure.Avg, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(newComponent);
-                FitnessComponentDefinition contactHazard = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, true);
-                fitnessManager.fitnessComponentDefinitions.Add(contactHazard);
                 break;
             case Challenge.Type.Racing:
-                FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, true);
-                fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing1);
+                FitnessComponentDefinition newComponentRacing = new FitnessComponentDefinition(FitnessComponentType.Random, FitnessComponentMeasure.Avg, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(newComponentRacing);
                 break;
             case Challenge.Type.Combat:
-                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, true);
-                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat1);
+                FitnessComponentDefinition newComponentCombat = new FitnessComponentDefinition(FitnessComponentType.Random, FitnessComponentMeasure.Avg, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(newComponentCombat);
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());

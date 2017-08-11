@@ -80,6 +80,6 @@ public class WeaponTazer {
     }
 
     public string GetParticleSystemURL() {
-        return "ParticleSystems/WeaponTazer";
+        return "Prefabs/ParticleSystems/WeaponTazer";
     }
 }

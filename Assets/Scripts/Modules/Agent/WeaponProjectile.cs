@@ -87,6 +87,6 @@ public class WeaponProjectile {
     }
 
     public string GetParticleSystemURL() {
-        return "ParticleSystems/WeaponProjectile";
+        return "Prefabs/ParticleSystems/WeaponProjectile";
     }
 }
