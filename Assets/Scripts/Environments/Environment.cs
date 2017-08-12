@@ -47,7 +47,8 @@ public class Environment : MonoBehaviour {
         terrainManagerGO.transform.parent = environmentRenderable.transform;
         terrainManagerGO.transform.localPosition = Vector3.zero;
         TerrainManager terrainManager = terrainManagerGO.AddComponent<TerrainManager>();
-        terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 17f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 17f), 6);
+        Debug.Log("TERRAIN BUILD!");
+        terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 17f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 17f), 2);
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");
         Mesh topology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);

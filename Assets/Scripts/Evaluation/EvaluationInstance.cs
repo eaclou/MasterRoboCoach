@@ -174,8 +174,8 @@ public class EvaluationInstance : MonoBehaviour {
         currentEvalTicket.status = EvaluationTicket.EvaluationStatus.InProgress;
 
 
-        emitterParamsDefault.startSize = 0.12f;
-        emitterParamsDefault.startColor = new Color(1f, 1f, 1f, 0.1f);
+        //emitterParamsDefault.startSize = 0.12f;
+        //emitterParamsDefault.startColor = new Color(1f, 1f, 1f, 0.1f);
         
         emitterParamsWin.startSize = 1.2f;
         emitterParamsWin.startColor = new Color(0.1f, 1f, 0.1f, 1f);

@@ -65,6 +65,8 @@ public class EvaluationManager {
         GameObject exhibitionParticleCurvesGO = new GameObject("ExhibitionParticleCurves");
         exhibitionParticleCurves = exhibitionParticleCurvesGO.AddComponent<ExhibitionParticleCurves>();
         exhibitionParticleCurves.CreateRepresentativeParticleSystems(teamsConfig);
+
+        Debug.Log("EvalManager Initialized!");
     }
     
     public void CreateDefaultEvaluationTickets(TeamsConfig teamsConfig) {

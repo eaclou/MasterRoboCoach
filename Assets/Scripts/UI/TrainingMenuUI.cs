@@ -127,10 +127,10 @@ public class TrainingMenuUI : MonoBehaviour {
         textTestingProgress.text = GetTestingProgressText();
 
         string cameraModeText = "";
-        if(mainMenuRef.gameManagerRef.trainerRef.currentCameraMode == 0) {
+        if(mainMenuRef.gameManagerRef.trainerRef.cameraManager.currentCameraMode == 0) {
             cameraModeText = "Wide";
         }
-        else if (mainMenuRef.gameManagerRef.trainerRef.currentCameraMode == 1) {
+        else if (mainMenuRef.gameManagerRef.trainerRef.cameraManager.currentCameraMode == 1) {
             cameraModeText = "Top Down";
         }
         else {

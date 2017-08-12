@@ -13,7 +13,8 @@ public class TrainingManager : MonoBehaviour {
     public Challenge.Type challengeType;
     public TeamsConfig teamsConfig; // holds all the data    
     public EvaluationManager evaluationManager;  // keeps track of evaluation pairs & instances
-
+    public CameraManager cameraManager;
+    public bool cameraEnabled = false;
     //private bool trainingModeActive = false; // are we in the training mode screen?
     public bool isTraining = false; // actively evaluating
     public bool trainingPaused = false;
@@ -32,27 +33,10 @@ public class TrainingManager : MonoBehaviour {
     
     // Training Status:
     public int playingCurGen = 0;
-
-    // Evaluation Settings:    
-    //public float agentMutationChance = 0.1f;
-    //public float agentMutationStepSize = 0.1f;
-    //public float envMutationChance = 0.1f;
-    //public float envMutationStepSize = 0.1f;
-
-    // Camera: -- need to break this out away from TrainingManager
-    public GameObject mainCamGroup;
-    public GameObject mainCam;
-    public int currentCameraMode = 0;  // 0 = wide, 1 = top-down, 2 = shoulder-cam
-    private Vector3 cameraPosWide;
-    private Quaternion cameraRotWide;
-    private Vector3 cameraPosTop;
-    private Quaternion cameraRotTop;
-    private Vector3 cameraPosShoulder;
-    private Quaternion cameraRotShoulder;
-
+    
     // Particle Trajectories: -- this should have its own Manager --
     // but needs to coordinate with evaluationInstances to know when to emit and with what settings...
-    public ParticleSystem particleTrajectories;
+    //public ParticleSystem particleTrajectories;
 
     public int debugFrameCounter = 0;
 
@@ -61,7 +45,7 @@ public class TrainingManager : MonoBehaviour {
     //private List<float> environmentFitnessList;
 
     void Start() {
-        cameraPosWide = new Vector3(0f, 20f, -40f);
+        /*cameraPosWide = new Vector3(0f, 20f, -40f);
         cameraRotWide = Quaternion.Euler(26.2f, 0f, 0f);
         cameraPosTop = new Vector3(0f, 50f, 0f);
         cameraRotTop = Quaternion.Euler(90f, 0f, 0f);
@@ -72,15 +56,17 @@ public class TrainingManager : MonoBehaviour {
         emitterParams.position = Vector3.one;
         emitterParams.startLifetime = 100f;
         particleTrajectories.Emit(emitterParams, 1);
+        */
     }
 
     void Update() {
-        //SetCamera();
+        SetCamera();
     }
 
     void FixedUpdate() {
         if (isTraining) { // && debugFrameCounter < 5) {
-            if(evaluationManager.allEvalsComplete) {
+            Debug.Log("FixedUpdate isTraining");
+            if (evaluationManager.allEvalsComplete) {
                 // NEXT GEN!!!
                 NextGeneration();
             }
@@ -89,11 +75,12 @@ public class TrainingManager : MonoBehaviour {
             }            
 
             debugFrameCounter++;
-        }
+        }        
     }
 
     // First-time Initialization -- triggered through gameManager & GUI
     public void NewTrainingMode(Challenge.Type challengeType) {
+        
         this.challengeType = challengeType;
         // Initialize
         int numPlayers = 1;
@@ -124,7 +111,8 @@ public class TrainingManager : MonoBehaviour {
         // Right now this is done through the teamsConfig Constructor
         evaluationManager.InitializeNewTraining(teamsConfig, challengeType); // should I just roll this into the Constructor?
                 
-        isTraining = true;        
+        isTraining = true;
+        cameraEnabled = true;
     }
     public void LoadTrainingMode() {
         
@@ -144,8 +132,8 @@ public class TrainingManager : MonoBehaviour {
         // Right now this is done through the teamsConfig Constructor
         evaluationManager.InitializeNewTraining(teamsConfig, challengeType); // should I just roll this into the Constructor?
 
-        isTraining = true; // at first while debugging!
-
+        isTraining = true;
+        cameraEnabled = true;
 
 
         /*
@@ -247,39 +235,23 @@ public class TrainingManager : MonoBehaviour {
     }
 
     private void SetCamera() {
-        if(currentCameraMode == 0) {
-            //mainCam.transform.parent = null;
-            mainCamGroup.transform.position = new Vector3(0f, 0f, 0f);
-            mainCamGroup.transform.rotation = Quaternion.identity;
-            mainCam.transform.localPosition = cameraPosWide;
-            mainCam.transform.rotation = cameraRotWide;
-        }
-        else if(currentCameraMode == 1) {
-            //mainCam.transform.parent = null;
-            mainCamGroup.transform.position = new Vector3(0f, 0f, 0f);
-            mainCamGroup.transform.rotation = Quaternion.identity;
-            mainCam.transform.localPosition = cameraPosTop;
-            mainCam.transform.rotation = cameraRotTop;
-        }
-        else {
-            if(evaluationManager.exhibitionInstance != null) {
-                if(evaluationManager.exhibitionInstance.currentAgentsArray != null) {
-                    if (evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1] != null) {
-                        if (evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].rootObject != null) {
-                            mainCamGroup.transform.position = evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].rootObject.transform.position;
-                            //mainCamGroup.transform.rotation = evaluationManager.exhibitionInstance.currentAgentsArray[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].rootObject.transform.rotation;
-                                                        
-                        }                       
-                    }
-                }
+        
+        if (cameraEnabled) {
+            //Debug.Log("SetCamera()!");
+            Vector3 agentPosition = Vector3.zero;
+            int focusPlayer = 0;
+            if (evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex != 0) {
+                focusPlayer = evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1;
             }
-            mainCam.transform.localPosition = cameraPosShoulder;
-            mainCam.transform.localRotation = cameraRotShoulder;
-        }        
+            if (evaluationManager.exhibitionInstance.currentAgentsArray != null) {
+                agentPosition = evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootObject.transform.position + evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootCOM;
+            }
+            cameraManager.UpdateCameraState(agentPosition);
+        }
     }
 
     public void TogglePlayPause() {
-        //print("togglePlayPause");
+        print("togglePlayPause");
         if(trainingPaused) {
             Time.timeScale = Mathf.Clamp(playbackSpeed, 0.1f, 100f);
         }
@@ -289,6 +261,7 @@ public class TrainingManager : MonoBehaviour {
         trainingPaused = !trainingPaused;
     }
     public void Pause() {
+        print("Pause");
         trainingPaused = true;
         Time.timeScale = 0f;
     }
@@ -339,16 +312,12 @@ public class TrainingManager : MonoBehaviour {
     }
     
     public void ClickCameraMode() {
-        currentCameraMode++;
-
-        if(currentCameraMode > 2) {
-            currentCameraMode = 0;
-        }
+        cameraManager.CycleCameraMode();
     }
     
     private void NextGeneration() {
         Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
-        particleTrajectories.Clear();
+        //particleTrajectories.Clear();
         // Crossover:
         teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness(teamsConfig.environmentPopulation.popSize);
         // Record and Remove Baseline Genomes:

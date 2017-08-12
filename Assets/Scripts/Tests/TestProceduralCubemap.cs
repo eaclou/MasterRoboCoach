@@ -13,13 +13,13 @@ public class TestProceduralCubemap : MonoBehaviour {
 
         //skyboxMaterial.
 
-        Texture2D skyboxMainTexture = new Texture2D(128, 128, TextureFormat.RGB24, true);
+        /*Texture2D skyboxMainTexture = new Texture2D(128, 128, TextureFormat.RGB24, true);
         skyboxMainTexture.filterMode = FilterMode.Bilinear;
         for(int x = 0; x < 128; x++) {
             for(int y = 0; y < 128; y++) {
                 skyboxMainTexture.SetPixel(x, y, Color.blue);
             }
-        }
+        }*/
 
 
         Cubemap cubemap = new Cubemap(128, TextureFormat.RGB24, false);
@@ -79,7 +79,7 @@ public class TestProceduralCubemap : MonoBehaviour {
         }
         cubemap.Apply();
 
-        skyboxMaterial.mainTexture = skyboxMainTexture;
+        //skyboxMaterial.mainTexture = skyboxMainTexture;
         skyboxMaterial.SetTexture(Shader.PropertyToID("_Tex"), cubemap);
 
         DynamicGI.UpdateEnvironment();
