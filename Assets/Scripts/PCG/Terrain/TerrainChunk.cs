@@ -115,13 +115,6 @@ public class TerrainChunk : MonoBehaviour {
         thisEast = position.x + scale.x;
         thisSouth = position.y - scale.y;
         thisWest = position.x - scale.x;
-        //Debug.Log("TerrainManager! north: " + thisNorth.ToString() + ", east: " + thisEast.ToString() + ", south: " + thisSouth.ToString() + ", west: " + thisWest.ToString());
-        //gameObject.transform.parent = parentChunk.gameObject.transform;
-        //gameObject.transform.localPosition =  = new Vector3(scale.x * 0.5f, 0f, -scale.y * 0.5f);
-        //Vector2 gameObjectPos;
-        //if(id == )
-        //gameObject.transform.localPosition = new Vector3(position.x * (1f / ((float)lod+1f)), 0f, position.y);
-
 
         bool end = false;
         if(!this.CheckForContainsRect(arenaBounds.y * 0.5f, arenaBounds.x * 0.5f, -arenaBounds.y * 0.5f, -arenaBounds.x * 0.5f)) {
@@ -185,7 +178,6 @@ public class TerrainChunk : MonoBehaviour {
         chunkGO.transform.parent = gameObject.transform;
         chunkGO.transform.localPosition = new Vector3(0f, 0f, 0f);
         //chunkGO.transform.localScale = new Vector3(scale.x, 1f, scale.y);
-
-        //Mesh topology = 
+        
     }
 }
