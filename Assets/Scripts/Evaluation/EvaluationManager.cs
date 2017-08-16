@@ -18,9 +18,11 @@ public class EvaluationManager {
     public EvaluationInstance exhibitionInstance;
     public ExhibitionParticleCurves exhibitionParticleCurves;
 
-    private int maxInstancesX = 10;
-    private int maxInstancesZ = 10;    
+    private int maxInstancesX = 5;
+    private int maxInstancesY = 3;
+    private int maxInstancesZ = 5;    
     private float instanceBufferX = 2.5f;
+    private float instanceBufferY = 2.5f;
     private float instanceBufferZ = 2.5f;
     public int maxTimeStepsDefault = 300;
 
@@ -349,16 +351,26 @@ public class EvaluationManager {
         Vector3 arenaBounds = Challenge.GetChallengeArenaBounds(challengeType); // revisit this method
         
         evaluationInstancesList = new List<EvaluationInstance>();
+        
         for (int x = 0; x < maxInstancesX; x++) {
-            for (int z = 0; z < maxInstancesZ; z++) {
-                GameObject evalInstanceGO = new GameObject("EvaluationInstance [" + x.ToString() + "," + z.ToString() + "]");
-                EvaluationInstance evaluationInstance = evalInstanceGO.AddComponent<EvaluationInstance>();
-                //evaluationInstance.particleCurves = particleTrajectories;
-                evalInstanceGO.transform.position = new Vector3((x+1) * (arenaBounds.x + instanceBufferX), 0f, (z+1) * (arenaBounds.z + instanceBufferZ));
-                evaluationInstancesList.Add(evaluationInstance);
-                
-                evaluationInstance.isExhibition = false;                
-            }
+            for(int y = 0; y < maxInstancesY; y++) {
+                int yRowPosition = y - Mathf.RoundToInt((float)maxInstancesY * 0.5f);
+                if(yRowPosition >= 0) {
+                    yRowPosition++;
+                }
+                float yPos = (yRowPosition) * (arenaBounds.y + instanceBufferY);
+                for (int z = 0; z < maxInstancesZ; z++) {
+                    GameObject evalInstanceGO = new GameObject("EvaluationInstance [" + x.ToString() + "," + z.ToString() + "]");
+                    EvaluationInstance evaluationInstance = evalInstanceGO.AddComponent<EvaluationInstance>();
+                    //evaluationInstance.particleCurves = particleTrajectories;
+                    float xPos = (x + 1) * (arenaBounds.x + instanceBufferX) - ((float)maxInstancesX * 0.5f) * (arenaBounds.x + instanceBufferX);
+                    float zPos = (z + 1) * (arenaBounds.z + instanceBufferZ) - ((float)maxInstancesZ * 0.5f) * (arenaBounds.z + instanceBufferZ);
+                    evalInstanceGO.transform.position = new Vector3(xPos, yPos, zPos);
+                    evaluationInstancesList.Add(evaluationInstance);
+
+                    evaluationInstance.isExhibition = false;
+                }
+            }            
         }
     }
     public void ClearEvaluationTickets() {

@@ -211,12 +211,12 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "Health = " + curAgent.healthModuleList[0].healthSensor[0].ToString() + "\n";
                 txt += "Damage = " + curAgent.healthModuleList[0].takingDamage[0].ToString() + "\n";
             }
-            if (curAgent.basicAxleList.Count > 0) {
+            if (curAgent.basicWheelList.Count > 0) {
                 txt += "\nBASIC AXLE:\n";
-                txt += "Throttle = " + curAgent.basicAxleList[0].throttle[0].ToString() + "\n";
-                txt += "SteerAngle = " + curAgent.basicAxleList[0].steerAngle[0].ToString() + "\n";
-                txt += "Brake = " + curAgent.basicAxleList[0].brake[0].ToString() + "\n";
-                txt += "Speed = " + curAgent.basicAxleList[0].speed[0].ToString() + "\n";
+                txt += "Throttle = " + curAgent.basicWheelList[0].throttle[0].ToString() + "\n";
+                txt += "SteerAngle = " + curAgent.basicWheelList[0].steerAngle[0].ToString() + "\n";
+                txt += "Brake = " + curAgent.basicWheelList[0].brake[0].ToString() + "\n";
+                txt += "Speed = " + curAgent.basicWheelList[0].speed[0].ToString() + "\n";
             }
         }
         return txt;

@@ -29,7 +29,7 @@ public class CameraManager : MonoBehaviour {
         cameraRotWide = Quaternion.Euler(25f, 0f, 0f);
         cameraPosTop = new Vector3(0f, 40f, 0f);
         cameraRotTop = Quaternion.Euler(90f, 0f, 0f);
-        cameraPosShoulder = new Vector3(0f, 1.5f, -5.5f);
+        cameraPosShoulder = new Vector3(0f, 1f, -3.3f);
         cameraRotShoulder = Quaternion.Euler(12.5f, 0f, 0f);
     }
 	
@@ -85,7 +85,7 @@ public class CameraManager : MonoBehaviour {
             if (focusPointVel.sqrMagnitude == 0f) {
                 focusPointVel = new Vector3(0f, 0f, 1f);
             }
-            focusPointAvgVel = Vector3.Lerp(focusPoint - prevFocusPoint, focusPointAvgVel, 0.995f);
+            focusPointAvgVel = Vector3.Lerp(focusPoint - prevFocusPoint, focusPointAvgVel, 0.990f);
             focusPointAvgVel.y = 0f;
             if(focusPointAvgVel.sqrMagnitude < 0.00001f) {
                 focusPointAvgVel = new Vector3(0f, 0f, 1f);

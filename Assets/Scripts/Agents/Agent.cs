@@ -13,7 +13,7 @@ public class Agent : MonoBehaviour {
     public Vector3 rootCOM;
 
     [SerializeField]
-    public List<BasicAxle> basicAxleList;
+    public List<BasicWheel> basicWheelList;
     [SerializeField]
     public List<BasicJoint> basicJointList;
     [SerializeField]
@@ -46,8 +46,8 @@ public class Agent : MonoBehaviour {
     }
 
     public void MapNeuronToModule(NID nid, Neuron neuron) {
-        for (int i = 0; i < basicAxleList.Count; i++) {
-            basicAxleList[i].MapNeuron(nid, neuron);
+        for (int i = 0; i < basicWheelList.Count; i++) {
+            basicWheelList[i].MapNeuron(nid, neuron);
         }
         for (int i = 0; i < basicJointList.Count; i++) {
             basicJointList[i].MapNeuron(nid, neuron);
@@ -92,8 +92,8 @@ public class Agent : MonoBehaviour {
         //brain.PrintBrain();
     }
     public void RunModules(int timeStep) {
-        for (int i = 0; i < basicAxleList.Count; i++) {
-            basicAxleList[i].Tick();
+        for (int i = 0; i < basicWheelList.Count; i++) {
+            basicWheelList[i].Tick();
         }
         for (int i = 0; i < basicJointList.Count; i++) {
             basicJointList[i].Tick();
@@ -130,8 +130,8 @@ public class Agent : MonoBehaviour {
     }
 
     public void InitializeModules(AgentGenome genome) {
-        for (int i = 0; i < basicAxleList.Count; i++) {
-            basicAxleList[i].Initialize(genome.basicAxleList[i]);
+        for (int i = 0; i < basicWheelList.Count; i++) {
+            basicWheelList[i].Initialize(genome.basicWheelList[i]);
         }
         for (int i = 0; i < basicJointList.Count; i++) {
             basicJointList[i].Initialize(genome.basicJointList[i]);

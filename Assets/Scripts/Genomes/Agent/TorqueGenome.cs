@@ -7,6 +7,8 @@ public class TorqueGenome {
     public int parentID;
     public int inno;
 
+    public float strength;
+
     public TorqueGenome(int parentID, int inno) {
         this.parentID = parentID;
         this.inno = inno;
@@ -15,6 +17,8 @@ public class TorqueGenome {
     public TorqueGenome(TorqueGenome template) {
         this.parentID = template.parentID;
         this.inno = template.inno;
+
+        this.strength = template.strength;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {

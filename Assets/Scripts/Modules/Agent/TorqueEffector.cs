@@ -8,8 +8,10 @@ public class TorqueEffector {
     public int inno;
     public float[] throttle;
 
-    public GameObject parentBody;
+    public float strength;
 
+    public GameObject parentBody;
+    
 	public TorqueEffector(TorqueGenome genome) {
        /* parentID = genome.parentID;
         inno = genome.inno;
@@ -20,6 +22,8 @@ public class TorqueEffector {
         parentID = genome.parentID;
         inno = genome.inno;
         throttle = new float[1];
+
+        strength = genome.strength;
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {
@@ -31,6 +35,6 @@ public class TorqueEffector {
     }
 
     public void Tick() {
-        parentBody.GetComponent<Rigidbody>().AddRelativeTorque(new Vector3(0f, throttle[0], 0f) * 0f, ForceMode.Force);
+        parentBody.GetComponent<Rigidbody>().AddRelativeTorque(new Vector3(0f, throttle[0], 0f) * strength, ForceMode.Force);
     }
 }

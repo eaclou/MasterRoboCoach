@@ -65,7 +65,7 @@ public class TrainingManager : MonoBehaviour {
 
     void FixedUpdate() {
         if (isTraining) { // && debugFrameCounter < 5) {
-            Debug.Log("FixedUpdate isTraining");
+            //Debug.Log("FixedUpdate isTraining");
             if (evaluationManager.allEvalsComplete) {
                 // NEXT GEN!!!
                 NextGeneration();

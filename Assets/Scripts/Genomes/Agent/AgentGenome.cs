@@ -17,7 +17,7 @@ public class AgentGenome {
     public BrainGenome brainGenome;
     //public List<SegmentGenome> segmentList;
     // Modules:
-    public List<BasicAxleGenome> basicAxleList;
+    public List<BasicWheelGenome> basicWheelList;
     public List<BasicJointGenome> basicJointList;
     public List<ContactGenome> contactSensorList;
     public List<HealthGenome> healthModuleList;
@@ -44,10 +44,10 @@ public class AgentGenome {
             segmentList.Add(segmentCopy);
         }*/
         // copy module lists:
-        basicAxleList = new List<BasicAxleGenome>();
-        for (int i = 0; i < templateGenome.basicAxleList.Count; i++) {
-            BasicAxleGenome genomeCopy = new BasicAxleGenome(templateGenome.basicAxleList[i]);
-            basicAxleList.Add(genomeCopy);
+        basicWheelList = new List<BasicWheelGenome>();
+        for (int i = 0; i < templateGenome.basicWheelList.Count; i++) {
+            BasicWheelGenome genomeCopy = new BasicWheelGenome(templateGenome.basicWheelList[i]);
+            basicWheelList.Add(genomeCopy);
         }
         basicJointList = new List<BasicJointGenome>();
         for (int i = 0; i < templateGenome.basicJointList.Count; i++) {
@@ -109,8 +109,8 @@ public class AgentGenome {
     public void InitializeRandomBrainGenome(float initialWeightMultiplier) {
         brainGenome = new BrainGenome();
 
-        for (int i = 0; i < basicAxleList.Count; i++) {
-            basicAxleList[i].InitializeBrainGenome(brainGenome.neuronList);
+        for (int i = 0; i < basicWheelList.Count; i++) {
+            basicWheelList[i].InitializeBrainGenome(brainGenome.neuronList);
         }
         for (int i = 0; i < basicJointList.Count; i++) {
             basicJointList[i].InitializeBrainGenome(brainGenome.neuronList);

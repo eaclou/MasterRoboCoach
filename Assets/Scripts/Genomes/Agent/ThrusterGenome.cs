@@ -7,6 +7,9 @@ public class ThrusterGenome {
     public int parentID;
     public int inno;
 
+    public float horsepowerX;
+    public float horsepowerZ;
+
     public ThrusterGenome(int parentID, int inno) {
         this.parentID = parentID;
         this.inno = inno;
@@ -15,6 +18,9 @@ public class ThrusterGenome {
     public ThrusterGenome(ThrusterGenome template) {
         this.parentID = template.parentID;
         this.inno = template.inno;
+
+        this.horsepowerX = template.horsepowerX;
+        this.horsepowerZ = template.horsepowerZ;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {

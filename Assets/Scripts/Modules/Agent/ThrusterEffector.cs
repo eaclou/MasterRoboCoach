@@ -9,7 +9,11 @@ public class ThrusterEffector {
     public float[] throttle;
     public float[] strafe;
 
+    public float horsepowerX;
+    public float horsepowerZ;
+
     public GameObject parentBody;
+    public Vector3 forcePoint;
 
 	public ThrusterEffector(ThrusterGenome genome) {
         /*parentID = genome.parentID;
@@ -24,6 +28,9 @@ public class ThrusterEffector {
         inno = genome.inno;
         throttle = new float[1];
         strafe = new float[1];
+
+        horsepowerX = genome.horsepowerX;
+        horsepowerZ = genome.horsepowerZ;
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {
@@ -41,7 +48,7 @@ public class ThrusterEffector {
     }
 
     public void Tick() {
-        parentBody.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0f, 0.01f, throttle[0]) * 9000f, ForceMode.Force);
-        parentBody.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(strafe[0], 0f, 0f) * 0f, ForceMode.Force);
+        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.forward * Mathf.Clamp01(throttle[0]) * horsepowerZ, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + new Vector3(0f, 0.005f, 0f)); //.AddRelativeForce(new Vector3(0f, 0f, Mathf.Clamp01(throttle[0])) * horsepowerZ, ForceMode.Force);
+        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.right * Mathf.Clamp01(strafe[0]) * horsepowerX, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + new Vector3(0f, 0.005f, 0f));
     }
 }
