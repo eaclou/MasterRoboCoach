@@ -8,6 +8,8 @@ public class TrainingMenuUI : MonoBehaviour {
     public MainMenu mainMenuRef;
     public TrainingManager trainerRef;
 
+    public GameObject panelTrainingShowHide;
+
     public Toggle toggleManualMode;
     public Button buttonPlayPause;
     public Button buttonFaster;
@@ -58,6 +60,14 @@ public class TrainingMenuUI : MonoBehaviour {
     public bool debugRightOn = false;
     //public int focusPopIndex = 0;
 
+    public Button buttonTournaments;
+    public Button buttonShowHideUI;
+
+    public bool showUI = true;
+
+    public GameObject panelTournamentSelect;
+    
+
     public enum DebugLeftCurrentPage {
         AgentModules,
         AgentFitness,
@@ -82,6 +92,8 @@ public class TrainingMenuUI : MonoBehaviour {
     }
 
     public void SetStatusFromData() {
+        
+
         if(debugLeftOn) {
             panelDebugLeft.SetActive(true);
             buttonDebugLeft.GetComponentInChildren<Text>().text = "-";
@@ -471,5 +483,38 @@ public class TrainingMenuUI : MonoBehaviour {
             fitnessFunctionUI.SetStatusFromData(trainerRef);
         }
         trainingSettingsOn = false;
+    }
+
+    public void ClickButtonTournaments() {
+        ShowTournamentSelectScreen();
+        trainerRef.EnterTournamentSelectScreen();
+    }
+    public void ShowTournamentSelectScreen() {
+        Debug.Log("ShowTournamentSelectScreen");
+        panelTournamentSelect.SetActive(true);
+        panelTournamentSelect.GetComponent<TournamentSelectUI>().Initialize();
+    }
+    public void HideTournamentSelectScreen() {
+        Debug.Log("HideTournamentSelectScreen");
+        panelTournamentSelect.SetActive(false);
+    }
+
+    public void ClickButtonShowHideUI() {
+        if(showUI) {
+            HideUI();
+        }
+        else {
+            ShowUI();
+        }
+    }
+    
+    public void ShowUI() {
+        showUI = true;
+        panelTrainingShowHide.SetActive(true);
+        SetStatusFromData();
+    }
+    public void HideUI() {
+        showUI = false;
+        panelTrainingShowHide.SetActive(false);
     }
 }

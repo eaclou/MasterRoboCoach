@@ -7,9 +7,10 @@ public class MainMenu : MonoBehaviour {
 
     public GameManager gameManagerRef;
 
-    public GameObject PanelMainMenu;
-    public GameObject PanelTestChallengeSetup;
-    public GameObject PanelTraining;
+    public GameObject panelMainMenu;
+    public GameObject panelTestChallengeSetup;
+    public GameObject panelTraining;
+    public GameObject panelTournament;
 
     public Button buttonLoad;
     public InputField inputFieldSaveName;
@@ -21,9 +22,10 @@ public class MainMenu : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        PanelMainMenu.SetActive(true);
-        PanelTestChallengeSetup.SetActive(false);
-        PanelTraining.SetActive(false);
+        panelMainMenu.SetActive(true);
+        panelTestChallengeSetup.SetActive(false);
+        panelTraining.SetActive(false);
+        panelTournament.SetActive(false);
 
         // HACKY! init UI elements:
         // init manual mode toggle to settings in trainingManager:
@@ -35,21 +37,31 @@ public class MainMenu : MonoBehaviour {
 	
 	}
 
+    public void EnterTournamentMode(TournamentInfo tournamentInfo) {
+        panelMainMenu.SetActive(false);
+        panelTestChallengeSetup.SetActive(false);
+        panelTraining.SetActive(false);
+        panelTournament.SetActive(true);
+
+        //panelTournament.GetComponent<TournamentUI>().Initialize(tournamentInfo);
+        trainingMenuRef.mainMenuRef.gameManagerRef.EnterTournamentMode(tournamentInfo);
+    }
+
     public void ClickTestChallenge() {
         //Debug.Log("Clicked Test Challenge Button!");
 
-        PanelMainMenu.SetActive(false);
-        PanelTestChallengeSetup.SetActive(true);
-        PanelTraining.SetActive(false);
+        panelMainMenu.SetActive(false);
+        panelTestChallengeSetup.SetActive(true);
+        panelTraining.SetActive(false);
 
         challengeType = Challenge.Type.Test;
     }
 
     public void ClickRacingChallenge() {        
 
-        PanelMainMenu.SetActive(false);
-        PanelTestChallengeSetup.SetActive(true);
-        PanelTraining.SetActive(false);
+        panelMainMenu.SetActive(false);
+        panelTestChallengeSetup.SetActive(true);
+        panelTraining.SetActive(false);
 
         challengeType = Challenge.Type.Racing;
         Debug.Log("Clicked Racing Challenge Button! " + challengeType.ToString());
@@ -57,18 +69,18 @@ public class MainMenu : MonoBehaviour {
 
     public void ClickCombatChallenge() {
 
-        PanelMainMenu.SetActive(false);
-        PanelTestChallengeSetup.SetActive(true);
-        PanelTraining.SetActive(false);
+        panelMainMenu.SetActive(false);
+        panelTestChallengeSetup.SetActive(true);
+        panelTraining.SetActive(false);
 
         challengeType = Challenge.Type.Combat;
         Debug.Log("Clicked Combat Challenge Button! " + challengeType.ToString());
     }
 
     public void ClickNew() {
-        PanelMainMenu.SetActive(false);
-        PanelTestChallengeSetup.SetActive(false);
-        PanelTraining.SetActive(true);
+        panelMainMenu.SetActive(false);
+        panelTestChallengeSetup.SetActive(false);
+        panelTraining.SetActive(true);
         Debug.Log("ClickNew(" + challengeType.ToString() + ")");
         gameManagerRef.trainerRef.NewTrainingMode(challengeType);
     }
@@ -82,9 +94,9 @@ public class MainMenu : MonoBehaviour {
         string filePath = Application.dataPath + "/TrainingSaves/" + saveFileName + ".json";
 
         if (File.Exists(filePath)) {
-            PanelMainMenu.SetActive(false);
-            PanelTestChallengeSetup.SetActive(false);
-            PanelTraining.SetActive(true);
+            panelMainMenu.SetActive(false);
+            panelTestChallengeSetup.SetActive(false);
+            panelTraining.SetActive(true);
             gameManagerRef.trainerRef.LoadTraining(filePath);
         }
         else {

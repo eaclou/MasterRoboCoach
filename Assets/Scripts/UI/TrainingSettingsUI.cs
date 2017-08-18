@@ -28,6 +28,9 @@ public class TrainingSettingsUI : MonoBehaviour {
 
     public Button buttonEvolving;
 
+    public InputField inputFieldSaveCurrentGenome;
+    public Button buttonSaveCurrentGenome;
+
 
     // Use this for initialization
     void Start () {
@@ -219,6 +222,16 @@ public class TrainingSettingsUI : MonoBehaviour {
         }
         else {
             trainerRef.teamsConfig.playersList[focusPop - 1].isTraining = !trainerRef.teamsConfig.playersList[focusPop - 1].isTraining;
+        }
+    }
+
+    public void ClickButtonSaveCurrentGenome() {
+        string savename = inputFieldSaveCurrentGenome.text;
+        if (savename != "") {
+            trainerRef.SaveCurrentGenome(savename);
+        }
+        else {
+            Debug.Log("SAVE FAILED! no name");
         }
     }
 }

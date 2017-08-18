@@ -373,6 +373,24 @@ public class EvaluationManager {
             }            
         }
     }
+    public void DisableInstances() {
+        for(int i = 0; i < evaluationInstancesList.Count; i++) {
+            evaluationInstancesList[i].gameObject.SetActive(false);
+        }
+        exhibitionInstance.gameObject.SetActive(false);
+    }
+    public void EnableInstances() {
+        for (int i = 0; i < evaluationInstancesList.Count; i++) {
+            evaluationInstancesList[i].gameObject.SetActive(true);
+        }
+        exhibitionInstance.gameObject.SetActive(true);
+    } 
+    public void ClearCurrentTraining() {
+        ClearEvaluationTickets(); // maybe not needed, done in ResetForNewGeneration()
+        exhibitionParticleCurves.ClearAllSystems();
+        DisableInstances();
+    }
+    
     public void ClearEvaluationTickets() {
         if(evaluationTicketList != null) {
             evaluationTicketList.Clear();
@@ -949,13 +967,14 @@ public class EvaluationManager {
     public void ResetForNewGeneration(TeamsConfig teamsConfig) {
         //ResetEvaluationTicketList();
         ClearEvaluationTickets();
-        CreateDefaultEvaluationTickets(teamsConfig);
+        CreateDefaultEvaluationTickets(teamsConfig);        
 
         exhibitionParticleCurves.ClearAllSystems();
         exhibitionParticleCurves.CreateRepresentativeParticleSystems(teamsConfig);
 
         allEvalsComplete = false;
         ResetExhibitionInstance(teamsConfig);
+        EnableInstances();
         exhibitionTicketCurrentIndex = 0;
         
     }

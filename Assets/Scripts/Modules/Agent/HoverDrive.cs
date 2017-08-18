@@ -11,6 +11,9 @@ public class HoverDrive : MonoBehaviour {
 
     public float horizontalDrag = 0.8f;
 
+    public float debugDist;
+    public float debugThrust;
+
     void Start() {
         //hoverHeight = hoverDesiredHeight;
         
@@ -28,12 +31,8 @@ public class HoverDrive : MonoBehaviour {
         if (Physics.Raycast(rayOrigin, rayDirection, out hit, rayMaxDistance)) {
             distance = hit.distance;
         }
-        else {
 
-        }
-
-        //float deltaHover = 1f;
-        
+        //float deltaHover = 1f;        
         
         float deltaHover = (distance - hoverDesiredHeight) * -1f;
         float thrust = 0f; // = deltaHover * hoverThrust;
@@ -41,7 +40,7 @@ public class HoverDrive : MonoBehaviour {
             thrust = 1f * hoverThrust;
         }
         //float thrust = deltaHover * hoverThrust;
-        if (distance >= rayMaxDistance) {
+        if (distance >= rayMaxDistance * 0.9f) {
             thrust = 0f;
         }
 
@@ -53,6 +52,8 @@ public class HoverDrive : MonoBehaviour {
         gameObject.GetComponent<Rigidbody>().velocity = vel;
         gameObject.GetComponent<Rigidbody>().AddForce(new Vector3(0f, thrust * deltaHover, 0f), ForceMode.Force);
 
+        debugDist = distance;
+        debugThrust = (thrust * deltaHover);
         //Debug.Log("dist: " + distance.ToString() + ", thrust: " + (thrust * deltaHover).ToString());
 
         // Rotation!!!
@@ -78,10 +79,13 @@ public class HoverDrive : MonoBehaviour {
         float dotY = Vector3.Dot(new Vector3(0f, 1f, 0f), gameObject.transform.up);
         float dotX = Vector3.Dot(headingX.normalized, gameObject.transform.right);
         //if()
-        float xTorque = Vector3.Dot(headingX.normalized, gameObject.transform.up);
-        float zTorque = -Vector3.Dot(headingZ.normalized, gameObject.transform.up);
+        float xTorque = Vector3.Dot(headingX.normalized, gameObject.transform.up) * 2f;
+        float zTorque = -Vector3.Dot(headingZ.normalized, gameObject.transform.up) * 2f;
+
         gameObject.GetComponent<Rigidbody>().AddRelativeTorque(0f, 0f, xTorque);
         gameObject.GetComponent<Rigidbody>().AddRelativeTorque(zTorque, 0f, 0f);
+        
+        
         //gameObject.GetComponent<Rigidbody>().AddTorque(-Vector3.Cross(headingZ, gameObject.transform.forward) * delta);
         //Debug.Log(xTorque.ToString());
 

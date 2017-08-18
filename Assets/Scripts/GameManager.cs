@@ -5,20 +5,31 @@ using System.Collections.Generic;
 public class GameManager : MonoBehaviour {
 
     public bool isTraining = false;
-    
+
+    public MainMenu mainMenuRef;
     public TrainingManager trainerRef;
+    public TournamentManager tournamentManager;
     
     // Use this for initialization
     void Start () {
         //Debug.Log(Quaternion.Euler(0f, -180f, 0f).ToString());
-        
+
         //trainerRef.EnterTrainingMode(Challenge.Type.Test);
+
+        tournamentManager = new TournamentManager();
     }
 	
 	// Update is called once per frame
 	void Update () {
 	
 	}
+
+    public void EnterTournamentMode(TournamentInfo tournamentInfo) {
+        // Set up TournamentManager with info
+        tournamentManager.Initialize(tournamentInfo);
+        // Set up UI:
+        mainMenuRef.panelTournament.GetComponent<TournamentUI>().Initialize(tournamentInfo);
+    }
 
     /*
     void FixedUpdate() {

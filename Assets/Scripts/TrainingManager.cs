@@ -233,6 +233,31 @@ public class TrainingManager : MonoBehaviour {
         teamsConfig = loadedData;
         LoadTrainingMode();
     }
+    public void SaveCurrentGenome(string savename) {
+        Debug.Log("SaveCurrentGenome: " + savename);
+        // Find current genome:
+        string json;
+        string subFolder;
+        int focusPopIndex = evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+        if (focusPopIndex > 0) {
+            // it's an Agent
+            subFolder = "Agents/";
+            json = JsonUtility.ToJson(teamsConfig.playersList[focusPopIndex - 1].agentGenomeList[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[focusPopIndex - 1]]);
+        }
+        else {
+            //it's an environment
+            subFolder = "Environments/";
+            json = JsonUtility.ToJson(teamsConfig.environmentPopulation.environmentGenomeList[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0]]);
+        }
+
+        //string json = JsonUtility.ToJson(teamsConfig);
+        Debug.Log(json);
+        Debug.Log(Application.dataPath);
+        string path = Application.dataPath + "/IndividualSaves/" + subFolder + savename + ".json";
+        //Debug.Log(Application.persistentDataPath);
+        Debug.Log(path);
+        System.IO.File.WriteAllText(path, json);
+    }
 
     private void SetCamera() {
         
@@ -314,7 +339,34 @@ public class TrainingManager : MonoBehaviour {
     public void ClickCameraMode() {
         cameraManager.CycleCameraMode();
     }
+
+    public void EnterTournamentSelectScreen() {
+        Debug.Log("EnterTournamentSelect()");
+
+        // Pause Evaluations 
+        Pause();
+        // Switch UI panel from trainer to Tournaments
+
+        // Display upcoming tournaments, with some eligible, some on cooldown, and some locked
+
+
+    }
+    public void ExitTournamentSelectScreen() {
+        // Switch UI panel back to trainerUI
+        // resume paused evaluations
+        TogglePlayPause(); // UGLY!! assumes it was paused during tournament select screen!
+    }
+    public void EnterTournament(TournamentInfo tournamentInfo) {
+        Debug.Log("TrainingManager.EnterTournament");
+        // Clean up current training, evalManager etc. - reset this generation
+        isTraining = false;
+        evaluationManager.ClearCurrentTraining();
+        // Bring up Tournament Summary Page: name, type, opponent, etc.
+        // Pass everything to TournamentManager?
+        trainingMenuRef.mainMenuRef.EnterTournamentMode(tournamentInfo);        
+    }
     
+
     private void NextGeneration() {
         Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
         //particleTrajectories.Clear();

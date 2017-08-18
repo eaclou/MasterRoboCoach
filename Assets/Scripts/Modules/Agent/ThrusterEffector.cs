@@ -15,6 +15,9 @@ public class ThrusterEffector {
     public GameObject parentBody;
     public Vector3 forcePoint;
 
+    public ParticleSystem rearThrusterParticle;
+    public Material rearThrusterMat;
+
 	public ThrusterEffector(ThrusterGenome genome) {
         /*parentID = genome.parentID;
         inno = genome.inno;
@@ -48,7 +51,17 @@ public class ThrusterEffector {
     }
 
     public void Tick() {
-        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.forward * Mathf.Clamp01(throttle[0]) * horsepowerZ, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + new Vector3(0f, 0.005f, 0f)); //.AddRelativeForce(new Vector3(0f, 0f, Mathf.Clamp01(throttle[0])) * horsepowerZ, ForceMode.Force);
-        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.right * Mathf.Clamp01(strafe[0]) * horsepowerX, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + new Vector3(0f, 0.005f, 0f));
+        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.forward * Mathf.Clamp01(throttle[0]) * horsepowerZ, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint); //.AddRelativeForce(new Vector3(0f, 0f, Mathf.Clamp01(throttle[0])) * horsepowerZ, ForceMode.Force);
+        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.right * Mathf.Clamp01(strafe[0]) * horsepowerX, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint);
+
+        //rearThrusterParticle.e
+        //go.GetComponent<ParticleSystemRenderer>().material = particleMaterial;
+        ParticleSystem.MainModule mainModule = rearThrusterParticle.main;
+        ParticleSystem.MinMaxGradient col = mainModule.startColor;
+        col.color = new Color(col.color.r, col.color.g, col.color.b, Mathf.Clamp01(throttle[0]));
+        mainModule.startColor = col;
+
+        //rearThrusterMat.SetFloat(Shader.PropertyToID("_EmissionColor"), Mathf.Clamp01(throttle[0]) * 20f);
+        rearThrusterMat.SetColor("_EmissionColor", new Color(0.66f, 0.93f, 1f) * 12f * Mathf.Clamp01(throttle[0]));
     }
 }

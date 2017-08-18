@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
+//using UnityEditor;
 
 [System.Serializable]
 public class TeamsConfig {
@@ -65,13 +65,16 @@ public class TeamsConfig {
         EnvironmentGenome templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateTestDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
+                templateGenome = (Resources.Load("Templates/Environments/TemplateTestDefault") as EnvironmentGenomeTemplate).templateGenome;
+                //templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateTestDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
                 break;
             case Challenge.Type.Racing:
-                templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateRacingDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
+                templateGenome = (Resources.Load("Templates/Environments/TemplateRacingDefault") as EnvironmentGenomeTemplate).templateGenome;
+                //templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateRacingDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
                 break;
             case Challenge.Type.Combat:
-                templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateCombatDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
+                templateGenome = (Resources.Load("Templates/Environments/TemplateCombatDefault") as EnvironmentGenomeTemplate).templateGenome;
+                //templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateCombatDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
@@ -85,13 +88,16 @@ public class TeamsConfig {
         AgentGenomeTemplate templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateRoombot.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = Resources.Load("Templates/Agents/TemplateRoombot") as AgentGenomeTemplate;
+                //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateRoombot.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateDogCar.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = Resources.Load("Templates/Agents/TemplateDogCar") as AgentGenomeTemplate;
+                //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateDogCar.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Combat:
-                templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = Resources.Load("Templates/Agents/TemplateCombatBot") as AgentGenomeTemplate;
+                //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());
