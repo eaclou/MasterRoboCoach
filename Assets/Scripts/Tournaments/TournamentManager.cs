@@ -17,6 +17,10 @@ public class TournamentManager {
 
     public void Initialize(TournamentInfo tournamentInfo) {
         Debug.Log("TournamentManager Initialize");
+
+        // Load Competitors,
+        // Create Match Schedule
+        //
     }
 
     public void PlayNextMatch() {

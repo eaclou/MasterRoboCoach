@@ -13,6 +13,10 @@ public class Agent : MonoBehaviour {
     public Vector3 rootCOM;
 
     [SerializeField]
+    public List<GameObject> segmentList; // This is populated primarily at edit-time through the inspector.
+    // in the future with more complex module additions, this might be extended programmatically.
+
+    [SerializeField]
     public List<BasicWheel> basicWheelList;
     [SerializeField]
     public List<BasicJoint> basicJointList;
