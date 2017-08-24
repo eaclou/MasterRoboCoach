@@ -5,19 +5,25 @@ using UnityEngine;
 [System.Serializable]
 public class BasicWheelGenome {
     public int parentID;
+    public List<int> wheelIdList;
     public int inno;
     public float horsepower;
     public float maxSteering;
     public float brakePower;
     // Settings
 
-    public BasicWheelGenome(int parentID, int inno) {
+    /*public BasicWheelGenome(int parentID, int inno) {
         this.parentID = parentID;
         this.inno = inno;
-    }
+    }*/
 
     public BasicWheelGenome(BasicWheelGenome template) {
         this.parentID = template.parentID;
+        this.wheelIdList = new List<int>();
+        for(int i = 0; i < template.wheelIdList.Count; i++) {
+            int id = template.wheelIdList[i];
+            this.wheelIdList.Add(id);
+        }
         this.inno = template.inno;
         this.horsepower = template.horsepower;
         this.maxSteering = template.maxSteering;

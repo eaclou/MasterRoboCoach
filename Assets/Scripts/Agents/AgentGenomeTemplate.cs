@@ -7,7 +7,7 @@ using UnityEngine;
 [CreateAssetMenuAttribute(fileName = "AgentGenomeTemplate", menuName = "AgentGenomeTemplates/New", order = 0)]
 public class AgentGenomeTemplate : ScriptableObject {
 
-    public GameObject templateBody;
+    
     public AgentGenome templateGenome;
 
     void Awake() {
@@ -26,4 +26,33 @@ public class AgentGenomeTemplate : ScriptableObject {
         Debug.Log("AgentGenomeTemplate OnEnable!");
     }
 
+    public static string GetAgentBodyTypeURL(AgentBodyType type) {
+        string bodyURL;
+        switch(type) {
+            case AgentBodyType.HoverBot:
+                bodyURL = "Prefabs/AgentPrefabs/AgentRoombot";
+                break;
+            case AgentBodyType.TelevisionWalker:
+                bodyURL = "Prefabs/AgentPrefabs/AgentTelevisionWalker";
+                break;
+            case AgentBodyType.DogCar:
+                bodyURL = "Prefabs/AgentPrefabs/AgentDogCar";
+                break;
+            case AgentBodyType.CombatBot:
+                bodyURL = "Prefabs/AgentPrefabs/AgentCombatBot";
+                break;
+            default:
+                bodyURL = "";
+                Debug.LogError("NO BODYURL FOUND");
+                break;
+        }
+        return bodyURL;
+    }
+}
+
+public enum AgentBodyType {
+    HoverBot,
+    TelevisionWalker,
+    DogCar,
+    CombatBot
 }

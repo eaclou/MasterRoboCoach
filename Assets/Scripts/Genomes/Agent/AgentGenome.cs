@@ -14,6 +14,8 @@ public class AgentGenome {
 
     //public GameObject bodyGO;
 
+    public AgentBodyType bodyType;
+
     public BrainGenome brainGenome;
     //public List<SegmentGenome> segmentList;
     // Modules:
@@ -43,6 +45,7 @@ public class AgentGenome {
             SegmentGenome segmentCopy = new SegmentGenome(templateGenome.segmentList[i]);
             segmentList.Add(segmentCopy);
         }*/
+        bodyType = templateGenome.bodyType;
         // copy module lists:
         basicWheelList = new List<BasicWheelGenome>();
         for (int i = 0; i < templateGenome.basicWheelList.Count; i++) {

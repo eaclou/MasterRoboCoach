@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class HealthModule {
-    public int parentID;
-    public int inno;
+public class HealthModule : AgentModuleBase {
+    //public int parentID;
+    //public int inno;
     public float maxHealth;
     public float prevHealth;
     public float health;
@@ -14,7 +14,7 @@ public class HealthModule {
 
     public HealthModuleComponent component;
 
-    public HealthModule(HealthGenome genome) {
+    public HealthModule() {
         /*healthSensor = new float[1];
         takingDamage = new float[1];
         health = maxHealth;
@@ -23,15 +23,21 @@ public class HealthModule {
         inno = genome.inno;*/
     }
 
-    public void Initialize(HealthGenome genome) {
+    public void Initialize(HealthGenome genome, Agent agent) {
         healthSensor = new float[1];
         takingDamage = new float[1];
         maxHealth = genome.maxHealth;
         health = maxHealth;
         prevHealth = health;
+
         parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
 
+        component = agent.segmentList[parentID].AddComponent<HealthModuleComponent>();
+        if (component == null) {
+            Debug.LogAssertion("No existing HealthModuleComponent on segment " + parentID.ToString());
+        }
         component.healthModule = this;
     }
 

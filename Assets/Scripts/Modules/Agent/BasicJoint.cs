@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class BasicJoint {
+public class BasicJoint : AgentModuleBase {
 
-    public int parentID;
-    public int inno;
+    //public int parentID;
+    //public int inno;
     public ConfigurableJoint joint;
     private Quaternion restRotation;
     public float motorStrength;
@@ -32,9 +32,11 @@ public class BasicJoint {
         //throttle[0] = 0f;
     }
 
-    public void Initialize(BasicJointGenome genome) {
+    public void Initialize(BasicJointGenome genome, Agent agent) {
         //Debug.Log("Init Joint! " + inno.ToString());
+        parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
         throttleX = new float[1];
         throttleY = new float[1];
         throttleZ = new float[1];
@@ -48,6 +50,11 @@ public class BasicJoint {
         useY = genome.useY;
         useZ = genome.useZ;
 
+        joint = agent.segmentList[parentID].GetComponent<ConfigurableJoint>();
+        if(joint == null) {
+            Debug.LogAssertion("No existing ConfigurableJoint on segment " + parentID.ToString());
+        }
+                
         MeasureRestAngles();
     }
 

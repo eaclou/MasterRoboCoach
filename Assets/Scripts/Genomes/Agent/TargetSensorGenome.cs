@@ -6,15 +6,17 @@ using UnityEngine;
 public class TargetSensorGenome {
     public int parentID;
     public int inno;
-	
-    public TargetSensorGenome(int parentID, int inno) {
+    public Vector3 sensorPosition;
+
+    /*public TargetSensorGenome(int parentID, int inno) {
         this.parentID = parentID;
         this.inno = inno;
-    }
+    }*/
 
     public TargetSensorGenome(TargetSensorGenome template) {
         this.parentID = template.parentID;
         this.inno = template.inno;
+        this.sensorPosition = template.sensorPosition;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {

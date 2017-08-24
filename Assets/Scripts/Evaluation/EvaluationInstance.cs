@@ -208,23 +208,28 @@ public class EvaluationInstance : MonoBehaviour {
 
         // Create Agents:        
         for(int i = 0; i < currentAgentsArray.Length; i++) {
+            AgentGenome genome;
+            if (currentEvalTicket.focusPopIndex == i + 1) {  // if this Agent is the focusPop, use main agentArray index
+                //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
+                genome = teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]];
+            }
+            else {  // if it is not the focusPop, use representative list                
+                //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].representativeGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
+                genome = teamsConfig.playersList[i].representativeGenomeList[currentEvalTicket.genomeIndices[i + 1]];
+            }
             //GameObject agentGO = new GameObject("agent" + currentEvalTicket.genomeIndices[i+1].ToString());
-            GameObject agentGO = Instantiate(teamsConfig.playersList[i].template.templateBody) as GameObject;
+
+            // Create Agent Base Body:
+            GameObject agentGO = Instantiate(Resources.Load(AgentGenomeTemplate.GetAgentBodyTypeURL(genome.bodyType))) as GameObject;
             agentGO.transform.parent = gameObject.transform;
             agentGO.transform.localPosition = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartPosition;
             agentGO.transform.localRotation = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartRotation;
             Agent agentScript = agentGO.GetComponent<Agent>();
             agentScript.rootObject.GetComponent<Rigidbody>().centerOfMass = agentScript.rootCOM;
             agentScript.isVisible = visible;
-            if(currentEvalTicket.focusPopIndex == i+1) {  // if this Agent is the focusPop, use main agentArray index
-                //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
-                agentScript.InitializeAgentFromTemplate(teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
-            }
-            else {  // if it is not the focusPop, use representative list                
-                //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].representativeGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
-                agentScript.InitializeAgentFromTemplate(teamsConfig.playersList[i].representativeGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
-            }
             
+            agentScript.InitializeAgentFromTemplate(genome);
+                        
             currentAgentsArray[i] = agentScript;            
         }        
 
@@ -258,6 +263,8 @@ public class EvaluationInstance : MonoBehaviour {
 
         //SetInvisibleTraverse(gameObject);
         if (visible) {
+            currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
+            SetVisibleTraverse(gameObject);
             //Debug.Log("IS VISIBLE" + gameObject.name);
             //currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
             //SetVisibleTraverse(gameObject);
@@ -267,8 +274,7 @@ public class EvaluationInstance : MonoBehaviour {
         }
 
         if(isExhibition) {
-            currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
-            SetVisibleTraverse(gameObject);
+            
         }
         else {
             // Fitness Crap only if NON-exhibition!:

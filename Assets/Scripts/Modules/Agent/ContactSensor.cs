@@ -3,24 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class ContactSensor {
-    public int parentID;
-    public int inno;
+public class ContactSensor : AgentModuleBase {
+    //public int parentID;
+    //public int inno;
     public float[] contactSensor;
 
     public ContactSensorComponent component;
 
-    public ContactSensor(ContactGenome genome) {
-        contactSensor = new float[1];
-        parentID = genome.parentID;
-        inno = genome.inno;
+    public ContactSensor() {
+        //contactSensor = new float[1];
+        //parentID = genome.parentID;
+        //inno = genome.inno;
     }
 
-    public void Initialize(ContactGenome genome) {
+    public void Initialize(ContactGenome genome, Agent agent) {
         contactSensor = new float[1];
         parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
 
+        component = agent.segmentList[parentID].AddComponent<ContactSensorComponent>();
+        //Debug.Log(component.ToString());
+        if (component == null) {
+            Debug.LogAssertion("No existing ContactSensorComponent on segment " + parentID.ToString());
+        }
         component.sensor = this;
     }
 

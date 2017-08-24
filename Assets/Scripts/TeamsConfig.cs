@@ -92,6 +92,7 @@ public class TeamsConfig {
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateRoombot.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
+                //Debug.Log("Loaded DogCar!");
                 templateGenome = Resources.Load("Templates/Agents/TemplateDogCar") as AgentGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateDogCar.asset", typeof(AgentGenomeTemplate)));
                 break;

@@ -15,30 +15,32 @@ public class Agent : MonoBehaviour {
     [SerializeField]
     public List<GameObject> segmentList; // This is populated primarily at edit-time through the inspector.
     // in the future with more complex module additions, this might be extended programmatically.
-
     [SerializeField]
+    public List<GameObject> visibleObjectList;
+        
+    [System.NonSerialized]
     public List<BasicWheel> basicWheelList;
-    [SerializeField]
+    [System.NonSerialized]
     public List<BasicJoint> basicJointList;
-    [SerializeField]
+    [System.NonSerialized]
     public List<ContactSensor> contactSensorList;
-    [SerializeField]
-    public List<HealthModule> healthModuleList;    
-    [SerializeField]
+    [System.NonSerialized]
+    public List<HealthModule> healthModuleList;
+    [System.NonSerialized]
     public List<InputOscillator> oscillatorList;
-    [SerializeField]
+    [System.NonSerialized]
     public List<RaycastSensor> raycastSensorList;
-    [SerializeField]
-    public List<TargetSensor> targetSensorList;    
-    [SerializeField]
+    [System.NonSerialized]
+    public List<TargetSensor> targetSensorList;
+    [System.NonSerialized]
     public List<ThrusterEffector> thrusterEffectorList;
-    [SerializeField]
-    public List<TorqueEffector> torqueEffectorList;    
-    [SerializeField]
+    [System.NonSerialized]
+    public List<TorqueEffector> torqueEffectorList;
+    [System.NonSerialized]
     public List<InputValue> valueList;
-    [SerializeField]
+    [System.NonSerialized]
     public List<WeaponProjectile> weaponProjectileList;
-    [SerializeField]
+    [System.NonSerialized]
     public List<WeaponTazer> weaponTazerList;    
     
 
@@ -126,46 +128,123 @@ public class Agent : MonoBehaviour {
         //for (int i = 0; i < valueList.Count; i++) {            
         //}
         for (int i = 0; i < weaponProjectileList.Count; i++) {
-            weaponProjectileList[i].Tick(isVisible);            
+            weaponProjectileList[i].Tick();            
         }
         for (int i = 0; i < weaponTazerList.Count; i++) {
-            weaponTazerList[i].Tick(isVisible);            
+            weaponTazerList[i].Tick();            
         }
     }
 
-    public void InitializeModules(AgentGenome genome) {
-        for (int i = 0; i < basicWheelList.Count; i++) {
-            basicWheelList[i].Initialize(genome.basicWheelList[i]);
+    public void InitializeModules(AgentGenome genome, Agent agent) {
+        basicWheelList = new List<BasicWheel>();
+        basicJointList = new List<BasicJoint>();    
+        contactSensorList = new List<ContactSensor>();    
+        healthModuleList = new List<HealthModule>();    
+        oscillatorList = new List<InputOscillator>();    
+        raycastSensorList = new List<RaycastSensor>();    
+        targetSensorList = new List<TargetSensor>();    
+        thrusterEffectorList = new List<ThrusterEffector>();    
+        torqueEffectorList = new List<TorqueEffector>();    
+        valueList = new List<InputValue>();    
+        weaponProjectileList = new List<WeaponProjectile>();    
+        weaponTazerList = new List<WeaponTazer>();
+
+        for (int i = 0; i < genome.basicWheelList.Count; i++) {
+            BasicWheel basicWheel = new BasicWheel();
+            basicWheel.Initialize(genome.basicWheelList[i], agent);
+            basicWheelList.Add(basicWheel);
+            //OLD:
+            //basicWheelList[i].Initialize(genome.basicWheelList[i]);
         }
-        for (int i = 0; i < basicJointList.Count; i++) {
-            basicJointList[i].Initialize(genome.basicJointList[i]);
+        for (int i = 0; i < genome.basicJointList.Count; i++) {
+            BasicJoint basicJoint = new BasicJoint();
+            basicJoint.Initialize(genome.basicJointList[i], agent);
+            basicJointList.Add(basicJoint);
+            //basicJointList[i].Initialize(genome.basicJointList[i]);
         }
-        for (int i = 0; i < contactSensorList.Count; i++) {
-            contactSensorList[i].Initialize(genome.contactSensorList[i]);
+        for (int i = 0; i < genome.contactSensorList.Count; i++) {
+            ContactSensor contactSensor = new ContactSensor();
+            //agent.segmentList[genome.contactSensorList[i].parentID].AddComponent<ContactSensorComponent>();
+            contactSensor.Initialize(genome.contactSensorList[i], agent);
+            contactSensorList.Add(contactSensor);
+            
+            //contactSensorList[i].Initialize(genome.contactSensorList[i]);
         }
-        for (int i = 0; i < healthModuleList.Count; i++) {
-            healthModuleList[i].Initialize(genome.healthModuleList[i]);
+        for (int i = 0; i < genome.healthModuleList.Count; i++) {
+            HealthModule healthModule = new HealthModule();
+            //agent.segmentList[genome.healthModuleList[i].parentID].AddComponent<HealthModuleComponent>();
+            healthModule.Initialize(genome.healthModuleList[i], agent);
+            healthModuleList.Add(healthModule);
+            //healthModuleList[i].Initialize(genome.healthModuleList[i]);
         }        
-        for (int i = 0; i < oscillatorList.Count; i++) {
-            oscillatorList[i].Initialize(genome.oscillatorInputList[i]);
+        for (int i = 0; i < genome.oscillatorInputList.Count; i++) {
+            InputOscillator inputOscillator = new InputOscillator();
+            inputOscillator.Initialize(genome.oscillatorInputList[i], agent);
+            oscillatorList.Add(inputOscillator);
+            //oscillatorList[i].Initialize(genome.oscillatorInputList[i]);
         }
-        for (int i = 0; i < raycastSensorList.Count; i++) {
-            raycastSensorList[i].Initialize(genome.raycastSensorList[i]);
+        for (int i = 0; i < genome.raycastSensorList.Count; i++) {
+            RaycastSensor raycastSensor = new RaycastSensor();
+            raycastSensor.Initialize(genome.raycastSensorList[i], agent);
+            raycastSensorList.Add(raycastSensor);
+            //raycastSensorList[i].Initialize(genome.raycastSensorList[i]);
         }
-        for (int i = 0; i < targetSensorList.Count; i++) {
-            targetSensorList[i].Initialize(genome.targetSensorList[i]);
+        for (int i = 0; i < genome.targetSensorList.Count; i++) {
+            TargetSensor targetSensor = new TargetSensor();
+            targetSensor.Initialize(genome.targetSensorList[i], agent);
+            targetSensorList.Add(targetSensor);
+            //targetSensorList[i].Initialize(genome.targetSensorList[i]);
         }        
-        for (int i = 0; i < thrusterEffectorList.Count; i++) {
-            thrusterEffectorList[i].Initialize(genome.thrusterList[i]);
+        for (int i = 0; i < genome.thrusterList.Count; i++) {
+            // Create Functional GameObjects & Components:
+            // none in this case            
+            
+            // Create Logic Module:
+            ThrusterEffector thrusterEffector = new ThrusterEffector(); 
+            // Initialize and HookUp Logic Module:
+            thrusterEffector.Initialize(genome.thrusterList[i], agent);
+            // If Visible, Create Renderable GameObjects & Components:
+            if (isVisible) {
+                // Find appropriate Prefab based on Agent & Module Genome:
+                GameObject thrusterGO = Instantiate(Resources.Load("Prefabs/Modules/Thrusters/thrusterTest")) as GameObject;
+                thrusterGO.transform.parent = agent.segmentList[genome.thrusterList[i].parentID].transform;
+                thrusterGO.transform.localPosition = Vector3.zero;
+                thrusterGO.transform.localRotation = Quaternion.identity;
+                // Hook into Logic Module
+                thrusterEffector.thrusterComponent = thrusterGO.GetComponent<ThrusterComponent>();
+            }
+            // Add Logic Module to Agent's Master List
+            thrusterEffectorList.Add(thrusterEffector);
         }
-        for (int i = 0; i < torqueEffectorList.Count; i++) {
-            torqueEffectorList[i].Initialize(genome.torqueList[i]);
+        for (int i = 0; i < genome.torqueList.Count; i++) {
+            TorqueEffector torqueEffector = new TorqueEffector();
+            torqueEffector.Initialize(genome.torqueList[i], agent);
+            torqueEffectorList.Add(torqueEffector);
+            //torqueEffectorList[i].Initialize(genome.torqueList[i]);
         }
-        for (int i = 0; i < valueList.Count; i++) {
-            valueList[i].Initialize(genome.valueInputList[i]);
+        for (int i = 0; i < genome.valueInputList.Count; i++) {
+            InputValue inputValue = new InputValue();
+            inputValue.Initialize(genome.valueInputList[i], agent);
+            valueList.Add(inputValue);
+            //valueList[i].Initialize(genome.valueInputList[i]);
         }
-        for (int i = 0; i < weaponProjectileList.Count; i++) {
-            weaponProjectileList[i].Initialize(genome.weaponProjectileList[i]);
+        for (int i = 0; i < genome.weaponProjectileList.Count; i++) {
+            WeaponProjectile weaponProjectile = new WeaponProjectile();
+            weaponProjectile.Initialize(genome.weaponProjectileList[i], agent);
+
+            if (isVisible) {
+                // Find appropriate Prefab based on Agent & Module Genome:
+                GameObject weaponGO = Instantiate(Resources.Load("Prefabs/Modules/WeaponProjectiles/projectileTest")) as GameObject;
+                weaponGO.transform.parent = agent.segmentList[genome.weaponProjectileList[i].parentID].transform;
+                weaponGO.transform.localPosition = genome.weaponProjectileList[i].muzzleLocation;
+                weaponGO.transform.localRotation = Quaternion.identity;
+                // Hook into Logic Module
+                weaponProjectile.weaponProjectileComponent = weaponGO.GetComponent<WeaponProjectileComponent>();
+            }
+
+            weaponProjectileList.Add(weaponProjectile);
+
+            /*weaponProjectileList[i].Initialize(genome.weaponProjectileList[i]);
 
             if (isVisible) {
                 GameObject particleGO = Instantiate(Resources.Load(weaponProjectileList[i].GetParticleSystemURL())) as GameObject;
@@ -177,10 +256,25 @@ public class Agent : MonoBehaviour {
                 particle.gameObject.transform.localRotation = Quaternion.identity;
                 weaponProjectileList[i].particles = particle; // save reference                 
             }
+            */
         }
-        for (int i = 0; i < weaponTazerList.Count; i++) {
-            weaponTazerList[i].Initialize(genome.weaponTazerList[i]);
+        for (int i = 0; i < genome.weaponTazerList.Count; i++) {
+            WeaponTazer weaponTazer = new WeaponTazer();
+            weaponTazer.Initialize(genome.weaponTazerList[i], agent);
 
+            if (isVisible) {
+                // Find appropriate Prefab based on Agent & Module Genome:
+                GameObject weaponGO = Instantiate(Resources.Load("Prefabs/Modules/WeaponTazers/tazerTest")) as GameObject;
+                weaponGO.transform.parent = agent.segmentList[genome.weaponTazerList[i].parentID].transform;
+                weaponGO.transform.localPosition = genome.weaponTazerList[i].muzzleLocation;
+                weaponGO.transform.localRotation = Quaternion.identity;
+                // Hook into Logic Module
+                weaponTazer.weaponTazerComponent = weaponGO.GetComponent<WeaponTazerComponent>();
+            }
+
+            weaponTazerList.Add(weaponTazer);
+
+            /*weaponTazerList[i].Initialize(genome.weaponTazerList[i]);
             if (isVisible) {
                 GameObject particleGO = Instantiate(Resources.Load(weaponTazerList[i].GetParticleSystemURL())) as GameObject;
                 ParticleSystem particle = particleGO.GetComponent<ParticleSystem>();
@@ -191,14 +285,22 @@ public class Agent : MonoBehaviour {
                 particle.gameObject.transform.localRotation = Quaternion.identity;
                 weaponTazerList[i].particles = particle; // save reference                 
             }
+            */
         }
     }
 
     public void InitializeAgentFromTemplate(AgentGenome genome) {
         // Initialize Modules --
+        //Debug.Log("Agent Initialize Modules() segment count: " + segmentList.Count.ToString() + ", visCount: " + visibleObjectList.Count.ToString());
         // -- Setup that used to be done in the constructors
-        InitializeModules(genome);
+        InitializeModules(genome, this);
 
+        // Visible/Non-Visible:
+        if(isVisible) {
+            for(int i = 0; i < visibleObjectList.Count; i++) {
+                visibleObjectList[i].SetActive(true);
+            }
+        }
         // Construct Brain:
         brain = new Brain(genome.brainGenome, this);
     }

@@ -6,6 +6,7 @@ using UnityEngine;
 public class RaycastSensorGenome {
     public int parentID;
     public int inno;
+    public Vector3 sensorPosition;
 
     public RaycastSensorGenome(int parentID, int inno) {
         this.parentID = parentID;
@@ -15,6 +16,7 @@ public class RaycastSensorGenome {
     public RaycastSensorGenome(RaycastSensorGenome template) {
         this.parentID = template.parentID;
         this.inno = template.inno;
+        this.sensorPosition = template.sensorPosition;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {

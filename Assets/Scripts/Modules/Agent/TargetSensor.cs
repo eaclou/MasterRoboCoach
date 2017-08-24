@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class TargetSensor {
-    public int parentID;
-    public int inno;
+public class TargetSensor : AgentModuleBase {
+    //public int parentID;
+    //public int inno;
     public float[] dotX;
     public float[] dotZ;
     //public float[] forward;
@@ -20,10 +20,11 @@ public class TargetSensor {
 
     public float sensitivity = 0.1f;
     public Transform targetPosition;
+
     public GameObject parentObject;
     public Vector3 sensorPosition;
 
-    public TargetSensor(TargetSensorGenome genome) {
+    public TargetSensor() {
         /*parentID = genome.parentID;
         inno = genome.inno;
         dotX = new float[1];
@@ -37,9 +38,12 @@ public class TargetSensor {
         targetAttacking = new float[1];*/
     }
 
-    public void Initialize(TargetSensorGenome genome) {
+    public void Initialize(TargetSensorGenome genome, Agent agent) {
         parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
+
+        sensorPosition = genome.sensorPosition;
         dotX = new float[1];
         dotZ = new float[1];
         //forward = new float[1];
@@ -51,6 +55,8 @@ public class TargetSensor {
         //targetAttacking = new float[1];
         dist = new float[1];
         invDist = new float[1];
+
+        parentObject = agent.segmentList[parentID];
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {

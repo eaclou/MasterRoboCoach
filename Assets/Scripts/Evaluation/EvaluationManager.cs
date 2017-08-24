@@ -10,7 +10,7 @@ public class EvaluationManager {
     // for each generation, what are the required evaluation pairs?
     // what is the status of each of them?
     public List<EvaluationTicket> evaluationTicketList;
-    public Queue<EvaluationTicket> evaluationTicketQueue;
+    //public Queue<EvaluationTicket> evaluationTicketQueue;
     public List<EvaluationInstance> evaluationInstancesList;
 
     public List<EvaluationTicket> exhibitionTicketList;
@@ -50,7 +50,7 @@ public class EvaluationManager {
         // Set up eval tickets:
         evaluationTicketList = new List<EvaluationTicket>();
         exhibitionTicketList = new List<EvaluationTicket>();
-        evaluationTicketQueue = new Queue<EvaluationTicket>();
+        //evaluationTicketQueue = new Queue<EvaluationTicket>();
 
         // Set up Exhibition Instance:
         GameObject exhibitionInstanceGO = new GameObject("ExhibitionInstance");
@@ -395,9 +395,9 @@ public class EvaluationManager {
         if(evaluationTicketList != null) {
             evaluationTicketList.Clear();
         }
-        if(evaluationTicketQueue != null) {
-            evaluationTicketQueue = new Queue<EvaluationTicket>();
-        } 
+        //if(evaluationTicketQueue != null) {
+        //    evaluationTicketQueue = new Queue<EvaluationTicket>();
+        //} 
         //if(exhibitionTicketList != null) {
         //    exhibitionTicketList.Clear();
         //    exhibitionTicketCurrentIndex = 0;

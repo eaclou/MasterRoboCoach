@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class InputOscillator {
+public class InputOscillator : AgentModuleBase {
 
-    public int parentID;
-    public int inno;
+    //public int parentID;
+    //public int inno;
     public float freq;
     public float amp;
 
@@ -20,8 +20,10 @@ public class InputOscillator {
         //throttle[0] = 0f;
     }
 
-    public void Initialize(OscillatorGenome genome) {
+    public void Initialize(OscillatorGenome genome, Agent agent) {
+        parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
         value = new float[1];
 
         freq = genome.freq;

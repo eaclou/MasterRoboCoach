@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class WeaponTazer {
+public class WeaponTazer : AgentModuleBase {
 
-    public int parentID;
-    public int inno;
+    //public int parentID;
+    //public int inno;
     public float[] throttle;
     public float[] energy;
     public float[] damageInflicted;
 
-    public ParticleSystem particles;
+    //public ParticleSystem particles;
+    public WeaponTazerComponent weaponTazerComponent;
+
     public GameObject parentBody;
     public Vector3 muzzleLocation;
 
-    public WeaponTazer(WeaponTazerGenome genome) {
+    public WeaponTazer() {
         /*parentID = genome.parentID;
         inno = genome.inno;
         throttle = new float[1];
@@ -23,13 +25,17 @@ public class WeaponTazer {
         damageInflicted = new float[1];*/
     }
 
-    public void Initialize(WeaponTazerGenome genome) {
+    public void Initialize(WeaponTazerGenome genome, Agent agent) {
         parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
+
+        muzzleLocation = genome.muzzleLocation;
         throttle = new float[1];
         energy = new float[1];
         damageInflicted = new float[1];
-        muzzleLocation = genome.muzzleLocation;
+
+        parentBody = agent.segmentList[parentID];
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {
@@ -45,15 +51,11 @@ public class WeaponTazer {
         }
     }
 
-    public void Tick(bool isVisible) {
+    public void Tick() {
         float rayMaxDistance = 5f;
         damageInflicted[0] = 0f;
-
-        if (isVisible) {
-            ParticleSystem.EmissionModule emission = particles.emission;
-            emission.enabled = false;
-        }
-
+                
+        bool isFiring = false;
         if (throttle[0] > 0f) {
             if (energy[0] > 0.1f) {
                 energy[0] -= 0.1f; // costs energy to fire
@@ -67,19 +69,27 @@ public class WeaponTazer {
                         damageInflicted[0] = 25f;
                     }
                 }
-
-                if (isVisible) {
-                    ParticleSystem.EmissionModule emission = particles.emission;
-                    emission.enabled = true;
-                }
+                isFiring = true;
+                
             }
         }
         else {
             energy[0] += 0.01f;
         }
+
+        if (isVisible) {
+            if (isFiring) {
+                weaponTazerComponent.throttle = 1f;
+            }
+            else {
+                weaponTazerComponent.throttle = 0f;
+            }
+            weaponTazerComponent.Tick();
+        }
     }
 
-    public string GetParticleSystemURL() {
+
+    /*public string GetParticleSystemURL() {
         return "Prefabs/ParticleSystems/WeaponTazer";
-    }
+    }*/
 }

@@ -40,6 +40,6 @@ public class TournamentInfo {
     public Challenge.Type challengeType;
 
     public TournamentInfo() {
-
+        Debug.Log("TournamentInfo()");
     }
 }

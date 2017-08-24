@@ -3,27 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class TorqueEffector {
-    public int parentID;
-    public int inno;
+public class TorqueEffector : AgentModuleBase {
+    //public int parentID;
+    //public int inno;
     public float[] throttle;
 
     public float strength;
 
     public GameObject parentBody;
     
-	public TorqueEffector(TorqueGenome genome) {
+	public TorqueEffector() {
        /* parentID = genome.parentID;
         inno = genome.inno;
         throttle = new float[1];*/
     }
 
-    public void Initialize(TorqueGenome genome) {
+    public void Initialize(TorqueGenome genome, Agent agent) {
         parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
+
         throttle = new float[1];
 
         strength = genome.strength;
+
+        parentBody = agent.segmentList[parentID];
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {

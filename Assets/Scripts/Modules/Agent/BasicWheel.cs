@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class BasicWheel {
-    public int parentID;
-    public int inno;
+public class BasicWheel : AgentModuleBase {
+    //public int parentID;
+    //public int inno;
     public List<WheelCollider> wheelList;
     //public WheelCollider rightWheel;
     public float horsepower;
@@ -28,8 +28,10 @@ public class BasicWheel {
         //throttle[0] = 0f;
     }
 
-    public void Initialize(BasicWheelGenome genome) {
+    public void Initialize(BasicWheelGenome genome, Agent agent) {
+        parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
         throttle = new float[1];
         steerAngle = new float[1];
         brake = new float[1];
@@ -40,6 +42,17 @@ public class BasicWheel {
         horsepower = genome.horsepower;
         maxSteering = genome.maxSteering;
         brakePower = genome.brakePower;
+
+        wheelList = new List<WheelCollider>();
+        //Debug.Log("Agent Segment list count: " + agent.segmentList.Count.ToString());
+        for (int i = 0; i < genome.wheelIdList.Count; i++) {
+            WheelCollider wheel = agent.segmentList[genome.wheelIdList[i]].GetComponent<WheelCollider>();
+            if (wheel == null) {
+                Debug.LogAssertion("No existing WheelCollider on segment " + genome.wheelIdList[i].ToString());
+            }
+            wheelList.Add(wheel);
+        }
+        parentBody = agent.segmentList[parentID];
 
         //Debug.Log("BasicAxle horsepower= " + genome.horsepower.ToString());
     }

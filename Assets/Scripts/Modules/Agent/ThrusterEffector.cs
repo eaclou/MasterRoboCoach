@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class ThrusterEffector {
-    public int parentID;
-    public int inno;
+public class ThrusterEffector : AgentModuleBase {
+    //public int parentID;
+    //public int inno;
     public float[] throttle;
     public float[] strafe;
 
@@ -15,10 +15,14 @@ public class ThrusterEffector {
     public GameObject parentBody;
     public Vector3 forcePoint;
 
-    public ParticleSystem rearThrusterParticle;
-    public Material rearThrusterMat;
+    //public ParticleSystem rearThrusterParticle;
+    //public Material rearThrusterMat;
 
-	public ThrusterEffector(ThrusterGenome genome) {
+    public ThrusterComponent thrusterComponent;
+
+    //public enum 
+
+	public ThrusterEffector() {
         /*parentID = genome.parentID;
         inno = genome.inno;
         throttle = new float[1];
@@ -26,14 +30,22 @@ public class ThrusterEffector {
         //throttle[0] = 0f;*/
     }
 
-    public void Initialize(ThrusterGenome genome) {
+    public void Initialize(ThrusterGenome genome, Agent agent) {
         parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
+
+        forcePoint = genome.forcePoint;
         throttle = new float[1];
         strafe = new float[1];
 
         horsepowerX = genome.horsepowerX;
         horsepowerZ = genome.horsepowerZ;
+
+        parentBody = agent.segmentList[parentID];
+
+        // Create renderable elements:
+        
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {
@@ -54,14 +66,16 @@ public class ThrusterEffector {
         parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.forward * Mathf.Clamp01(throttle[0]) * horsepowerZ, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint); //.AddRelativeForce(new Vector3(0f, 0f, Mathf.Clamp01(throttle[0])) * horsepowerZ, ForceMode.Force);
         parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.right * Mathf.Clamp01(strafe[0]) * horsepowerX, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint);
 
-        //rearThrusterParticle.e
-        //go.GetComponent<ParticleSystemRenderer>().material = particleMaterial;
-        ParticleSystem.MainModule mainModule = rearThrusterParticle.main;
-        ParticleSystem.MinMaxGradient col = mainModule.startColor;
-        col.color = new Color(col.color.r, col.color.g, col.color.b, Mathf.Clamp01(throttle[0]));
-        mainModule.startColor = col;
+        if(isVisible) {
+            thrusterComponent.throttle = throttle[0];
+            thrusterComponent.Tick();
 
-        //rearThrusterMat.SetFloat(Shader.PropertyToID("_EmissionColor"), Mathf.Clamp01(throttle[0]) * 20f);
-        rearThrusterMat.SetColor("_EmissionColor", new Color(0.66f, 0.93f, 1f) * 12f * Mathf.Clamp01(throttle[0]));
+            /*ParticleSystem.MainModule mainModule = rearThrusterParticle.main;
+            ParticleSystem.MinMaxGradient col = mainModule.startColor;
+            col.color = new Color(col.color.r, col.color.g, col.color.b, Mathf.Clamp01(throttle[0]));
+            mainModule.startColor = col;
+            rearThrusterMat.SetColor("_EmissionColor", new Color(0.66f, 0.93f, 1f) * 12f * Mathf.Clamp01(throttle[0]));
+            */
+        }        
     }
 }

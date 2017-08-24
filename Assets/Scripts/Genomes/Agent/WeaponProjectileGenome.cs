@@ -7,6 +7,7 @@ public class WeaponProjectileGenome {
 
     public int parentID;
     public int inno;
+    public Vector3 muzzleLocation;
 
     public WeaponProjectileGenome(int parentID, int inno) {
         this.parentID = parentID;
@@ -16,6 +17,7 @@ public class WeaponProjectileGenome {
     public WeaponProjectileGenome(WeaponProjectileGenome template) {
         this.parentID = template.parentID;
         this.inno = template.inno;
+        this.muzzleLocation = template.muzzleLocation;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {

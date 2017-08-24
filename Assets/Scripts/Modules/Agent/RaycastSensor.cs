@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class RaycastSensor {
+public class RaycastSensor : AgentModuleBase {
 
-    public int parentID;
-    public int inno;    
+    //public int parentID;
+    //public int inno;    
     public float[] distanceLeft;
     public float[] distanceLeftCenter;
     public float[] distanceCenter;
@@ -17,9 +17,11 @@ public class RaycastSensor {
 
     public GameObject parentObject;
     public Vector3 sensorPosition;
+
     public Transform targetPosition;    
 
-    public RaycastSensor(RaycastSensorGenome genome) {
+    public RaycastSensor() {
+        /*
         parentID = genome.parentID;
         inno = genome.inno;
         distanceLeft = new float[1];
@@ -29,10 +31,14 @@ public class RaycastSensor {
         distanceRight = new float[1];
         distanceBack = new float[1];
         distanceCenterShort = new float[1];
+        */
     }
 
-    public void Initialize(RaycastSensorGenome genome) {
+    public void Initialize(RaycastSensorGenome genome, Agent agent) {
+        parentID = genome.parentID;
         inno = genome.inno;
+        isVisible = agent.isVisible;
+
         distanceLeft = new float[1];
         distanceLeftCenter = new float[1];
         distanceCenter = new float[1];
@@ -40,6 +46,9 @@ public class RaycastSensor {
         distanceRight = new float[1];
         distanceBack = new float[1];
         distanceCenterShort = new float[1];
+
+        parentObject = agent.segmentList[parentID];
+        sensorPosition = genome.sensorPosition;
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {
