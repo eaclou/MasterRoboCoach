@@ -72,11 +72,33 @@ public class EnvironmentPopulation {
         environmentGenomeList.RemoveRange(popSize, numBaseline);
     }
     public void AppendBaselineGenomes() {
+        int[] scrambledIndices = new int[baselineGenomePool.Count];
+        for (int x = 0; x < scrambledIndices.Length; x++) {
+            scrambledIndices[x] = x;
+        }
+        // scramble!
+        int numScrambles = baselineGenomePool.Count * 2;
+        for (int y = 0; y < numScrambles; y++) {
+            int indexA = UnityEngine.Random.Range(0, scrambledIndices.Length - 1);
+            int indexB = UnityEngine.Random.Range(0, scrambledIndices.Length - 1);
+
+            int swapA = scrambledIndices[indexA];
+            int swapB = scrambledIndices[indexB];
+
+            scrambledIndices[indexA] = swapB;
+            scrambledIndices[indexB] = swapA;
+        }
+
         for (int j = 0; j < numBaseline; j++) {
             // randomly select x baseline genomes to add into primary genomeList
             // these will be tested alongside the primary pool
-            int randIndex = Mathf.RoundToInt(UnityEngine.Random.Range(0f, (float)baselineGenomePool.Count - 1f));
-            environmentGenomeList.Add(baselineGenomePool[randIndex]);
+            //int randIndex = Mathf.RoundToInt(UnityEngine.Random.Range(0f, (float)baselineGenomePool.Count - 1f));
+            environmentGenomeList.Add(baselineGenomePool[scrambledIndices[j]]);
+        }
+
+        // Apply correct Indices!
+        for(int i = 0; i < environmentGenomeList.Count; i++) {
+            environmentGenomeList[i].index = i;
         }
     }
 

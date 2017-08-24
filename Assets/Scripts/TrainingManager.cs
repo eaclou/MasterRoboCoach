@@ -242,12 +242,14 @@ public class TrainingManager : MonoBehaviour {
         if (focusPopIndex > 0) {
             // it's an Agent
             subFolder = "Agents/";
-            json = JsonUtility.ToJson(teamsConfig.playersList[focusPopIndex - 1].agentGenomeList[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[focusPopIndex - 1]]);
+            //json = JsonUtility.ToJson(teamsConfig.playersList[focusPopIndex - 1].agentGenomeList[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[focusPopIndex - 1]]);
+            json = JsonUtility.ToJson(evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[focusPopIndex - 1]);
         }
         else {
             //it's an environment
             subFolder = "Environments/";
-            json = JsonUtility.ToJson(teamsConfig.environmentPopulation.environmentGenomeList[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0]]);
+            //json = JsonUtility.ToJson(teamsConfig.environmentPopulation.environmentGenomeList[evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0]]);
+            json = JsonUtility.ToJson(evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].environmentGenome);
         }
 
         //string json = JsonUtility.ToJson(teamsConfig);

@@ -35,20 +35,27 @@ public class ExhibitionParticleCurves : MonoBehaviour {
             particle.Value.gameObject.layer = LayerMask.NameToLayer("Hidden");
         }
 
-        int[] indices = new int[ticket.genomeIndices.Length + 1];
+        int[] indices = new int[ticket.agentGenomesList.Count + 2];
         indices[0] = ticket.focusPopIndex;
-        for(int i = 0; i < ticket.genomeIndices.Length; i++) {
-            indices[i + 1] = ticket.genomeIndices[i];
+        for(int i = 0; i < ticket.agentGenomesList.Count + 1; i++) {
+            if(i == 0) {
+                indices[i + 1] = ticket.environmentGenome.index;
+            }
+            else {
+                indices[i + 1] = ticket.agentGenomesList[i - 1].index;
+            }
+            //indices[i + 1] = ticket.genomeIndices[i];
         }
         indices[ticket.focusPopIndex + 1] = 0;
         string txt = "";
         for (int x = 0; x < indices.Length; x++) {
             txt += indices[x].ToString();
         }
-        string test = "";
-        for(int j = 0; j < ticket.genomeIndices.Length; j++) {
-            test += ticket.genomeIndices[j].ToString();
-        }
+        Debug.Log("particle: " + txt);
+        //string test = "";
+        //for(int j = 0; j < ticket.genomeIndices.Length; j++) {
+        //    test += ticket.genomeIndices[j].ToString();
+        //}
         ParticleSystem focusParticle;
         if(particleDictionary.TryGetValue(txt, out focusParticle)) {
             //Debug.Log("Found it! " + txt + ", " + test + ", " + ticket.focusPopIndex.ToString());            

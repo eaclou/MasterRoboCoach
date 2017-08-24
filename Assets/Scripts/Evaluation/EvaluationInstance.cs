@@ -133,39 +133,55 @@ public class EvaluationInstance : MonoBehaviour {
         this.challengeType = teamsConfig.challengeType;
         this.maxTimeSteps = evalTicket.maxTimeSteps;
 
-        string debugname = "";
+        /*string debugname = "";
         for( int i = 0; i < evalTicket.genomeIndices.Length; i++) {
             debugname += evalTicket.genomeIndices[i].ToString() + ",";
         }
         debugname += evalTicket.focusPopIndex.ToString();
-        gameObject.name = debugname;
+        gameObject.name = debugname;*/
 
         // create particle key:
-        int[] indices = new int[teamsConfig.playersList.Count + 2];
+
+        /*int[] indices = new int[teamsConfig.playersList.Count + 2];
         indices[0] = evalTicket.focusPopIndex;
         for(int i = 0; i < evalTicket.genomeIndices.Length; i++) {
             indices[i + 1] = evalTicket.genomeIndices[i];
         }
         indices[indices[0] + 1] = 0; // focusPop is 0
+        */
+        int[] indices = new int[teamsConfig.playersList.Count + 2];
+        indices[0] = evalTicket.focusPopIndex;
+        for (int i = 0; i < evalTicket.agentGenomesList.Count + 1; i++) {
+            if (i == 0) {
+                indices[i + 1] = evalTicket.environmentGenome.index;
+            }
+            else {
+                indices[i + 1] = evalTicket.agentGenomesList[i - 1].index;
+            }
+            //indices[i + 1] = ticket.genomeIndices[i];
+        }
 
         string txt = "";
         for(int i = 0; i < indices.Length; i++) {
             txt += indices[i].ToString();
         }
         //Debug.Log(txt);
-        if(exhibitionParticleRef.particleDictionary.TryGetValue(txt, out particleCurves)) {
-            // particleCurves
-            //Debug.Log("FOUND IT! set up " + txt);
-            
-            emit = true;
-            if (isExhibition)
-                emit = false;
-        }
-        else {
-            if (!isExhibition)
+        if (exhibitionParticleRef.particleDictionary != null) {
+            if (exhibitionParticleRef.particleDictionary.TryGetValue(txt, out particleCurves)) {
+                // particleCurves
+                //Debug.Log("FOUND IT! set up " + txt);
+
+                emit = true;
+                if (isExhibition)
+                    emit = false;
+            }
+            else {
+                //if (!isExhibition)
                 //Debug.Log("Eval Instance Setup FAIL " + txt);
-            emit = false;
+                emit = false;
+            }
         }
+        
 
         currentEvalTicket = evalTicket;
               
@@ -197,8 +213,8 @@ public class EvaluationInstance : MonoBehaviour {
         gameWonOrLost = false; // <-- revisit this shit
         //winnerPopIndex = -1; // <-- revisit this shit
 
-        currentAgentsArray = new Agent[currentEvalTicket.genomeIndices.Length - 1];
-        agentGameScoresArray = new float[currentEvalTicket.genomeIndices.Length - 1][];
+        currentAgentsArray = new Agent[currentEvalTicket.agentGenomesList.Count];
+        agentGameScoresArray = new float[currentEvalTicket.agentGenomesList.Count][];
         for(int i = 0; i < agentGameScoresArray.Length; i++) {
             agentGameScoresArray[i] = new float[1];
         }
@@ -208,7 +224,7 @@ public class EvaluationInstance : MonoBehaviour {
 
         // Create Agents:        
         for(int i = 0; i < currentAgentsArray.Length; i++) {
-            AgentGenome genome;
+            /*AgentGenome genome;
             if (currentEvalTicket.focusPopIndex == i + 1) {  // if this Agent is the focusPop, use main agentArray index
                 //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
                 genome = teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]];
@@ -218,17 +234,17 @@ public class EvaluationInstance : MonoBehaviour {
                 genome = teamsConfig.playersList[i].representativeGenomeList[currentEvalTicket.genomeIndices[i + 1]];
             }
             //GameObject agentGO = new GameObject("agent" + currentEvalTicket.genomeIndices[i+1].ToString());
-
+            */
             // Create Agent Base Body:
-            GameObject agentGO = Instantiate(Resources.Load(AgentGenomeTemplate.GetAgentBodyTypeURL(genome.bodyType))) as GameObject;
+            GameObject agentGO = Instantiate(Resources.Load(AgentGenomeTemplate.GetAgentBodyTypeURL(currentEvalTicket.agentGenomesList[i].bodyType))) as GameObject;
             agentGO.transform.parent = gameObject.transform;
-            agentGO.transform.localPosition = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartPosition;
-            agentGO.transform.localRotation = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[i].agentStartRotation;
+            agentGO.transform.localPosition = currentEvalTicket.environmentGenome.agentStartPositionsList[i].agentStartPosition;
+            agentGO.transform.localRotation = currentEvalTicket.environmentGenome.agentStartPositionsList[i].agentStartRotation;
             Agent agentScript = agentGO.GetComponent<Agent>();
             agentScript.rootObject.GetComponent<Rigidbody>().centerOfMass = agentScript.rootCOM;
             agentScript.isVisible = visible;
             
-            agentScript.InitializeAgentFromTemplate(genome);
+            agentScript.InitializeAgentFromTemplate(currentEvalTicket.agentGenomesList[i]);
                         
             currentAgentsArray[i] = agentScript;            
         }        
@@ -263,7 +279,7 @@ public class EvaluationInstance : MonoBehaviour {
 
         //SetInvisibleTraverse(gameObject);
         if (visible) {
-            currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
+            currentEnvironment.AddRenderableContent(currentEvalTicket.environmentGenome);
             SetVisibleTraverse(gameObject);
             //Debug.Log("IS VISIBLE" + gameObject.name);
             //currentEnvironment.AddRenderableContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
@@ -279,21 +295,25 @@ public class EvaluationInstance : MonoBehaviour {
         else {
             // Fitness Crap only if NON-exhibition!:
             FitnessManager fitnessManager;
+            int genomeIndex;
             if (currentEvalTicket.focusPopIndex == 0) {  // environment
                 fitnessManager = teamsConfig.environmentPopulation.fitnessManager;
+                genomeIndex = currentEvalTicket.environmentGenome.index;
             }
             else {  // a player
                 fitnessManager = teamsConfig.playersList[currentEvalTicket.focusPopIndex - 1].fitnessManager;
+                genomeIndex = currentEvalTicket.agentGenomesList[currentEvalTicket.focusPopIndex - 1].index;
             }            
             fitnessComponentEvaluationGroup = new FitnessComponentEvaluationGroup();
             // Creates a copy inside this, and also a copy in the FitnessManager, but they share refs to the FitComps themselves:
-            fitnessComponentEvaluationGroup.CreateFitnessComponentEvaluationGroup(fitnessManager, currentEvalTicket.genomeIndices[currentEvalTicket.focusPopIndex]);
+            //Debug.Log("focusPop: " + currentEvalTicket.focusPopIndex.ToString() + ", index: " + genomeIndex.ToString());
+            fitnessComponentEvaluationGroup.CreateFitnessComponentEvaluationGroup(fitnessManager, genomeIndex);
             //Debug.Log("currentEvalTicket.focusPopIndex: " + currentEvalTicket.focusPopIndex.ToString() + ", index: " + currentEvalTicket.genomeIndices[currentEvalTicket.focusPopIndex].ToString());
             HookUpFitnessComponents();
         }        
     }
     private void CreateEnvironment() {
-        EnvironmentGenome genome;
+        /*EnvironmentGenome genome;
         // focus determines if genome is grabbed from representative or primary genome pool list:
         if(currentEvalTicket.focusPopIndex == 0) {
             genome = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]];
@@ -301,21 +321,21 @@ public class EvaluationInstance : MonoBehaviour {
         else {
             genome = teamsConfig.environmentPopulation.representativeGenomeList[currentEvalTicket.genomeIndices[0]];
         }
-
-        GameObject environmentGO = new GameObject("environment" + currentEvalTicket.genomeIndices[0].ToString());
+        */
+        GameObject environmentGO = new GameObject("environment");
         Environment environmentScript = environmentGO.AddComponent<Environment>();
         currentEnvironment = environmentScript;
         environmentGO.transform.parent = gameObject.transform;
         environmentGO.transform.localPosition = new Vector3(0f, 0f, 0f);
 
-        if (teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].gameplayPrefab == null) {            
+        if (currentEvalTicket.environmentGenome.gameplayPrefab == null) {            
             // This might only work if environment is completely static!!!! otherwise it could change inside original evalInstance and then that
             // changed environment would be instantiated as fresh Environments for subsequent Evals!            
-            environmentScript.CreateCollisionAndGameplayContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
+            environmentScript.CreateCollisionAndGameplayContent(currentEvalTicket.environmentGenome);
         }
         else {
             // Already built
-            EnvironmentGameplay environmentGameplayScript = Instantiate<EnvironmentGameplay>(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].gameplayPrefab) as EnvironmentGameplay;
+            EnvironmentGameplay environmentGameplayScript = Instantiate<EnvironmentGameplay>(currentEvalTicket.environmentGenome.gameplayPrefab) as EnvironmentGameplay;
             currentEnvironment.environmentGameplay = environmentGameplayScript;
             currentEnvironment.environmentGameplay.gameObject.transform.parent = currentEnvironment.gameObject.transform;
             currentEnvironment.environmentGameplay.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
@@ -429,7 +449,7 @@ public class EvaluationInstance : MonoBehaviour {
                 case FitnessComponentType.DistToOrigin:
                     FitCompDistFromOrigin fitCompDistFromOrigin = (FitCompDistFromOrigin)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompDistFromOrigin;
                     fitCompDistFromOrigin.pointA = currentAgentsArray[populationIndex].rootObject.transform.localPosition;
-                    fitCompDistFromOrigin.pointB = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].agentStartPositionsList[populationIndex].agentStartPosition;
+                    fitCompDistFromOrigin.pointB = currentEvalTicket.environmentGenome.agentStartPositionsList[populationIndex].agentStartPosition;
                     break;
                 default:
                     Debug.LogError("ERROR!!! Fitness Type found!!! " + fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString());

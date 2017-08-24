@@ -155,12 +155,14 @@ public class TrainingMenuUI : MonoBehaviour {
         string txt = "";
         if (trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
             // ENVIRONMENT:
-            EnvironmentGenome currentEnvironmentGenome = trainerRef.teamsConfig.environmentPopulation.environmentGenomeList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0]];
+            //EnvironmentGenome currentEnvironmentGenome = trainerRef.teamsConfig.environmentPopulation.environmentGenomeList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0]];
+            EnvironmentGenome currentEnvironmentGenome = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].environmentGenome;
             txt += "Environment Genome: " + currentEnvironmentGenome.index;
         }
         else {
             // AGENT:
-            AgentGenome currentAgentGenome = trainerRef.teamsConfig.playersList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].agentGenomeList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex]];
+            //AgentGenome currentAgentGenome = trainerRef.teamsConfig.playersList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].agentGenomeList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex]];
+            AgentGenome currentAgentGenome = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
             // Index:
             txt += "Player: " + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
             txt += ", Genome: " + currentAgentGenome.index.ToString() + "\n";
@@ -338,9 +340,9 @@ public class TrainingMenuUI : MonoBehaviour {
     public string GetContestantsText() {
         string text = "Exhibition Match: " + trainerRef.evaluationManager.exhibitionTicketCurrentIndex.ToString() + "\n";
         if (trainerRef.isTraining) {
-            text += "Environment #" + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0].ToString();
-            for(int i = 1; i < trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices.Length; i++) {
-                text += ", Player " + i.ToString() + " #" + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[i].ToString();
+            text += "Environment #" + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].environmentGenome.index.ToString();
+            for(int i = 0; i < trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList.Count; i++) {
+                text += ", Player " + i.ToString() + " #" + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[i].index.ToString();
             }
             float completionPercentage = 100f * (float)trainerRef.evaluationManager.exhibitionInstance.currentTimeStep / (float)trainerRef.evaluationManager.exhibitionInstance.maxTimeSteps;
             text += "\n[" + completionPercentage.ToString("F2") + "%]";

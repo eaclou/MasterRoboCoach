@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour {
 
     public void EnterTournamentMode(TournamentInfo tournamentInfo) {
         // Set up TournamentManager with info
-        tournamentManager.Initialize(tournamentInfo);
+        tournamentManager.Initialize(trainerRef.teamsConfig, tournamentInfo);
         // Set up UI:
         mainMenuRef.panelTournament.GetComponent<TournamentUI>().Initialize(tournamentInfo);
     }

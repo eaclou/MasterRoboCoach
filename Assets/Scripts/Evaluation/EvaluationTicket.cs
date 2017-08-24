@@ -31,17 +31,30 @@ public class EvaluationTicket {
     };
 
     //public int environmentRepIndex = -1;
-    public int[] genomeIndices;
+    //public int[] genomeIndices;
+    public EnvironmentGenome environmentGenome;
+    public List<AgentGenome> agentGenomesList;
     public int focusPopIndex = -1;
 
     public int maxTimeSteps;
     // public Vector3 ArenaBounds?
     //public ChallengeSettingsGenome challengeSettings;
 
-    public EvaluationTicket(int[] genomeIndices, int focusIndex, int maxTimeSteps) {
+    /*public EvaluationTicket(int[] genomeIndices, int focusIndex, int maxTimeSteps) {
         status = EvaluationStatus.Pending;
         //environmentRepIndex = environmentIndex;
         this.genomeIndices = genomeIndices;
+        this.focusPopIndex = focusIndex;
+        this.maxTimeSteps = maxTimeSteps;
+        //challengeSettings = settings;
+    }*/
+
+    public EvaluationTicket(EnvironmentGenome environmentGenome, List<AgentGenome> agentGenomesList, int focusIndex, int maxTimeSteps) {
+        status = EvaluationStatus.Pending;
+        //environmentRepIndex = environmentIndex;
+        //this.genomeIndices = genomeIndices;
+        this.environmentGenome = environmentGenome;
+        this.agentGenomesList = agentGenomesList;
         this.focusPopIndex = focusIndex;
         this.maxTimeSteps = maxTimeSteps;
         //challengeSettings = settings;
