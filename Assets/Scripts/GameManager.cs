@@ -23,6 +23,9 @@ public class GameManager : MonoBehaviour {
         Tournament
     }
 
+    public int prestige = 10;
+    public List<TournamentInfo> availableTournamentsList;
+
     public Challenge.Type challengeType;
 
     // Flags:
@@ -95,6 +98,28 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    public void UpdateAvailableTournamentsList() {
+        if(availableTournamentsList == null) {
+            availableTournamentsList = new List<TournamentInfo>();
+
+            //TournamentInfo tournamentInfo = (Resources.Load("Templates/Tournaments/TutorialTournament") as TournamentInfoWrapper).tournamentInfo;
+            //availableTournamentsList.Add(tournamentInfo);
+        }
+        else {
+            availableTournamentsList.Clear();
+
+            
+        }
+
+        TournamentInfo tournamentInfo1 = (Resources.Load("Templates/Tournaments/TutorialTournament") as TournamentInfoWrapper).tournamentInfo;
+        availableTournamentsList.Add(tournamentInfo1);
+
+        TournamentInfo tournamentInfo2 = (Resources.Load("Templates/Tournaments/Sectionals") as TournamentInfoWrapper).tournamentInfo;
+        availableTournamentsList.Add(tournamentInfo2);
+
+        TournamentInfo tournamentInfo3 = (Resources.Load("Templates/Tournaments/Regionals") as TournamentInfoWrapper).tournamentInfo;
+        availableTournamentsList.Add(tournamentInfo3);
+    }
 
     private void FirstTimeInitialization() {
         ChangeState(GameManager.GameState.MainMenu);
@@ -117,7 +142,7 @@ public class GameManager : MonoBehaviour {
             case GameManager.GameState.Training:
                 //do something
                 break;
-            case GameManager.GameState.Tournament:
+            case GameManager.GameState.Tournament:                
                 //do something
                 break;
             default:

@@ -36,11 +36,13 @@ public class TournamentManager : MonoBehaviour {
     }
     
     public void AllMatchesComplete() {
-
+        
         //tournamentUI.
     }
 
     public void Exit() {
+        gameManager.prestige += currentTournamentInfo.reward;
+
         tournamentInstance.gameObject.SetActive(false);
         isPlaying = false;
         isSimulating = false;
@@ -86,6 +88,7 @@ public class TournamentManager : MonoBehaviour {
             if(CheckAllMatchesFinished()) {
                 tournamentFinished = true;
                 inbetweenMatches = true;
+                AllMatchesComplete();
                 //Debug.Log("Tournament Finished!");
                 // END
             }
@@ -178,8 +181,8 @@ public class TournamentManager : MonoBehaviour {
 
         // Load Competitors,
         // Create Match Schedule
-        //
-        
+        // Process Tournament Info:
+        tournamentInfo.PrepareTournament(teamsConfig.playersList[0].agentGenomeList[0]);        
 
         // Set up Exhibition Instance:
         if(tournamentInstance == null) {
@@ -188,10 +191,10 @@ public class TournamentManager : MonoBehaviour {
             tournamentInstance.transform.position = new Vector3(0f, 0f, 0f);
             tournamentInstance.visible = true;
             tournamentInstance.isExhibition = true;
+        }
+        else {
+            tournamentInstance.gameObject.SetActive(true);
         }        
-
-        
-        
     }
 
     public void PlayNextMatch() {

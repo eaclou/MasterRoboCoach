@@ -96,9 +96,11 @@ public class TournamentUI : MonoBehaviour {
             txtMatchInfo += "Round: " + gameManager.tournamentManager.currentRoundNum.ToString() + ", Match: " + gameManager.tournamentManager.currentMatchup.id.ToString() + "\n";
             textMatchInfo.text = txtMatchInfo;
 
-            string txtTimer = "";
-            txtTimer += gameManager.tournamentManager.tournamentInstance.currentTimeStep.ToString() + " / " + gameManager.tournamentManager.currentMatchup.evalTicket.maxTimeSteps.ToString();
-            textTimer.text = txtTimer;
+            if(gameManager.tournamentManager.currentMatchup.evalTicket != null) {
+                string txtTimer = "";
+                txtTimer += gameManager.tournamentManager.tournamentInstance.currentTimeStep.ToString() + " / " + gameManager.tournamentManager.currentMatchup.evalTicket.maxTimeSteps.ToString();
+                textTimer.text = txtTimer;
+            }            
         }
 
         UpdatePlayPauseButtonUI();

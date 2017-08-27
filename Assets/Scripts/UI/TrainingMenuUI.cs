@@ -127,6 +127,10 @@ public class TrainingMenuUI : MonoBehaviour {
         if(trainingSettingsOn) {
             UpdateTrainingSettingsPanelUI();
         }
+
+        if(tournamentSelectOn) {
+            panelTournamentSelect.GetComponent<TournamentSelectUI>().UpdateState();
+        }
     }
 
     public void UpdateElementsWhilePlaying() {
@@ -142,7 +146,15 @@ public class TrainingMenuUI : MonoBehaviour {
         UpdateTimeStepsUI();
         UpdateProgressUI();
         UpdateCameraButtonUI();
-        UpdateTournamentSelectUI();
+
+        //UpdateTournamentSelectUI();
+        if (tournamentSelectOn) {
+            panelTournamentSelect.SetActive(true);
+            panelTournamentSelect.GetComponent<TournamentSelectUI>().Initialize();
+        }
+        else {
+            panelTournamentSelect.SetActive(false);
+        }
     }
 
     private void UpdateDebugLeftPanelUI() {
@@ -201,7 +213,7 @@ public class TrainingMenuUI : MonoBehaviour {
     private void UpdateTournamentSelectUI() {
         if(tournamentSelectOn) {
             panelTournamentSelect.SetActive(true);
-            panelTournamentSelect.GetComponent<TournamentSelectUI>().Initialize();
+            panelTournamentSelect.GetComponent<TournamentSelectUI>().UpdateState();
         }
         else {
             panelTournamentSelect.SetActive(false);
@@ -557,8 +569,12 @@ public class TrainingMenuUI : MonoBehaviour {
 
     public void ClickButtonTournaments() {
         tournamentSelectOn = true;
-        UpdateTournamentSelectUI();
+        //UpdateTournamentSelectUI();
+        panelTournamentSelect.SetActive(true);
+        panelTournamentSelect.GetComponent<TournamentSelectUI>().Initialize();
         ClickButtonPlayPause();
+        
+        
         //ShowTournamentSelectScreen();
         //gameManager.trainerRef.EnterTournamentSelectScreen();
     }
