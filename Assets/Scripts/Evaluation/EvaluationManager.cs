@@ -511,7 +511,7 @@ public class EvaluationManager {
                     // Pending -- Set up instance:
                     if (evaluationTicketList[currentEvalTicketIndex].status == EvaluationTicket.EvaluationStatus.Pending) {
                         //Debug.Log("currentEvalPair: " + currentEvalTicketIndex.ToString() + " (" + evaluationTicketList[currentEvalTicketIndex].status.ToString() + "), [" + evaluationTicketList[currentEvalTicketIndex].genomeIndices[0].ToString() + "," + evaluationTicketList[currentEvalTicketIndex].genomeIndices[1].ToString() + "]");
-                        evaluationInstancesList[0].SetUpInstance(evaluationTicketList[currentEvalTicketIndex], teamsConfig, exhibitionParticleCurves);
+                        evaluationInstancesList[0].SetUpInstance(evaluationTicketList[currentEvalTicketIndex], teamsConfig); //, exhibitionParticleCurves);
                     }
                     if (evaluationTicketList[currentEvalTicketIndex].status == EvaluationTicket.EvaluationStatus.PendingComplete) {
                         // Instance finished but not fully processed
@@ -588,7 +588,7 @@ public class EvaluationManager {
                         }
                         else {
                             //print("evalPair: " + currentEvalPairIndex.ToString() + " (" + evaluationPairsList[currentEvalPairIndex].status.ToString() + "), [" + evaluationPairsList[currentEvalPairIndex].evalPairIndices[0].ToString() + "," + evaluationPairsList[currentEvalPairIndex].evalPairIndices[1].ToString() + "]");
-                            evaluationInstancesList[i].SetUpInstance(evaluationTicketList[currentEvalPairIndex], teamsConfig, exhibitionParticleCurves);
+                            evaluationInstancesList[i].SetUpInstance(evaluationTicketList[currentEvalPairIndex], teamsConfig); //, exhibitionParticleCurves);
                             numEvalConstructionsThisFrame++;
                         }
                     }                    
@@ -1017,7 +1017,7 @@ public class EvaluationManager {
         }*/        
 
         exhibitionParticleCurves.SetActiveParticle(exhibitionTicketList[exhibitionTicketCurrentIndex]);
-        exhibitionInstance.SetUpInstance(exhibitionTicketList[exhibitionTicketCurrentIndex], teamsConfig, exhibitionParticleCurves);        
+        exhibitionInstance.SetUpInstance(exhibitionTicketList[exhibitionTicketCurrentIndex], teamsConfig); //, exhibitionParticleCurves);        
     }
 
     private int GetNextPendingEvalPairIndex() {

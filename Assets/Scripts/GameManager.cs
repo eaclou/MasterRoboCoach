@@ -6,226 +6,226 @@ public class GameManager : MonoBehaviour {
 
     public bool isTraining = false;
 
-    public MainMenu mainMenuRef;
+    public UIManager uiManager;
     public TrainingManager trainerRef;
     public TournamentManager tournamentManager;
-    
+
+    // Camera
+    public CameraManager cameraManager;
+    public bool cameraEnabled = false;
+
+    public GameState gameState;
+    public enum GameState {
+        MainMenu,
+        ChallengeSetup,
+        OptionsMenu,
+        Training,
+        Tournament
+    }
+
+    public Challenge.Type challengeType;
+
+    // Flags:
+    public bool firstTimePlaythrough = true;  // affects contents of main menu
+
+    void Awake() {
+        
+    }
+
     // Use this for initialization
     void Start () {
-        //Debug.Log(Quaternion.Euler(0f, -180f, 0f).ToString());
-
-        //trainerRef.EnterTrainingMode(Challenge.Type.Test);
-
-        tournamentManager = new TournamentManager();
+        FirstTimeInitialization();
     }
 	
 	// Update is called once per frame
 	void Update () {
-	
-	}
+        
+        //UpdateState()
 
+        switch (gameState) {
+            case GameManager.GameState.MainMenu:
+                //do something
+                break;
+            case GameManager.GameState.OptionsMenu:
+                //do something
+                break;
+            case GameManager.GameState.ChallengeSetup:
+                //do something
+                break;
+            case GameManager.GameState.Training:
+                //do something
+                uiManager.panelTraining.UpdateState();
+                SetCamera();
+                break;
+            case GameManager.GameState.Tournament:
+                //do something
+                uiManager.panelTournament.UpdateState();
+                SetCamera();
+                break;
+            default:
+                //do nothing
+                Debug.LogError("[ERROR!] NO SUCH GAMESTATE FOUND! (" + gameState.ToString() + ")");
+                break;
+        }
+    }
+
+    void FixedUpdate() {
+        switch (gameState) {
+            case GameManager.GameState.MainMenu:
+                //do something
+                break;
+            case GameManager.GameState.OptionsMenu:
+                //do something
+                break;
+            case GameManager.GameState.ChallengeSetup:
+                //do something
+                break;
+            case GameManager.GameState.Training:
+                //do something
+                trainerRef.Tick();
+                break;
+            case GameManager.GameState.Tournament:
+                //do something
+                tournamentManager.Tick();
+                break;
+            default:
+                //do nothing
+                Debug.LogError("[ERROR!] NO SUCH GAMESTATE FOUND! (" + gameState.ToString() + ")");
+                break;
+        }
+    }
+
+
+    private void FirstTimeInitialization() {
+        ChangeState(GameManager.GameState.MainMenu);
+    }
+
+    public void ChangeState(GameState newState) {
+
+        gameState = newState;
+
+        switch (gameState) {
+            case GameManager.GameState.MainMenu:
+                //do something
+                break;
+            case GameManager.GameState.OptionsMenu:
+                //do something
+                break;
+            case GameManager.GameState.ChallengeSetup:
+                //do something
+                break;
+            case GameManager.GameState.Training:
+                //do something
+                break;
+            case GameManager.GameState.Tournament:
+                //do something
+                break;
+            default:
+                //do nothing
+                Debug.LogError("[ERROR!] NO SUCH GAMESTATE FOUND! (" + gameState.ToString() + ")");
+                break;
+        }
+
+        cameraEnabled = false;
+        uiManager.InitializeUI();
+    }
+
+    private void SetCamera() {
+
+        if (cameraEnabled) {
+            if(gameState == GameState.Training) {
+                Vector3 agentPosition = Vector3.zero;
+                int focusPlayer = 0;
+
+                if (trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex != 0) {
+                    focusPlayer = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1;
+
+                    if (trainerRef.evaluationManager.exhibitionInstance != null) {
+                        if (trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray != null) {
+                            agentPosition = trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootObject.transform.position + trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootCOM;
+                        }
+                    }
+                }
+                               
+
+                cameraManager.UpdateCameraState(agentPosition);
+            }
+            if(gameState == GameState.Tournament) {
+                Vector3 agentPosition = Vector3.zero;
+                int focusPlayer = 0;
+
+                if(tournamentManager.currentMatchup != null) {
+                    if (tournamentManager.currentMatchup.evalTicket.focusPopIndex != 0) {
+                        focusPlayer = tournamentManager.currentMatchup.evalTicket.focusPopIndex - 1;
+                    }
+                }                
+                if (tournamentManager.tournamentInstance.currentAgentsArray != null) {
+                    agentPosition = tournamentManager.tournamentInstance.currentAgentsArray[focusPlayer].rootObject.transform.position + tournamentManager.tournamentInstance.currentAgentsArray[focusPlayer].rootCOM;
+                }
+
+                cameraManager.UpdateCameraState(agentPosition);
+            }
+        }
+    }
+    
+    public void GoToChallengeSetup() {
+        switch(challengeType) {
+            case Challenge.Type.Test:
+                // do something
+                break;
+            case Challenge.Type.Racing:
+                // do something
+                break;
+            case Challenge.Type.Combat:
+                // do something
+                break;
+            default:
+                //do nothing
+                Debug.LogError("[ERROR!] NO SUCH CHALLENGETYPE FOUND! (" + challengeType.ToString() + ")");
+                break;
+        }
+
+        ChangeState(GameState.ChallengeSetup);
+    }
+
+    public void NewTrainingMode() {
+        trainerRef.NewTrainingMode(challengeType);
+        ChangeState(GameState.Training);
+        cameraEnabled = true;
+    }
+
+    public void LoadTrainingMode(string filePath) {
+        trainerRef.LoadTraining(filePath);
+        ChangeState(GameState.Training);
+        cameraEnabled = true;
+    }
+
+    public void FirstTimePlayGoToTraining() {
+        challengeType = Challenge.Type.Test;
+        NewTrainingMode();
+    }
+    
     public void EnterTournamentMode(TournamentInfo tournamentInfo) {
         // Set up TournamentManager with info
         tournamentManager.Initialize(trainerRef.teamsConfig, tournamentInfo);
         // Set up UI:
-        mainMenuRef.panelTournament.GetComponent<TournamentUI>().Initialize(tournamentInfo);
+        ChangeState(GameState.Tournament);
+        //mainMenuRef.panelTournament.GetComponent<TournamentUI>().Initialize(tournamentInfo);
     }
 
-    /*
-    void FixedUpdate() {
-        if(isTraining) {
-            UpdateTargetSensor();
-            agentGOList[playingCurAgent].GetComponent<Agent>().TickBrain();
-            agentGOList[playingCurAgent].GetComponent<Agent>().RunModules();
+    public void ExitTournamentMode() {
+        tournamentManager.Exit();
 
-            UpdatePlayingState();
-        }
-        Time.timeScale = timeScale;
+        trainerRef.evaluationManager.ResetForNewGeneration(trainerRef.teamsConfig);
+        trainerRef.isTraining = true;
+        trainerRef.trainingPaused = false;
+        uiManager.panelTraining.tournamentSelectOn = false;
+
+        ChangeState(GameState.Training);
+        //mainMenuRef.ExitTournamentMode();
     }
 
-    public void UpdatePlayingState() {
-        
-        // Update gameState timestep etc.
-        playingCurTimeStep++;
-        // Check trainingState
-        if (playingCurTimeStep > maxTimeSteps) {
-            // Next Agent
-            playingCurTimeStep = 0;
-
-            DisableCurrentAgent();
-
-            playingCurAgent++;
-            //Debug.Log("UpdatePlayingState! " + playingCurAgent.ToString());
-            if (playingCurAgent >= populationSize) {
-                // Next Gen
-                NextGeneration();
-                playingCurAgent = 0;
-                playingCurGen++;
-                EnableCurrentAgent();
-                Debug.Log("NextGen! " + playingCurGen.ToString());
-            }
-            else {
-                EnableCurrentAgent();
-            }
-        }
-        else {
-
-        }
+    public void QuitGame() {
+        Application.Quit();
     }
-
-    private void NextGeneration() {
-        List<BrainGenome> newGenBrainGenomeList = new List<BrainGenome>(); // new population!
-
-        // find best performers of last gen:
-        float[] rankedFitnessList = new float[populationSize];
-        int[] rankedAgentIndices = new int[populationSize];
-
-        // GROSS brute force:
-        // populate arrays:
-        for(int i = 0; i < populationSize; i++) {
-            rankedAgentIndices[i] = i;
-            rankedFitnessList[i] = agentGOList[i].GetComponent<Agent>().fitTotalDistance;
-        }
-        for(int i = 0; i < populationSize - 1; i++) {
-            for(int j = 0; j < populationSize - 1; j++) {
-                float swapFitA = rankedFitnessList[j];
-                float swapFitB = rankedFitnessList[j+1];
-                int swapIdA = rankedAgentIndices[j];
-                int swapIdB = rankedAgentIndices[j+1];
-
-                if(swapFitA > swapFitB) {
-                    rankedFitnessList[j] = swapFitB;
-                    rankedFitnessList[j+1] = swapFitA;
-                    rankedAgentIndices[j] = swapIdB;
-                    rankedAgentIndices[j+1] = swapIdA;
-                }
-            }
-        }
-        string fitnessRankText = "";
-        for (int i = 0; i < populationSize; i++) {
-            fitnessRankText += "Agent[" + rankedAgentIndices[i].ToString() + "]: " + rankedFitnessList[i].ToString() + "\n";
-        }
-        Debug.Log(fitnessRankText);
-
-        // Keep top-half peformers + mutations:
-        for(int x = 0; x < (populationSize / 2); x++) {
-            BrainGenome newBrainGenome = new BrainGenome();
-            // new BrainGenome creates new neuronList and linkList
-            BrainGenome parentGenome = agentGOList[rankedAgentIndices[x]].GetComponent<Agent>().genome.brainGenome;
-
-            newBrainGenome.neuronList = parentGenome.neuronList; // UNSUSTAINABLE!!! might work now since all neuronLists are identical
-            for (int i = 0; i < parentGenome.linkList.Count; i++) {
-                LinkGenome newLinkGenome = new LinkGenome(parentGenome.linkList[i].fromModuleID, parentGenome.linkList[i].fromNeuronID, parentGenome.linkList[i].toModuleID, parentGenome.linkList[i].toNeuronID, parentGenome.linkList[i].weight, true);
-                float rand = UnityEngine.Random.Range(0f, 1f);
-                if (rand < mutationChance) {
-                    float randomWeight = Gaussian.GetRandomGaussian();
-                    newLinkGenome.weight = randomWeight;
-                }
-                newBrainGenome.linkList.Add(newLinkGenome);
-            }
-            newGenBrainGenomeList.Add(newBrainGenome);
-            //agentGOList[x].GetComponent<Agent>().genome.brainGenome = newBrainGenome;            
-        }
-        // bottom half:
-        for (int x = 0; x < (populationSize / 2); x++) {
-            BrainGenome newBrainGenome = new BrainGenome();
-            // new BrainGenome creates new neuronList and linkList
-            BrainGenome parentGenome = agentGOList[rankedAgentIndices[x]].GetComponent<Agent>().genome.brainGenome;
-
-            newBrainGenome.neuronList = parentGenome.neuronList; // UNSUSTAINABLE!!! might work now since all neuronLists are identical
-            for (int i = 0; i < parentGenome.linkList.Count; i++) {
-                LinkGenome newLinkGenome = new LinkGenome(parentGenome.linkList[i].fromModuleID, parentGenome.linkList[i].fromNeuronID, parentGenome.linkList[i].toModuleID, parentGenome.linkList[i].toNeuronID, parentGenome.linkList[i].weight, true);
-                float rand = UnityEngine.Random.Range(0f, 1f);
-                if (rand < mutationChance) {
-                    float randomWeight = Gaussian.GetRandomGaussian();
-                    newLinkGenome.weight = randomWeight;
-                }
-                newBrainGenome.linkList.Add(newLinkGenome);
-            }
-            newGenBrainGenomeList.Add(newBrainGenome);
-
-            //BrainGenome newBrainGenome = new BrainGenome();
-            //newBrainGenome = agentGOList[rankedAgentIndices[x]].GetComponent<Agent>().genome.brainGenome;
-            //newBrainGenome.MutateRandomly(mutationChance);
-            //newGenBrainGenomeList.Add(newBrainGenome);
-            //AgentGenome agentGenome = new AgentGenome();
-            //agentGenome.TempInitializeTestGenome();
-            //agentGOList[x + (populationSize / 2)].GetComponent<Agent>().genome = agentGenome;
-        }        
-
-        for(int i = 0; i < populationSize; i++) {
-            agentGOList[i].GetComponent<Agent>().genome.brainGenome = newGenBrainGenomeList[i];
-        }
-    }
-
-    private void DisableCurrentAgent() {
-        //Debug.Log("Agent[" + playingCurAgent.ToString() + "] fitness: " + agentGOList[playingCurAgent].GetComponent<Agent>().fitTotalDistance.ToString());
-        agentGOList[playingCurAgent].SetActive(false);
-    }
-    private void EnableCurrentAgent() {
-        agentGOList[playingCurAgent].SetActive(true);
-        agentGOList[playingCurAgent].GetComponent<Agent>().ConstructAgentFromGenome(agentGOList[playingCurAgent]);
-
-        // GROSS:
-        targetX = agentGOList[playingCurAgent].GetComponent<Agent>().targetSensorList[0].dotX;
-        targetY = agentGOList[playingCurAgent].GetComponent<Agent>().targetSensorList[0].dotY;
-        targetZ = agentGOList[playingCurAgent].GetComponent<Agent>().targetSensorList[0].dotZ;
-    }
-
-    private void UpdateTargetSensor() {
-        Vector3 segmentToTargetVect = new Vector3(target.position.x - agentGOList[playingCurAgent].GetComponent<Agent>().segmentList[0].transform.position.x, target.position.y - agentGOList[playingCurAgent].GetComponent<Agent>().segmentList[0].transform.position.y, target.position.z - agentGOList[playingCurAgent].GetComponent<Agent>().segmentList[0].transform.position.z);
-        Vector3 rightVector;
-        Vector3 upVector;
-        Vector3 forwardVector;
-
-        rightVector = agentGOList[playingCurAgent].GetComponent<Agent>().segmentList[0].transform.right;
-        upVector = agentGOList[playingCurAgent].GetComponent<Agent>().segmentList[0].transform.up;
-        forwardVector = agentGOList[playingCurAgent].GetComponent<Agent>().segmentList[0].transform.forward;
-
-        float dotRight = Vector3.Dot(segmentToTargetVect, rightVector);
-        float dotUp = Vector3.Dot(segmentToTargetVect, upVector);
-        float dotForward = Vector3.Dot(segmentToTargetVect, forwardVector);
-
-        targetX[0] = dotRight;
-        targetY[0] = dotUp;
-        targetZ[0] = dotForward;
-
-        float distanceSquared = dotRight * dotRight + dotUp * dotUp + dotForward * dotForward;
-        agentGOList[playingCurAgent].GetComponent<Agent>().fitTotalDistance += distanceSquared;
-    }
-
-    private void ResetTrainedAgentsList() {
-        trainedAgentsList.Clear();
-        for (int i = 0; i < populationSize; i++) {
-            trainedAgentsList.Add(0);
-        }
-    }
-
-    public void testInitializeTraining() {
-        agentGenomeList = new List<AgentGenome>();
-
-        ResetTrainedAgentsList();
-
-        // Create initial Player Population        
-        for (int i = 0; i < populationSize; i++) {
-            AgentGenome agentGenome = new AgentGenome();
-            agentGenome.TempInitializeTestGenome();
-            agentGenomeList.Add(agentGenome);
-        }
-
-        // Instantiate Agents
-        for(int i = 0; i < populationSize; i++) {
-            GameObject agentGO = new GameObject("agent" + i.ToString());            
-            Agent agentScript = agentGO.AddComponent<Agent>();
-            agentGOList.Add(agentGO);
-            agentScript.SetGenome(agentGenomeList[i]);
-            agentGO.SetActive(false);
-        }
-
-        // HACKY! first agent:
-        EnableCurrentAgent();
-
-        isTraining = true;
-    }
-    */
 }

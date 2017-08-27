@@ -5,8 +5,9 @@ using UnityEngine.UI;
 
 public class TrainingMenuUI : MonoBehaviour {
 
-    public MainMenu mainMenuRef;
-    public TrainingManager trainerRef;
+    public GameManager gameManager;
+    //public MainMenuUI mainMenuRef;
+    //public TrainingManager trainerRef;
 
     public GameObject panelTrainingShowHide;
 
@@ -63,6 +64,8 @@ public class TrainingMenuUI : MonoBehaviour {
     public Button buttonTournaments;
     public Button buttonShowHideUI;
 
+    public bool tournamentSelectOn = false;
+
     public bool showUI = true;
 
     public GameObject panelTournamentSelect;
@@ -83,18 +86,67 @@ public class TrainingMenuUI : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        trainerRef = mainMenuRef.gameManagerRef.trainerRef;
+        //trainerRef = mainMenuRef.gameManager.trainerRef;
     }
 	
 	// Update is called once per frame
 	void Update () {
-        SetStatusFromData();
+        //SetStatusFromData();
+
+        
     }
 
-    public void SetStatusFromData() {
-        
+    public void EnterState() {
+        InitializeUIFromGameState();
+    }
+
+    public void UpdateState() {
+        UpdateElementsEveryFrame();  // updates all UI elements that should be refreshed every frame
+
+        if(!gameManager.trainerRef.trainingPaused) {
+            UpdateElementsWhilePlaying();  // updates all UI elements that should be refreshed every frame while game is playing
+        }
+    }
+
+    public void ExitState() {
+
+    }
+
+    public void UpdateElementsEveryFrame() {
+        if (gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
+            buttonCycleFocusPop.GetComponentInChildren<Text>().text = "ENV";
+        }
+        else {
+            buttonCycleFocusPop.GetComponentInChildren<Text>().text = "P:" + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
+        }
 
         if(debugLeftOn) {
+            UpdateDebugLeftPanelUI();
+        }
+
+        if(trainingSettingsOn) {
+            UpdateTrainingSettingsPanelUI();
+        }
+    }
+
+    public void UpdateElementsWhilePlaying() {
+        textOpponent.text = GetContestantsText();
+        textTestingProgress.text = GetTestingProgressText();
+    }
+
+    public void InitializeUIFromGameState() {
+        UpdateDebugLeftPanelUI();
+        UpdateFitnessPanelUI();
+        UpdateTrainingSettingsPanelUI();
+        UpdateFocusPopUI();
+        UpdateTimeStepsUI();
+        UpdateProgressUI();
+        UpdateCameraButtonUI();
+        UpdateTournamentSelectUI();
+    }
+
+    private void UpdateDebugLeftPanelUI() {
+        if (debugLeftOn) {
             panelDebugLeft.SetActive(true);
             buttonDebugLeft.GetComponentInChildren<Text>().text = "-";
             SetDebugLeftText();
@@ -104,45 +156,64 @@ public class TrainingMenuUI : MonoBehaviour {
             panelDebugLeft.SetActive(false);
             buttonDebugLeft.GetComponentInChildren<Text>().text = "+";
         }
-
-        if(fitnessFunctionOn) {
+    }
+    private void UpdateFitnessPanelUI() {
+        if (fitnessFunctionOn) {
             panelFitnessFunction.SetActive(true);
             trainingSettingsOn = false;
             panelTrainingSettings.SetActive(false);
-            
+
         }
         else {
             panelFitnessFunction.SetActive(false);
         }
+    }
+    private void UpdateTrainingSettingsPanelUI() {
         if (trainingSettingsOn) {
             panelTrainingSettings.SetActive(true);
             fitnessFunctionOn = false;
             panelFitnessFunction.SetActive(false);
 
             // original bool check should prevent this trying to gather info from Trainer before it is initialized
-            trainingSettingsUI.SetStatusFromData(trainerRef);
+            trainingSettingsUI.SetStatusFromData(gameManager.trainerRef);
         }
         else {
             panelTrainingSettings.SetActive(false);
         }
-
-        if (trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
-            buttonCycleFocusPop.GetComponentInChildren<Text>().text = "ENV";            
+    }
+    private void UpdateFocusPopUI() {
+        if (gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
+            buttonCycleFocusPop.GetComponentInChildren<Text>().text = "ENV";
         }
         else {
-            buttonCycleFocusPop.GetComponentInChildren<Text>().text = "P:" + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
+            buttonCycleFocusPop.GetComponentInChildren<Text>().text = "P:" + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
         }
-
-        textMaxTimeSteps.text = "MaxTimeSteps:\n" + trainerRef.evaluationManager.maxTimeStepsDefault.ToString();
-
+        UpdateFitnessPanelUI();
+        UpdateTrainingSettingsPanelUI();
+    }
+    private void UpdateTimeStepsUI() {
+        textMaxTimeSteps.text = "MaxTimeSteps:\n" + gameManager.trainerRef.evaluationManager.maxTimeStepsDefault.ToString();
+    }
+    private void UpdateProgressUI() {
         textOpponent.text = GetContestantsText();
         textTestingProgress.text = GetTestingProgressText();
+    }
+    private void UpdateTournamentSelectUI() {
+        if(tournamentSelectOn) {
+            panelTournamentSelect.SetActive(true);
+            panelTournamentSelect.GetComponent<TournamentSelectUI>().Initialize();
+        }
+        else {
+            panelTournamentSelect.SetActive(false);
+        }
+    }
 
+    private void UpdateCameraButtonUI() {
         string cameraModeText = "";
-        if(mainMenuRef.gameManagerRef.trainerRef.cameraManager.currentCameraMode == 0) {
+        if (gameManager.cameraManager.currentCameraMode == 0) {
             cameraModeText = "Wide";
         }
-        else if (mainMenuRef.gameManagerRef.trainerRef.cameraManager.currentCameraMode == 1) {
+        else if (gameManager.cameraManager.currentCameraMode == 1) {
             cameraModeText = "Top Down";
         }
         else {
@@ -153,21 +224,21 @@ public class TrainingMenuUI : MonoBehaviour {
 
     private string GetTextAgentModules() {
         string txt = "";
-        if (trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
+        if (gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex < 1) {
             // ENVIRONMENT:
             //EnvironmentGenome currentEnvironmentGenome = trainerRef.teamsConfig.environmentPopulation.environmentGenomeList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0]];
-            EnvironmentGenome currentEnvironmentGenome = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].environmentGenome;
+            EnvironmentGenome currentEnvironmentGenome = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].environmentGenome;
             txt += "Environment Genome: " + currentEnvironmentGenome.index;
         }
         else {
             // AGENT:
             //AgentGenome currentAgentGenome = trainerRef.teamsConfig.playersList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1].agentGenomeList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex]];
-            AgentGenome currentAgentGenome = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
+            AgentGenome currentAgentGenome = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
             // Index:
-            txt += "Player: " + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
+            txt += "Player: " + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
             txt += ", Genome: " + currentAgentGenome.index.ToString() + "\n";
             // Modules:
-            Agent curAgent = trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
+            Agent curAgent = gameManager.trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
             if (curAgent.healthModuleList.Count > 0)
                 txt += "HEALTH: " + curAgent.healthModuleList[0].health.ToString() + " / " + curAgent.healthModuleList[0].maxHealth.ToString() + "\n";
             if (curAgent.targetSensorList.Count > 0) {
@@ -237,22 +308,22 @@ public class TrainingMenuUI : MonoBehaviour {
     }
     private string GetTextAgentFitness() {
         string txt = "FITNESS!\n\n";
-        if(trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup != null) {
-            for (int i = 0; i < trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
-                txt += trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString();
-                txt += " (" + trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.measure.ToString();
-                txt += " ) rawScore= " + trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList[i].rawScore.ToString() + "\n";
+        if(gameManager.trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup != null) {
+            for (int i = 0; i < gameManager.trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
+                txt += gameManager.trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString();
+                txt += " (" + gameManager.trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.measure.ToString();
+                txt += " ) rawScore= " + gameManager.trainerRef.evaluationManager.exhibitionInstance.fitnessComponentEvaluationGroup.fitCompList[i].rawScore.ToString() + "\n";
             }
         }
-        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+        int focusPop = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
         FitnessManager fit;
         if (focusPop < 1) {
             // ENV
-            fit = trainerRef.teamsConfig.environmentPopulation.fitnessManager;
+            fit = gameManager.trainerRef.teamsConfig.environmentPopulation.fitnessManager;
         }
         else {
             //Agent
-            fit = trainerRef.teamsConfig.playersList[focusPop - 1].fitnessManager;
+            fit = gameManager.trainerRef.teamsConfig.playersList[focusPop - 1].fitnessManager;
         }
         for(int i = 0; i < fit.fitnessComponentDefinitions.Count; i++) {
             txt += fit.fitnessComponentDefinitions[i].type.ToString();
@@ -275,32 +346,32 @@ public class TrainingMenuUI : MonoBehaviour {
     }
     private string GetTextTrainingSettings() {
         string txt = "TRAINING SETTINGS:\n\n";
-        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+        int focusPop = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
         TrainingSettingsManager settings;
         if(focusPop < 1) {
             // ENV
-            settings = trainerRef.teamsConfig.environmentPopulation.trainingSettingsManager;
+            settings = gameManager.trainerRef.teamsConfig.environmentPopulation.trainingSettingsManager;
         }
         else {
             //Agent
-            settings = trainerRef.teamsConfig.playersList[focusPop - 1].trainingSettingsManager;
+            settings = gameManager.trainerRef.teamsConfig.playersList[focusPop - 1].trainingSettingsManager;
         }
         txt += "Mutation Chance: " + (settings.mutationChance * 100f).ToString("F2") + "%\n";
         txt += "Mutation Step Size: " + (settings.mutationStepSize).ToString() + "\n";
-        txt += "Max Evaluation Time Steps: " + trainerRef.evaluationManager.maxTimeStepsDefault.ToString();
+        txt += "Max Evaluation Time Steps: " + gameManager.trainerRef.evaluationManager.maxTimeStepsDefault.ToString();
         return txt;
     }
     private string GetTextLastGenFitness() {
         string txt = "FITNESS! avg: ";
-        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+        int focusPop = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
         FitnessManager fit;
         if (focusPop < 1) {
             // ENV
-            fit = trainerRef.teamsConfig.environmentPopulation.fitnessManager;
+            fit = gameManager.trainerRef.teamsConfig.environmentPopulation.fitnessManager;
         }
         else {
             //Agent
-            fit = trainerRef.teamsConfig.playersList[focusPop - 1].fitnessManager;
+            fit = gameManager.trainerRef.teamsConfig.playersList[focusPop - 1].fitnessManager;
         }        
         if(fit.rankedFitnessList != null && fit.rankedIndicesList != null) {
             float total = 0f;
@@ -335,31 +406,29 @@ public class TrainingMenuUI : MonoBehaviour {
         }
     }
     
-
-    
     public string GetContestantsText() {
-        string text = "Exhibition Match: " + trainerRef.evaluationManager.exhibitionTicketCurrentIndex.ToString() + "\n";
-        if (trainerRef.isTraining) {
-            text += "Environment #" + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].environmentGenome.index.ToString();
-            for(int i = 0; i < trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList.Count; i++) {
-                text += ", Player " + i.ToString() + " #" + trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[i].index.ToString();
+        string text = "Exhibition Match: " + gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex.ToString() + "\n";
+        if (gameManager.trainerRef.isTraining) {
+            text += "Environment #" + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].environmentGenome.index.ToString();
+            for(int i = 0; i < gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList.Count; i++) {
+                text += ", Player " + i.ToString() + " #" + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[i].index.ToString();
             }
-            float completionPercentage = 100f * (float)trainerRef.evaluationManager.exhibitionInstance.currentTimeStep / (float)trainerRef.evaluationManager.exhibitionInstance.maxTimeSteps;
+            float completionPercentage = 100f * (float)gameManager.trainerRef.evaluationManager.exhibitionInstance.currentTimeStep / (float)gameManager.trainerRef.evaluationManager.exhibitionInstance.maxTimeSteps;
             text += "\n[" + completionPercentage.ToString("F2") + "%]";
         }
         return text;
     }
     public string GetTestingProgressText() {
-        string text = "Current Gen: " + mainMenuRef.gameManagerRef.trainerRef.playingCurGen.ToString() + "\n";
-        if(trainerRef.isTraining) {
+        string text = "Current Gen: " + gameManager.trainerRef.playingCurGen.ToString() + "\n";
+        if(gameManager.trainerRef.isTraining) {
             int numComplete = 0;
             int numInProgress = 0;
-            int totalEvals = trainerRef.evaluationManager.evaluationTicketList.Count;
-            for (int i = 0; i < trainerRef.evaluationManager.evaluationTicketList.Count; i++) {
-                if (trainerRef.evaluationManager.evaluationTicketList[i].status == EvaluationTicket.EvaluationStatus.Complete) {
+            int totalEvals = gameManager.trainerRef.evaluationManager.evaluationTicketList.Count;
+            for (int i = 0; i < gameManager.trainerRef.evaluationManager.evaluationTicketList.Count; i++) {
+                if (gameManager.trainerRef.evaluationManager.evaluationTicketList[i].status == EvaluationTicket.EvaluationStatus.Complete) {
                     numComplete++;
                 }
-                else if (trainerRef.evaluationManager.evaluationTicketList[i].status == EvaluationTicket.EvaluationStatus.InProgress) {
+                else if (gameManager.trainerRef.evaluationManager.evaluationTicketList[i].status == EvaluationTicket.EvaluationStatus.InProgress) {
                     numInProgress++;
                 }
             }
@@ -373,7 +442,7 @@ public class TrainingMenuUI : MonoBehaviour {
         
         string savename = inputFieldSaveName.text;
         if(savename != "") {
-            mainMenuRef.gameManagerRef.trainerRef.SaveTraining(savename);
+            gameManager.trainerRef.SaveTraining(savename);
         }
         else {
             Debug.Log("SAVE FAILED! no name");
@@ -387,8 +456,8 @@ public class TrainingMenuUI : MonoBehaviour {
     }
 
     public void ClickButtonPlayPause() {
-        mainMenuRef.gameManagerRef.trainerRef.TogglePlayPause();
-        if(mainMenuRef.gameManagerRef.trainerRef.TrainingPaused) {
+        gameManager.trainerRef.TogglePlayPause();
+        if(gameManager.trainerRef.TrainingPaused) {
             buttonPlayPause.GetComponentInChildren<Text>().text = "||";
         }
         else {
@@ -396,75 +465,71 @@ public class TrainingMenuUI : MonoBehaviour {
         }        
     }
     public void ClickButtonFaster() {
-        mainMenuRef.gameManagerRef.trainerRef.IncreasePlaybackSpeed();
-        playbackSpeed.text = "Playback Speed:\n" + mainMenuRef.gameManagerRef.trainerRef.playbackSpeed.ToString();
+        gameManager.trainerRef.IncreasePlaybackSpeed();
+        playbackSpeed.text = "Playback Speed:\n" + gameManager.trainerRef.playbackSpeed.ToString();
     }
     public void ClickButtonSlower() {
-        mainMenuRef.gameManagerRef.trainerRef.DecreasePlaybackSpeed();
-        playbackSpeed.text = "Playback Speed:\n" + mainMenuRef.gameManagerRef.trainerRef.playbackSpeed.ToString();
+        gameManager.trainerRef.DecreasePlaybackSpeed();
+        playbackSpeed.text = "Playback Speed:\n" + gameManager.trainerRef.playbackSpeed.ToString();
     }
 
     public void ClickButtonCameraMode() {
-        mainMenuRef.gameManagerRef.trainerRef.ClickCameraMode();
+        gameManager.trainerRef.ClickCameraMode();
+        UpdateCameraButtonUI();
     }
     public void ClickButtonManualKeep() {
-        mainMenuRef.gameManagerRef.trainerRef.ClickButtonManualKeep();
+        gameManager.trainerRef.ClickButtonManualKeep();
     }
     public void ClickButtonManualAuto() {
-        mainMenuRef.gameManagerRef.trainerRef.ClickButtonManualAuto();
+        gameManager.trainerRef.ClickButtonManualAuto();
     }
     public void ClickButtonManualKill() {
-        mainMenuRef.gameManagerRef.trainerRef.ClickButtonManualKill();
+        gameManager.trainerRef.ClickButtonManualKill();
     }
     public void ClickButtonManualReplay() {
-        mainMenuRef.gameManagerRef.trainerRef.ClickButtonManualReplay();
+        gameManager.trainerRef.ClickButtonManualReplay();
     }
 
     public void ClickButtonIncreaseTimeSteps() {
-        trainerRef.evaluationManager.maxTimeStepsDefault += 30;
+        gameManager.trainerRef.evaluationManager.maxTimeStepsDefault += 30;
+        UpdateTimeStepsUI();
     }
     public void ClickButtonDecreaseTimeSteps() {
-        trainerRef.evaluationManager.maxTimeStepsDefault -= 30;
-        if(trainerRef.evaluationManager.maxTimeStepsDefault < 30) {
-            trainerRef.evaluationManager.maxTimeStepsDefault = 30;
+        gameManager.trainerRef.evaluationManager.maxTimeStepsDefault -= 30;
+        if(gameManager.trainerRef.evaluationManager.maxTimeStepsDefault < 30) {
+            gameManager.trainerRef.evaluationManager.maxTimeStepsDefault = 30;
         }
+        UpdateTimeStepsUI();
     }
 
-    public void ClickButtonCycleFocusPop() {
-        //Debug.Log("ClickButtonCycleFocusPop");
-        //int numPops = trainerRef.teamsConfig.playersList.Count + 1;
-        //trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex++;
-        //if(focusPopIndex >= numPops) {
-        //    focusPopIndex = 0;
-        //}
-        trainerRef.evaluationManager.ExhibitionCycleFocusPop(trainerRef.teamsConfig);
-        fitnessFunctionUI.SetStatusFromData(trainerRef);
+    public void ClickButtonCycleFocusPop() {        
+        gameManager.trainerRef.evaluationManager.ExhibitionCycleFocusPop(gameManager.trainerRef.teamsConfig);
+        fitnessFunctionUI.SetStatusFromData(gameManager.trainerRef);
+        UpdateFocusPopUI();
     }
 
     public void ClickButtonDebugLeft() {
-        //Debug.Log("ClickButtonDebugLeft");
-        debugLeftOn = !debugLeftOn;
+        debugLeftOn = !debugLeftOn;        
     }
     public void ClickButtonCycleDebugLeft() {
         //Debug.Log("ClickButtonCycleDebugLeft");
-
         int numPages = System.Enum.GetNames(typeof(DebugLeftCurrentPage)).Length;
         int curPage = (int)debugLeftCurrentPage;
         int newPage = curPage + 1;
         if (newPage >= numPages) {
             newPage = 0;
         }
-        debugLeftCurrentPage = (DebugLeftCurrentPage)newPage;        
+        debugLeftCurrentPage = (DebugLeftCurrentPage)newPage;
     }
 
     public void ClickButtonPrevGenome() {
-        trainerRef.evaluationManager.ExhibitionPrevGenome(trainerRef.teamsConfig);
+        gameManager.trainerRef.evaluationManager.ExhibitionPrevGenome(gameManager.trainerRef.teamsConfig);
     }
     public void ClickButtonRestartGenome() {
-        trainerRef.evaluationManager.ResetExhibitionInstance(trainerRef.teamsConfig);
+        gameManager.trainerRef.evaluationManager.ResetExhibitionInstance(gameManager.trainerRef.teamsConfig);
     }
     public void ClickButtonNextGenome() {
-        trainerRef.evaluationManager.ExhibitionNextGenome(trainerRef.teamsConfig);
+        gameManager.trainerRef.evaluationManager.ExhibitionNextGenome(gameManager.trainerRef.teamsConfig);
     }
 
     public void ClickButtonTrainingSettings() {
@@ -475,6 +540,7 @@ public class TrainingMenuUI : MonoBehaviour {
             trainingSettingsOn = true;
         }        
         fitnessFunctionOn = false;
+        UpdateTrainingSettingsPanelUI();
     }
     public void ClickButtonFitnessFunction() {
         if (fitnessFunctionOn) {
@@ -482,24 +548,31 @@ public class TrainingMenuUI : MonoBehaviour {
         }
         else {
             fitnessFunctionOn = true;
-            fitnessFunctionUI.SetStatusFromData(trainerRef);
+            fitnessFunctionUI.SetStatusFromData(gameManager.trainerRef);
         }
         trainingSettingsOn = false;
+
+        UpdateFitnessPanelUI();
     }
 
     public void ClickButtonTournaments() {
-        ShowTournamentSelectScreen();
-        trainerRef.EnterTournamentSelectScreen();
+        tournamentSelectOn = true;
+        UpdateTournamentSelectUI();
+        ClickButtonPlayPause();
+        //ShowTournamentSelectScreen();
+        //gameManager.trainerRef.EnterTournamentSelectScreen();
     }
-    public void ShowTournamentSelectScreen() {
+    /*public void ShowTournamentSelectScreen() {
         Debug.Log("ShowTournamentSelectScreen");
         panelTournamentSelect.SetActive(true);
         panelTournamentSelect.GetComponent<TournamentSelectUI>().Initialize();
+        ClickButtonPlayPause();
     }
     public void HideTournamentSelectScreen() {
         Debug.Log("HideTournamentSelectScreen");
         panelTournamentSelect.SetActive(false);
-    }
+        ClickButtonPlayPause();
+    }*/
 
     public void ClickButtonShowHideUI() {
         if(showUI) {
@@ -513,7 +586,7 @@ public class TrainingMenuUI : MonoBehaviour {
     public void ShowUI() {
         showUI = true;
         panelTrainingShowHide.SetActive(true);
-        SetStatusFromData();
+        //SetStatusFromData();
     }
     public void HideUI() {
         showUI = false;

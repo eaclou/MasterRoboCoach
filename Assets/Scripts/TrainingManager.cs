@@ -5,8 +5,10 @@ using UnityEngine;
 using System.IO;
 
 public class TrainingManager : MonoBehaviour {
-    
-    public TrainingMenuUI trainingMenuRef; 
+
+    public GameManager gameManager;
+    //public TrainingMenuUI trainingMenuRef; 
+
     // Handles all of Training Mode:
     // Setting up evaluations
     // managing challenge & agent instances
@@ -14,7 +16,7 @@ public class TrainingManager : MonoBehaviour {
     public TeamsConfig teamsConfig; // holds all the data    
     public EvaluationManager evaluationManager;  // keeps track of evaluation pairs & instances
     public CameraManager cameraManager;
-    public bool cameraEnabled = false;
+    //public bool cameraEnabled = false;
     //private bool trainingModeActive = false; // are we in the training mode screen?
     public bool isTraining = false; // actively evaluating
     public bool trainingPaused = false;
@@ -59,11 +61,11 @@ public class TrainingManager : MonoBehaviour {
         */
     }
 
-    void Update() {
-        SetCamera();
+    void FixedUpdate() {
+               
     }
 
-    void FixedUpdate() {
+    public void Tick() {
         if (isTraining) { // && debugFrameCounter < 2) {
             //Debug.Log("FixedUpdate isTraining");
             if (evaluationManager.allEvalsComplete) {
@@ -71,11 +73,12 @@ public class TrainingManager : MonoBehaviour {
                 NextGeneration();
             }
             else {
+                gameManager.cameraEnabled = true;
                 evaluationManager.Tick(teamsConfig);
-            }            
+            }
 
             debugFrameCounter++;
-        }        
+        }
     }
 
     // First-time Initialization -- triggered through gameManager & GUI
@@ -112,7 +115,7 @@ public class TrainingManager : MonoBehaviour {
         evaluationManager.InitializeNewTraining(teamsConfig, challengeType); // should I just roll this into the Constructor?
                 
         isTraining = true;
-        cameraEnabled = true;
+        //cameraEnabled = true;
     }
     public void LoadTrainingMode() {
         
@@ -133,7 +136,7 @@ public class TrainingManager : MonoBehaviour {
         evaluationManager.InitializeNewTraining(teamsConfig, challengeType); // should I just roll this into the Constructor?
 
         isTraining = true;
-        cameraEnabled = true;
+        //cameraEnabled = true;
 
 
         /*
@@ -260,23 +263,7 @@ public class TrainingManager : MonoBehaviour {
         Debug.Log(path);
         System.IO.File.WriteAllText(path, json);
     }
-
-    private void SetCamera() {
-        
-        if (cameraEnabled) {
-            //Debug.Log("SetCamera()!");
-            Vector3 agentPosition = Vector3.zero;
-            int focusPlayer = 0;
-            if (evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex != 0) {
-                focusPlayer = evaluationManager.exhibitionTicketList[evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1;
-            }
-            if (evaluationManager.exhibitionInstance.currentAgentsArray != null) {
-                agentPosition = evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootObject.transform.position + evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootCOM;
-            }
-            cameraManager.UpdateCameraState(agentPosition);
-        }
-    }
-
+    
     public void TogglePlayPause() {
         print("togglePlayPause");
         if(trainingPaused) {
@@ -342,7 +329,7 @@ public class TrainingManager : MonoBehaviour {
         cameraManager.CycleCameraMode();
     }
 
-    public void EnterTournamentSelectScreen() {
+    /*public void EnterTournamentSelectScreen() {
         Debug.Log("EnterTournamentSelect()");
 
         // Pause Evaluations 
@@ -357,7 +344,7 @@ public class TrainingManager : MonoBehaviour {
         // Switch UI panel back to trainerUI
         // resume paused evaluations
         TogglePlayPause(); // UGLY!! assumes it was paused during tournament select screen!
-    }
+    }*/
     public void EnterTournament(TournamentInfo tournamentInfo) {
         Debug.Log("TrainingManager.EnterTournament");
         // Clean up current training, evalManager etc. - reset this generation
@@ -365,7 +352,9 @@ public class TrainingManager : MonoBehaviour {
         evaluationManager.ClearCurrentTraining();
         // Bring up Tournament Summary Page: name, type, opponent, etc.
         // Pass everything to TournamentManager?
-        trainingMenuRef.mainMenuRef.EnterTournamentMode(tournamentInfo);        
+
+        gameManager.EnterTournamentMode(tournamentInfo);
+        //trainingMenuRef.mainMenuRef.EnterTournamentMode(tournamentInfo);        
     }
     
 

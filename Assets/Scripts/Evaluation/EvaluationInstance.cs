@@ -90,8 +90,10 @@ public class EvaluationInstance : MonoBehaviour {
                 //emitterParamsDefault.startColor.a = 0.5f;
             }
             emitterParamsDefault.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootCOM) - gameObject.transform.position;
-            particleCurves.Emit(emitterParamsDefault, 1);
-            
+
+            if(particleCurves != null) {
+                particleCurves.Emit(emitterParamsDefault, 1);
+            }
         }       
     }    
 
@@ -128,7 +130,7 @@ public class EvaluationInstance : MonoBehaviour {
         children.ForEach(child => Destroy(child));
     }
 
-    public void SetUpInstance(EvaluationTicket evalTicket, TeamsConfig teamsConfig, ExhibitionParticleCurves exhibitionParticleRef) {
+    public void SetUpInstance(EvaluationTicket evalTicket, TeamsConfig teamsConfig) {
         this.teamsConfig = teamsConfig;
         this.challengeType = teamsConfig.challengeType;
         this.maxTimeSteps = evalTicket.maxTimeSteps;
@@ -166,7 +168,7 @@ public class EvaluationInstance : MonoBehaviour {
             txt += indices[i].ToString();
         }
         //Debug.Log(txt);
-        if (exhibitionParticleRef.particleDictionary != null) {
+        /*if (exhibitionParticleRef.particleDictionary != null) {
             if (exhibitionParticleRef.particleDictionary.TryGetValue(txt, out particleCurves)) {
                 // particleCurves
                 //Debug.Log("FOUND IT! set up " + txt);
@@ -180,7 +182,7 @@ public class EvaluationInstance : MonoBehaviour {
                 //Debug.Log("Eval Instance Setup FAIL " + txt);
                 emit = false;
             }
-        }
+        }*/
         
 
         currentEvalTicket = evalTicket;
@@ -224,17 +226,7 @@ public class EvaluationInstance : MonoBehaviour {
 
         // Create Agents:        
         for(int i = 0; i < currentAgentsArray.Length; i++) {
-            /*AgentGenome genome;
-            if (currentEvalTicket.focusPopIndex == i + 1) {  // if this Agent is the focusPop, use main agentArray index
-                //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
-                genome = teamsConfig.playersList[i].agentGenomeList[currentEvalTicket.genomeIndices[i + 1]];
-            }
-            else {  // if it is not the focusPop, use representative list                
-                //agentScript.ConstructAgentFromGenome(teamsConfig.playersList[i].representativeGenomeList[currentEvalTicket.genomeIndices[i + 1]]);
-                genome = teamsConfig.playersList[i].representativeGenomeList[currentEvalTicket.genomeIndices[i + 1]];
-            }
-            //GameObject agentGO = new GameObject("agent" + currentEvalTicket.genomeIndices[i+1].ToString());
-            */
+            
             // Create Agent Base Body:
             GameObject agentGO = Instantiate(Resources.Load(AgentGenomeTemplate.GetAgentBodyTypeURL(currentEvalTicket.agentGenomesList[i].bodyType))) as GameObject;
             agentGO.transform.parent = gameObject.transform;
@@ -313,15 +305,7 @@ public class EvaluationInstance : MonoBehaviour {
         }        
     }
     private void CreateEnvironment() {
-        /*EnvironmentGenome genome;
-        // focus determines if genome is grabbed from representative or primary genome pool list:
-        if(currentEvalTicket.focusPopIndex == 0) {
-            genome = teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]];
-        }
-        else {
-            genome = teamsConfig.environmentPopulation.representativeGenomeList[currentEvalTicket.genomeIndices[0]];
-        }
-        */
+        
         GameObject environmentGO = new GameObject("environment");
         Environment environmentScript = environmentGO.AddComponent<Environment>();
         currentEnvironment = environmentScript;
@@ -340,47 +324,6 @@ public class EvaluationInstance : MonoBehaviour {
             currentEnvironment.environmentGameplay.gameObject.transform.parent = currentEnvironment.gameObject.transform;
             currentEnvironment.environmentGameplay.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
         }
-
-        /*if (currentEvalTicket.focusPopIndex == 0) { // if env is focus
-                                                   // Check if this has already been built.
-                                                   // If it has NOT:
-            if (teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab == null) {
-                GameObject environmentGO = new GameObject("environment" + currentEvalTicket.genomeIndices[0].ToString());
-                Environment environmentScript = environmentGO.AddComponent<Environment>();
-                currentEnvironment = environmentScript;
-                environmentGO.transform.parent = gameObject.transform;
-                environmentGO.transform.localPosition = new Vector3(0f, 0f, 0f);
-                // This might only work if environment is completely static!!!! otherwise it could change inside original evalInstance and then that
-                // changed environment would be instantiated as fresh Environments for subsequent Evals!            
-                environmentScript.CreateCollisionAndGameplayContent(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]]);
-            }
-            else {
-                // Already built
-                Environment environmentScript = Instantiate<Environment>(teamsConfig.environmentPopulation.environmentGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab) as Environment;
-                currentEnvironment = environmentScript;
-                currentEnvironment.gameObject.transform.parent = gameObject.transform;
-                currentEnvironment.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
-            }
-        }
-        else {
-            if (teamsConfig.environmentPopulation.representativeGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab == null) {
-                GameObject environmentGO = new GameObject("environment" + currentEvalTicket.genomeIndices[0].ToString());
-                Environment environmentScript = environmentGO.AddComponent<Environment>();
-                currentEnvironment = environmentScript;
-                environmentGO.transform.parent = gameObject.transform;
-                environmentGO.transform.localPosition = new Vector3(0f, 0f, 0f);
-                // This might only work if environment is completely static!!!! otherwise it could change inside original evalInstance and then that
-                // changed environment would be instantiated as fresh Environments for subsequent Evals!            
-                environmentScript.CreateCollisionAndGameplayContent(teamsConfig.environmentPopulation.representativeGenomeList[currentEvalTicket.genomeIndices[0]]);
-            }
-            else {
-                // Already built
-                Environment environmentScript = Instantiate<Environment>(teamsConfig.environmentPopulation.representativeGenomeList[currentEvalTicket.genomeIndices[0]].environmentPrefab) as Environment;
-                currentEnvironment = environmentScript;
-                currentEnvironment.gameObject.transform.parent = gameObject.transform;
-                currentEnvironment.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
-            }
-        }*/
     }
 
     public void HookUpModules() {
@@ -540,7 +483,18 @@ public class EvaluationInstance : MonoBehaviour {
                         }
                     }
                 }
-            }                        
+            }
+            if (challengeType == Challenge.Type.Test) {
+                agentGameScoresArray[0][0] = currentTimeStep;
+
+                Vector2 targetPos = new Vector2(currentEnvironment.environmentGameplay.targetColumn.transform.position.x, currentEnvironment.environmentGameplay.targetColumn.transform.position.z);
+                Vector2 agentPos = new Vector2(currentAgentsArray[0].rootObject.transform.position.x + currentAgentsArray[0].rootCOM.x, currentAgentsArray[0].rootObject.transform.position.z + currentAgentsArray[0].rootCOM.z);
+                float distanceToTarget = (targetPos - agentPos).magnitude;
+                if(distanceToTarget < 2f) {
+                    // In target!!!
+                    gameWonOrLost = true;
+                }
+            }
         }
     }
     public void AverageFitnessComponentsByTimeSteps() {

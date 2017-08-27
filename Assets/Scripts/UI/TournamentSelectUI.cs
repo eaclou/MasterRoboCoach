@@ -37,11 +37,10 @@ public class TournamentSelectUI : MonoBehaviour {
 
     public void ClickButtonBack() {
         Debug.Log("ClickButtonBack");
-        trainingMenuRef.trainerRef.ExitTournamentSelectScreen();
+        //trainingMenuRef.gameManager.trainerRef.ExitTournamentSelectScreen();
         trainingMenuRef.ShowUI();
-
-
-        trainingMenuRef.HideTournamentSelectScreen();
+        trainingMenuRef.tournamentSelectOn = false;
+        trainingMenuRef.ClickButtonPlayPause();
     }
 
     public void MouseOverFirstTournament() {
@@ -63,9 +62,10 @@ public class TournamentSelectUI : MonoBehaviour {
     public void ClickEnterTournament() {
         string competitorName = inputFieldCompetitorName.text;
         Debug.Log("ClickEnterTournament() name:" + competitorName);
-        TournamentInfo firstTourneyInfo = new TournamentInfo();
+        TournamentInfo firstTourneyInfo = new TournamentInfo(trainingMenuRef.gameManager.trainerRef.teamsConfig);
         // fill in stats
-        trainingMenuRef.trainerRef.EnterTournament(firstTourneyInfo);
+        trainingMenuRef.gameManager.cameraEnabled = false;
+        trainingMenuRef.gameManager.trainerRef.EnterTournament(firstTourneyInfo);
     }
     public void ChangeInputFieldCompetitorName() {
         bool validName = false;
