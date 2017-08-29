@@ -7,7 +7,7 @@ public class TournamentMatchup {
 
     public int id;
     public EvaluationTicket evalTicket;
-    public float[] contestantScoresList;
+    public float[] contestantScoresArray;
 
     public int environmentID;
     public int[] competitorIDs; 
@@ -16,13 +16,13 @@ public class TournamentMatchup {
         //contestantScoresList = new List<float>();
         this.id = id;
         this.evalTicket = evalTicket;
-        contestantScoresList = new float[evalTicket.agentGenomesList.Count];
+        //contestantScoresArray = new float[evalTicket.agentGenomesList.Count]; // Incorrect!
 
         this.environmentID = environmentID;
         this.competitorIDs = competitorIDs;
     }
 
-    public void PrepareMatchup(List<EnvironmentGenome> environmentGenomeList, List<AgentGenome> competitorGenomeList, AgentGenome playerGenome) {
+    public void PrepareMatchup(List<EnvironmentGenome> environmentGenomeList, List<AgentGenome> competitorGenomeList, AgentGenome playerGenome, int numEntrants) {
         
         //EnvironmentGenome loadedGenome1 = JsonUtility.FromJson<EnvironmentGenome>(dataAsJson);
         List<AgentGenome> agentGenomesList = new List<AgentGenome>();
@@ -38,6 +38,9 @@ public class TournamentMatchup {
         
         evalTicket = new EvaluationTicket(environmentGenomeList[environmentID], agentGenomesList, 1, 1000);
 
-        contestantScoresList = new float[evalTicket.agentGenomesList.Count];
+        
+        contestantScoresArray = new float[1];  // ASSUMES ! PLAYER AT A TIME!!!!
+
+        Debug.Log("contestantScoresArray.Length: " + contestantScoresArray.Length.ToString());
     }
 }

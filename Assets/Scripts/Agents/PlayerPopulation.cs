@@ -42,12 +42,12 @@ public class PlayerPopulation {
         for (int j = 0; j < numGenomes; j++) {
             AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
             agentGenome.CopyGenomeFromTemplate(template.templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
-            agentGenome.InitializeRandomBrainGenome(0.1f);
+            agentGenome.InitializeRandomBrainGenome(0.0f);
             agentGenomeList.Add(agentGenome);
 
             AgentGenome baselineGenome = new AgentGenome(j);  // empty constructor
             baselineGenome.CopyGenomeFromTemplate(template.templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
-            baselineGenome.InitializeRandomBrainGenome(0.1f);
+            baselineGenome.InitializeRandomBrainGenome(0.0f);
             baselineGenomePool.Add(baselineGenome);
         }
         AppendBaselineGenomes();

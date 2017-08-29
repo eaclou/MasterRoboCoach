@@ -22,6 +22,8 @@ public class TournamentUI : MonoBehaviour {
     public Text textMatchInfo;
     public Text textTimer;
 
+    public Text textResultsScores;
+
 	// Use this for initialization
 	void Start () {
 		
@@ -47,6 +49,7 @@ public class TournamentUI : MonoBehaviour {
             if (gameManager.tournamentManager.tournamentFinished) {
                 panelTournamentResults.SetActive(true);
                 panelMidTournamentStatus.SetActive(false);
+                UpdateResultsUI();
             }
             else {
                 panelTournamentResults.SetActive(false);
@@ -73,6 +76,7 @@ public class TournamentUI : MonoBehaviour {
             if (gameManager.tournamentManager.tournamentFinished) {
                 panelTournamentResults.SetActive(true);
                 panelMidTournamentStatus.SetActive(false);
+                UpdateResultsUI();
             }
             else {
                 panelTournamentResults.SetActive(false);
@@ -114,7 +118,7 @@ public class TournamentUI : MonoBehaviour {
 
                 txt += "Match " + (j + 1).ToString() + ", " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].evalTicket.status.ToString();
                 if(gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].evalTicket.status == EvaluationTicket.EvaluationStatus.Complete) {
-                    txt += "   Score: " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresList[0].ToString();
+                    txt += "   Score: " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresArray[0].ToString();
                 }
                 txt += "\n";
                 //if (gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].evalTicket.status != EvaluationTicket.EvaluationStatus.Complete) {
@@ -123,6 +127,84 @@ public class TournamentUI : MonoBehaviour {
             }
         }
         textMatchList.text = txt;
+    }
+
+    private void UpdateResultsUI() {
+        string[] contestantColors = new string[gameManager.tournamentManager.currentTournamentInfo.numOpponents + 1];
+        contestantColors[0] = "<color=lightblue>";
+        if(contestantColors.Length > 1) {
+            contestantColors[1] = "<color=orange>";
+        }
+
+        string txtWinner = "";
+        string txtResults = "";
+        int[] competitorRoundWins = new int[gameManager.tournamentManager.currentTournamentInfo.numOpponents + 1];
+        // Find winner!
+        for (int i = 0; i < gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList.Count; i++) {
+            float[] competitorScoreTotals = new float[gameManager.tournamentManager.currentTournamentInfo.numOpponents + 1];
+            int winningIndex = 0;
+            float runningBestScore = float.PositiveInfinity;  // lower is better in this case!!!! WON'T GENERALIZE!!!!!
+            string txtMatchups = "";
+            for (int j = 0; j < gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList.Count; j++) {
+
+                int index = gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].competitorIDs[0] + 1;  // [-1 for player --> 0], [0 --> 1], etc
+
+                float score = gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresArray[0]; // ASSUMES ! PLAYER AT A TIME!!!
+                competitorScoreTotals[index] += score;
+                //Debug.Log("index: " + index.ToString() + ", i: " + i.ToString() + ", j: " + j.ToString() + ", listLength: " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresArray.Length.ToString() + ", competitorScoreTotals[index]: " + competitorScoreTotals[index].ToString());
+                if (score < runningBestScore) {
+                    winningIndex = index;
+                    runningBestScore = score;
+                }
+                txtMatchups += contestantColors[index];
+                txtMatchups += "Match " + (j + 1).ToString() + ", Contestant " + index.ToString() + ", Time: " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresArray[0].ToString() + "</color>\n";
+            }
+            competitorRoundWins[winningIndex]++;
+            //Debug.Log("Round Winner: " + winningIndex.ToString() + ", Score: " + runningBestScore.ToString());
+            txtResults += contestantColors[winningIndex];
+            txtResults += "\n<size=18><b>ROUND " + (i + 1).ToString() + " Winner: Contestant " + winningIndex.ToString() + "</b></size></color>\n";
+            txtResults += txtMatchups;
+        }
+
+        int winnerIndex = 0;
+        int runningMostRoundWins = 0;
+        for (int i = 0; i < competitorRoundWins.Length; i++) {
+            //Debug.Log("Contestant #" + i.ToString() + " Round Wins: " + competitorRoundWins[i].ToString());
+            if (competitorRoundWins[i] > runningMostRoundWins) {
+                winnerIndex = i;
+                runningMostRoundWins = competitorRoundWins[i];
+            }
+        }
+        txtWinner += contestantColors[winnerIndex];
+        txtWinner += "Winner: Contestant " + winnerIndex.ToString() + "!, Rounds Won: " + runningMostRoundWins.ToString() + " / " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList.Count.ToString() + "\n\n";
+        if(winnerIndex == 0) {
+            txtWinner += "<size=24><b>YOU WON!!!</b></size>\n" + "You Received $" + gameManager.tournamentManager.currentTournamentInfo.reward.ToString() + " Reward";
+            
+        }
+        else {
+            txtWinner += "you lost...";
+        }
+        textResultsScores.text = txtResults + "\n\n" + txtWinner + "</color>";
+        //Debug.Log("Tournament Winner: " + winnerIndex.ToString() + ", Rounds Won: " + runningMostRoundWins.ToString() + " / " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList.Count.ToString());
+
+
+        /*string txt = "";
+        for (int i = 0; i < gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList.Count; i++) {
+            txt += "Round " + (i + 1).ToString() + "\n";
+            for (int j = 0; j < gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList.Count; j++) {
+
+                txt += "Match " + (j + 1).ToString() + ", " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].evalTicket.status.ToString();
+                if (gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].evalTicket.status == EvaluationTicket.EvaluationStatus.Complete) {
+                    txt += "   Score: " + gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresArray[0].ToString();
+                }
+                txt += "\n";
+                //if (gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j].evalTicket.status != EvaluationTicket.EvaluationStatus.Complete) {
+                //   return gameManager.tournamentManager.currentTournamentInfo.tournamentRoundList[i].matchupList[j];
+                //}
+            }
+        }*/
+
+
     }
 
     private void UpdatePlayPauseButtonUI() {

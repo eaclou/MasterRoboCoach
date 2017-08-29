@@ -41,7 +41,7 @@ public class TournamentInfo {
     public int reward;
     public float cooldownTime;
 
-    public int numCompetitors;
+    public int numOpponents;
 
     public Challenge.Type challengeType;
 
@@ -82,7 +82,7 @@ public class TournamentInfo {
         for(int i = 0; i < tournamentRoundList.Count; i++) {
             for(int j = 0; j < tournamentRoundList[i].matchupList.Count; j++) {
                 // Creates and fills in EvaluationTicket for this matchup with actual Genomes (before it was just coded with IDs)
-                tournamentRoundList[i].matchupList[j].PrepareMatchup(environmentGenomeList, competitorGenomeList, playerGenome);
+                tournamentRoundList[i].matchupList[j].PrepareMatchup(environmentGenomeList, competitorGenomeList, playerGenome, (numOpponents + 1));
             }
         }
     }
@@ -93,7 +93,7 @@ public class TournamentInfo {
         // Temp hardcoded!!!!!
         competitionType = CompetitionType.Independent;
         competitionFormat = CompetitionFormat.HighScore;
-        numCompetitors = 1;
+        numOpponents = 1;
 
         tournamentRoundList = new List<TournamentRound>();
 

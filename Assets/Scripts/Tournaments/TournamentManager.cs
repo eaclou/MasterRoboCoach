@@ -22,6 +22,9 @@ public class TournamentManager : MonoBehaviour {
     public bool inbetweenMatches = true;
     public bool tournamentFinished = false;
 
+    public bool resultsProcessed = false;
+    public bool playerWon = false;
+
     //EvaluationTicket singleTicket;
 
     public EvaluationInstance tournamentInstance;
@@ -36,12 +39,49 @@ public class TournamentManager : MonoBehaviour {
     }
     
     public void AllMatchesComplete() {
-        
-        //tournamentUI.
+
+        int[] competitorRoundWins = new int[currentTournamentInfo.numOpponents + 1];
+        // Find winner!
+        for(int i = 0; i < currentTournamentInfo.tournamentRoundList.Count; i++) {
+            float[] competitorScoreTotals = new float[currentTournamentInfo.numOpponents + 1];
+            int winningIndex = 0;
+            float runningBestScore = float.PositiveInfinity;  // lower is better in this case!!!! WON'T GENERALIZE!!!!!
+            for (int j = 0; j < currentTournamentInfo.tournamentRoundList[i].matchupList.Count; j++) {
+
+                int index = currentTournamentInfo.tournamentRoundList[i].matchupList[j].competitorIDs[0] + 1;  // [-1 for player --> 0], [0 --> 1], etc
+                
+                float score = currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresArray[0]; // ASSUMES ! PLAYER AT A TIME!!!
+                competitorScoreTotals[index] += score;
+                //Debug.Log("index: " + index.ToString() + ", i: " + i.ToString() + ", j: " + j.ToString() + ", listLength: " + currentTournamentInfo.tournamentRoundList[i].matchupList[j].contestantScoresArray.Length.ToString() + ", competitorScoreTotals[index]: " + competitorScoreTotals[index].ToString());
+                if (score < runningBestScore) {
+                    winningIndex = index;
+                    runningBestScore = score;
+                }
+            }
+            competitorRoundWins[winningIndex]++;
+            //Debug.Log("Round Winner: " + winningIndex.ToString() + ", Score: " + runningBestScore.ToString());
+        }
+
+        int winnerIndex = 0;
+        int runningMostRoundWins = 0;
+        for(int i = 0; i < competitorRoundWins.Length; i++) {
+            //Debug.Log("Contestant #" + i.ToString() + " Round Wins: " + competitorRoundWins[i].ToString());
+            if(competitorRoundWins[i] > runningMostRoundWins) {
+                winnerIndex = i;
+                runningMostRoundWins = competitorRoundWins[i];
+            }
+        }
+        //Debug.Log("Tournament Winner: " + winnerIndex.ToString() + ", Rounds Won: " + runningMostRoundWins.ToString() + " / " + currentTournamentInfo.tournamentRoundList.Count.ToString());
+
+        if(winnerIndex == 0) {
+            playerWon = true;
+        }
     }
 
     public void Exit() {
-        gameManager.prestige += currentTournamentInfo.reward;
+        if(playerWon) {
+            gameManager.prestige += currentTournamentInfo.reward;
+        }
 
         tournamentInstance.gameObject.SetActive(false);
         isPlaying = false;
@@ -88,7 +128,11 @@ public class TournamentManager : MonoBehaviour {
             if(CheckAllMatchesFinished()) {
                 tournamentFinished = true;
                 inbetweenMatches = true;
-                AllMatchesComplete();
+                if(!resultsProcessed) {                    
+                    AllMatchesComplete();
+                    resultsProcessed = true;
+                }
+                
                 //Debug.Log("Tournament Finished!");
                 // END
             }
@@ -125,8 +169,8 @@ public class TournamentManager : MonoBehaviour {
                         // do stuff
                         // Save Scores
                         for(int i = 0; i < tournamentInstance.agentGameScoresArray.Length; i++) {
-                            currentMatchup.contestantScoresList[i] = tournamentInstance.agentGameScoresArray[i][0];
-                            Debug.Log("matchup " + currentMatchup.id + ", PendingComplete, score: " + currentMatchup.contestantScoresList[i].ToString());
+                            currentMatchup.contestantScoresArray[0] = tournamentInstance.agentGameScoresArray[0][0];  // @$#!@$# ASSUMES 1 Player at a time!! will break for Combat MiniGame!!!
+                            Debug.Log("matchup " + currentMatchup.id + ", PendingComplete, score: " + currentMatchup.contestantScoresArray[0].ToString()); // @$#!@$# ASSUMES 1 Player at a time!! will break for Combat MiniGame!!!
                         }
                         //tournamentInstance.agentGameScoresArray[]
                         inbetweenMatches = true;
@@ -165,12 +209,12 @@ public class TournamentManager : MonoBehaviour {
     }
 
     public void Pause() {
-        print("Pause");
+        //print("Pause");
         isPlaying = false;
         Time.timeScale = 0f;
     }
     public void Play() {
-        print("Pause");
+        //print("Pause");
         isPlaying = true;
         Time.timeScale = 1f;
     }
@@ -182,7 +226,9 @@ public class TournamentManager : MonoBehaviour {
         // Load Competitors,
         // Create Match Schedule
         // Process Tournament Info:
-        tournamentInfo.PrepareTournament(teamsConfig.playersList[0].agentGenomeList[0]);        
+        tournamentInfo.PrepareTournament(teamsConfig.playersList[0].agentGenomeList[0]);
+
+        gameManager.prestige -= tournamentInfo.entranceFee;
 
         // Set up Exhibition Instance:
         if(tournamentInstance == null) {

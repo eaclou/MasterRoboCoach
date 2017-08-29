@@ -101,7 +101,7 @@ public class TournamentSelectUI : MonoBehaviour {
 
     public void MouseOverTournamentButton(int index) {
         textTournamentDescription.text = trainingMenuRef.gameManager.availableTournamentsList[index].tournamentName + "!\n\n" +
-            "Compete in * versus " + trainingMenuRef.gameManager.availableTournamentsList[index].numCompetitors.ToString() + " competitors!\n" +
+            "Compete in * versus " + trainingMenuRef.gameManager.availableTournamentsList[index].numOpponents.ToString() + " competitors!\n" +
             "Entrance Fee: " + trainingMenuRef.gameManager.availableTournamentsList[index].entranceFee.ToString() + " prestige\n" +
             "Reward: " + trainingMenuRef.gameManager.availableTournamentsList[index].reward.ToString() + " prestige";        
     }

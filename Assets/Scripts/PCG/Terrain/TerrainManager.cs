@@ -16,7 +16,7 @@ public class TerrainManager : MonoBehaviour {
     // Use this for initialization
     void Start () {
 
-        Debug.Log("Noise! " + NoisePrime.Simplex2D(Vector3.one, 1f).value.ToString());
+        //Debug.Log("Noise! " + NoisePrime.Simplex2D(Vector3.one, 1f).value.ToString());
 
         //Debug.Log("TerrainManager!");
         //maxLOD = 4;
