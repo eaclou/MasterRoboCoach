@@ -44,11 +44,17 @@ public class TournamentInfo {
     public int numOpponents;
 
     public Challenge.Type challengeType;
+    public bool highScoreIsBetter = false;
 
     public List<TournamentRound> tournamentRoundList;
 
     public List<string> environmentsFileList;
     public List<string> competitorsFileList;
+
+    [System.NonSerialized]
+    public int winnerID = -1;
+    [System.NonSerialized]
+    public bool tournamentFinished = false;
 
     public TournamentInfo(TeamsConfig teamsConfig) {
         Debug.Log("TournamentInfo()");
@@ -77,12 +83,16 @@ public class TournamentInfo {
                 competitorGenomeList.Add(genome);
             }
         }
-        
+
         // Fill in Rounds & Matchups!
-        for(int i = 0; i < tournamentRoundList.Count; i++) {
-            for(int j = 0; j < tournamentRoundList[i].matchupList.Count; j++) {
+        this.winnerID = -1;
+        this.tournamentFinished = false;
+        for (int i = 0; i < tournamentRoundList.Count; i++) {
+            tournamentRoundList[i].winnerID = -1;
+            tournamentRoundList[i].roundFinished = false;
+            for (int j = 0; j < tournamentRoundList[i].matchupList.Count; j++) {
                 // Creates and fills in EvaluationTicket for this matchup with actual Genomes (before it was just coded with IDs)
-                tournamentRoundList[i].matchupList[j].PrepareMatchup(environmentGenomeList, competitorGenomeList, playerGenome, (numOpponents + 1));
+                tournamentRoundList[i].matchupList[j].PrepareMatchup(environmentGenomeList, competitorGenomeList, playerGenome, (numOpponents + 1), tournamentRoundList[i].maxTimeSteps);
             }
         }
     }

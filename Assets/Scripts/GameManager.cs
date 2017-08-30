@@ -119,6 +119,9 @@ public class GameManager : MonoBehaviour {
 
         TournamentInfo tournamentInfo3 = (Resources.Load("Templates/Tournaments/Regionals") as TournamentInfoWrapper).tournamentInfo;
         availableTournamentsList.Add(tournamentInfo3);
+
+        TournamentInfo tournamentInfo4 = (Resources.Load("Templates/Tournaments/CombatTournamentA") as TournamentInfoWrapper).tournamentInfo;
+        availableTournamentsList.Add(tournamentInfo4);
     }
 
     private void FirstTimeInitialization() {
@@ -166,7 +169,7 @@ public class GameManager : MonoBehaviour {
                     focusPlayer = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1;
 
                     if (trainerRef.evaluationManager.exhibitionInstance != null) {
-                        if (trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray != null) {
+                        if (trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootObject != null) {
                             agentPosition = trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootObject.transform.position + trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[focusPlayer].rootCOM;
                         }
                     }

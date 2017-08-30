@@ -10,7 +10,15 @@ public class TournamentMatchup {
     public float[] contestantScoresArray;
 
     public int environmentID;
-    public int[] competitorIDs; 
+    public int[] competitorIDs;
+
+    public int targetScore;
+
+    [System.NonSerialized]
+    public int winnerID = -1;
+    [System.NonSerialized]
+    public bool matchupFinished = false;
+
 
     public TournamentMatchup(int id, EvaluationTicket evalTicket, int environmentID, int[] competitorIDs) {
         //contestantScoresList = new List<float>();
@@ -22,8 +30,9 @@ public class TournamentMatchup {
         this.competitorIDs = competitorIDs;
     }
 
-    public void PrepareMatchup(List<EnvironmentGenome> environmentGenomeList, List<AgentGenome> competitorGenomeList, AgentGenome playerGenome, int numEntrants) {
-        
+    public void PrepareMatchup(List<EnvironmentGenome> environmentGenomeList, List<AgentGenome> competitorGenomeList, AgentGenome playerGenome, int numEntrants, int maxTimeSteps) {
+        winnerID = -1;
+        matchupFinished = false;
         //EnvironmentGenome loadedGenome1 = JsonUtility.FromJson<EnvironmentGenome>(dataAsJson);
         List<AgentGenome> agentGenomesList = new List<AgentGenome>();
         for(int i = 0; i < competitorIDs.Length; i++) {
@@ -36,7 +45,7 @@ public class TournamentMatchup {
             }
         }
         
-        evalTicket = new EvaluationTicket(environmentGenomeList[environmentID], agentGenomesList, 1, 1000);
+        evalTicket = new EvaluationTicket(environmentGenomeList[environmentID], agentGenomesList, 1, maxTimeSteps);
 
         
         contestantScoresArray = new float[1];  // ASSUMES ! PLAYER AT A TIME!!!!

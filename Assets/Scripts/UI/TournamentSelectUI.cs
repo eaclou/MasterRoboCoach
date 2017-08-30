@@ -54,23 +54,17 @@ public class TournamentSelectUI : MonoBehaviour {
             GameObject.Destroy(child.gameObject);
         }
         for (int i = 0; i < trainingMenuRef.gameManager.availableTournamentsList.Count; i++) {
-            Debug.Log("availableTournamentsList " + i.ToString());
-            GameObject tournamentButtonGO = (GameObject)Instantiate(goTournamentButtonPrefab);
 
-            TournamentButtonUI tournamentButtonUI = tournamentButtonGO.GetComponent<TournamentButtonUI>();
-            tournamentButtonUI.tournamentIndex = i;
-            tournamentButtonUI.tournamentSelectUI = this;
-            tournamentButtonUI.SetStatusFromData();
-            tournamentButtonGO.transform.SetParent(panelAvailableTournamentsAnchor.transform);
+            if(trainingMenuRef.gameManager.availableTournamentsList[i].challengeType == trainingMenuRef.gameManager.trainerRef.challengeType) {
+                Debug.Log("availableTournamentsList " + i.ToString());
+                GameObject tournamentButtonGO = (GameObject)Instantiate(goTournamentButtonPrefab);
 
-            /*FitnessCompRowUI fitnessComponentRowScript = fitnessComponentListRow.GetComponent<FitnessCompRowUI>();
-
-            fitnessComponentRowScript.fitnessIndex = i; // CHANGE LATER!!!!!!!
-            fitnessComponentRowScript.trainerRef = trainerRef;
-            fitnessComponentRowScript.fitnessFunctionUI = this;
-            fitnessComponentRowScript.SetStatusFromData();
-            fitnessComponentListRow.transform.SetParent(transformFitnessCompTableSpace);
-            */
+                TournamentButtonUI tournamentButtonUI = tournamentButtonGO.GetComponent<TournamentButtonUI>();
+                tournamentButtonUI.tournamentIndex = i;
+                tournamentButtonUI.tournamentSelectUI = this;
+                tournamentButtonUI.SetStatusFromData();
+                tournamentButtonGO.transform.SetParent(panelAvailableTournamentsAnchor.transform);
+            }
         }
     }
 
