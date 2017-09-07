@@ -42,12 +42,17 @@ public class TrainingMenuUI : MonoBehaviour {
     //public Button buttonCycleDebugRight;
     public Button buttonTrainingSettings;
     public Button buttonFitnessFunction;
+    public Button buttonModuleView;
     public GameObject panelTrainingSettings;
     public TrainingSettingsUI trainingSettingsUI;
     public GameObject panelFitnessFunction;
     public FitnessFunctionUI fitnessFunctionUI;
+    public GameObject panelModuleView;
+    public ModuleViewUI moduleViewUI;
+
     public bool fitnessFunctionOn = false;
     public bool trainingSettingsOn = false;
+    public bool moduleViewOn = false;
 
     public Button buttonCycleFocusPop;
     public Button buttonPrevGenome;
@@ -172,9 +177,10 @@ public class TrainingMenuUI : MonoBehaviour {
     private void UpdateFitnessPanelUI() {
         if (fitnessFunctionOn) {
             panelFitnessFunction.SetActive(true);
-            trainingSettingsOn = false;
+            trainingSettingsOn = false; // are these needed?
             panelTrainingSettings.SetActive(false);
-
+            moduleViewOn = false; // are these needed?
+            panelModuleView.SetActive(false);
         }
         else {
             panelFitnessFunction.SetActive(false);
@@ -183,14 +189,31 @@ public class TrainingMenuUI : MonoBehaviour {
     private void UpdateTrainingSettingsPanelUI() {
         if (trainingSettingsOn) {
             panelTrainingSettings.SetActive(true);
-            fitnessFunctionOn = false;
+            fitnessFunctionOn = false;  // are these needed?
             panelFitnessFunction.SetActive(false);
+            moduleViewOn = false; // are these needed?
+            panelModuleView.SetActive(false);
 
             // original bool check should prevent this trying to gather info from Trainer before it is initialized
             trainingSettingsUI.SetStatusFromData(gameManager.trainerRef);
         }
         else {
             panelTrainingSettings.SetActive(false);
+        }
+    }
+    private void UpdateModuleViewPanelUI() {
+        if (moduleViewOn) {
+            panelModuleView.SetActive(true);
+            fitnessFunctionOn = false; // are these needed?
+            panelFitnessFunction.SetActive(false);
+            trainingSettingsOn = false; // are these needed?
+            panelTrainingSettings.SetActive(false);
+
+            // Do I need the below?? v v v 
+            //trainingSettingsUI.SetStatusFromData(gameManager.trainerRef);
+        }
+        else {
+            panelModuleView.SetActive(false);
         }
     }
     private void UpdateFocusPopUI() {
@@ -202,6 +225,7 @@ public class TrainingMenuUI : MonoBehaviour {
         }
         UpdateFitnessPanelUI();
         UpdateTrainingSettingsPanelUI();
+        UpdateModuleViewPanelUI();
     }
     private void UpdateTimeStepsUI() {
         textMaxTimeSteps.text = "MaxTimeSteps:\n" + gameManager.trainerRef.evaluationManager.maxTimeStepsDefault.ToString();
@@ -552,7 +576,9 @@ public class TrainingMenuUI : MonoBehaviour {
             trainingSettingsOn = true;
         }        
         fitnessFunctionOn = false;
+        moduleViewOn = false;
         UpdateTrainingSettingsPanelUI();
+        UpdateFitnessPanelUI();
     }
     public void ClickButtonFitnessFunction() {
         if (fitnessFunctionOn) {
@@ -563,8 +589,22 @@ public class TrainingMenuUI : MonoBehaviour {
             fitnessFunctionUI.SetStatusFromData(gameManager.trainerRef);
         }
         trainingSettingsOn = false;
+        moduleViewOn = false;
+        UpdateFitnessPanelUI();
+    }
+    public void ClickButtonModuleView() {
+        if (moduleViewOn) {
+            moduleViewOn = false;
+        }
+        else {
+            moduleViewOn = true;
+            moduleViewUI.SetStatusFromData(gameManager.trainerRef);
+        }
+        fitnessFunctionOn = false;
+        trainingSettingsOn = false;
 
         UpdateFitnessPanelUI();
+        UpdateModuleViewPanelUI();
     }
 
     public void ClickButtonTournaments() {

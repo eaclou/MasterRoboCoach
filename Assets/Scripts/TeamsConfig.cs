@@ -57,7 +57,7 @@ public class TeamsConfig {
         for (int i = 0; i < playersList.Count; i++) {
             // Might have to revisit how to pass agent templates per population...
             AgentGenomeTemplate templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
-            playersList[i].template = templateAgentGenome;
+            playersList[i].templateGenome = templateAgentGenome.templateGenome;
         }
     }
     
@@ -88,8 +88,8 @@ public class TeamsConfig {
         AgentGenomeTemplate templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = Resources.Load("Templates/Agents/TemplateRoombot") as AgentGenomeTemplate;
-                //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateRoombot.asset", typeof(AgentGenomeTemplate)));
+                templateGenome = Resources.Load("Templates/Agents/TemplateTelevisionWalker") as AgentGenomeTemplate;
+                //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateTelevisionWalker.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
                 //Debug.Log("Loaded DogCar!");

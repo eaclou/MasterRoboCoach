@@ -5,6 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public class EnvironmentPopulation {
 
+    public EnvironmentGenome templateGenome;
     public List<EnvironmentGenome> environmentGenomeList;
     //public TrainingSettings trainingSettings;  // mutation, max eval time, etc.
     //public FitnessSettings fitnessSettings;  // fitness function components and settings
@@ -26,6 +27,7 @@ public class EnvironmentPopulation {
 
     public EnvironmentPopulation(Challenge.Type challengeType, EnvironmentGenome templateGenome, int numGenomes, int numBaseline, int numReps) {
 
+        this.templateGenome = templateGenome;
         popSize = numGenomes;
         this.numBaseline = numBaseline;
 
