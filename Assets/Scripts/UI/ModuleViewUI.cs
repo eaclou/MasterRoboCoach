@@ -29,7 +29,9 @@ public class ModuleViewUI : MonoBehaviour {
 
     // Edit selected module Panel:
     public Text textSelectedModule;
-    public Text textModuleDescription;
+    //public Text textModuleDescription;
+    public Transform transformEditModuleDock;
+    public Button buttonApplyChanges;
     public Button buttonBackToCurrentModules;
 
     // Add New Module Panel:
@@ -49,8 +51,7 @@ public class ModuleViewUI : MonoBehaviour {
 		
 	}
 
-    public void SetStatusFromData(TrainingManager trainerRef) {
-
+    public void SetPendingGenomesFromData(TrainingManager trainerRef) {
         this.trainerRef = trainerRef;
         int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
 
@@ -65,10 +66,23 @@ public class ModuleViewUI : MonoBehaviour {
             pendingBodyGenomeTemplate.CopyBodyGenomeFromTemplate(trainerRef.teamsConfig.playersList[focusPop - 1].bodyGenomeTemplate);
             //currentTemplateAgentGenome.brainGenome.CopyCommunalBrainFromTemplate(trainerRef.teamsConfig.playersList[focusPop - 1].templateGenome.brainGenome); // only copies communal neurons
             //currentFitnessManagerRef = trainerRef.teamsConfig.playersList[focusPop - 1].fitnessManager;
-        }        
+        }
+    }
+
+    public void SetStatusFromData(TrainingManager trainerRef) {
+
+        this.trainerRef = trainerRef;
+        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+        if (focusPop < 1) {
+            // env
+            isEnvironment = true;
+        }
+        else {
+            isEnvironment = false;
+        }
 
         // CURRENT MODULE LIST!
-        if(currentModulesPanelOn) {
+        if (currentModulesPanelOn) {
             panelCurrentModules.gameObject.SetActive(true);
 
             panelEditModule.gameObject.SetActive(false);
@@ -294,26 +308,28 @@ public class ModuleViewUI : MonoBehaviour {
 
     }
     private void UpdateEditModulePanelUI(EnvironmentModuleGenomeType envType, AgentModuleGenomeType agentType, bool isEnv, int moduleListIndex) {
-
+        foreach (Transform child in transformEditModuleDock) {
+            GameObject.Destroy(child.gameObject);
+        }
         if (isEnv) {
-            textModuleDescription.text = envType.ToString() + " " + moduleListIndex.ToString();
+            //textModuleDescription.text = envType.ToString() + " " + moduleListIndex.ToString();
 
             switch (envType) {
                 case EnvironmentModuleGenomeType.Terrain:
                     // do stuff
-                    textModuleDescription.text += "\n\nColor: " + pendingEnvironmentGenomeTemplate.terrainGenome.color.ToString();
+                    //textModuleDescription.text += "\n\nColor: " + pendingEnvironmentGenomeTemplate.terrainGenome.color.ToString();
                     break;
                 case EnvironmentModuleGenomeType.Target:
                     // do stuff
-                    textModuleDescription.text += "\n\nRadius: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.targetRadius.ToString();
-                    textModuleDescription.text += "\nMinX: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.minX.ToString();
-                    textModuleDescription.text += "\nMaxX: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.maxX.ToString();
-                    textModuleDescription.text += "\nMinZ: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.minZ.ToString();
-                    textModuleDescription.text += "\nMaxZ: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.maxZ.ToString();
+                    //textModuleDescription.text += "\n\nRadius: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.targetRadius.ToString();
+                    //textModuleDescription.text += "\nMinX: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.minX.ToString();
+                    //textModuleDescription.text += "\nMaxX: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.maxX.ToString();
+                    //textModuleDescription.text += "\nMinZ: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.minZ.ToString();
+                   // textModuleDescription.text += "\nMaxZ: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.maxZ.ToString();
                     break;
                 case EnvironmentModuleGenomeType.Obstacles:
                     // do stuff
-                    textModuleDescription.text += "\n\nNumObstacles: " + pendingEnvironmentGenomeTemplate.basicObstaclesGenome.obstaclePositions.Length.ToString();
+                    //textModuleDescription.text += "\n\nNumObstacles: " + pendingEnvironmentGenomeTemplate.basicObstaclesGenome.obstaclePositions.Length.ToString();
                     break;
                 default:
                     // do stuff
@@ -322,18 +338,18 @@ public class ModuleViewUI : MonoBehaviour {
             }
         }
         else {
-            textModuleDescription.text = agentType.ToString() + " " + moduleListIndex.ToString();
+            //textModuleDescription.text = agentType.ToString() + " " + moduleListIndex.ToString();
 
             switch (agentType) {
                 case AgentModuleGenomeType.BasicJoint:
                     // do stuff
-                    textModuleDescription.text += "\n\nInno: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].inno.ToString();
-                    textModuleDescription.text += "\nParent ID: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].parentID.ToString();
-                    textModuleDescription.text += "\nMotor Strength: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].motorStrength.ToString();
-                    textModuleDescription.text += "\nAngle Sensitivity: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].angleSensitivity.ToString();
-                    textModuleDescription.text += "\nX Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useX.ToString();
-                    textModuleDescription.text += "\nY Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useY.ToString();
-                    textModuleDescription.text += "\nZ Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useZ.ToString();
+                    //textModuleDescription.text += "\n\nInno: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].inno.ToString();
+                    //textModuleDescription.text += "\nParent ID: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].parentID.ToString();
+                    //textModuleDescription.text += "\nMotor Strength: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].motorStrength.ToString();
+                    //textModuleDescription.text += "\nAngle Sensitivity: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].angleSensitivity.ToString();
+                    //textModuleDescription.text += "\nX Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useX.ToString();
+                    //textModuleDescription.text += "\nY Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useY.ToString();
+                    //textModuleDescription.text += "\nZ Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useZ.ToString();
                     break;
                 case AgentModuleGenomeType.BasicWheel:
                     // do stuff
@@ -350,6 +366,15 @@ public class ModuleViewUI : MonoBehaviour {
                 case AgentModuleGenomeType.Oscillator:
                     // do stuff
                     
+
+                    GameObject editModulePanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditOscillatorUI") as GameObject);
+                    EditOscillatorUI editOscillatorScript = editModulePanelGO.GetComponent<EditOscillatorUI>();
+
+                    editOscillatorScript.genome = pendingBodyGenomeTemplate.oscillatorInputList[moduleListIndex];
+                    //moduleListItemScript.trainerRef = trainerRef;
+                    //moduleListItemScript.moduleViewUI = this;
+                    editOscillatorScript.SetStatusFromData();
+                    editModulePanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Raycast:
                     // do stuff
@@ -566,6 +591,17 @@ public class ModuleViewUI : MonoBehaviour {
         }
         UpdateAddNewPanelUI();
     }
+
+    public void ClickEditApplyChanges() {
+        // For now:
+        int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+
+        //trainerRef.TogglePlayPause();
+        Debug.Log("freq: " + pendingBodyGenomeTemplate.oscillatorInputList[0].freq.ToString());
+        trainerRef.UpdateActorModules(focusPop, pendingEnvironmentGenomeTemplate, pendingBodyGenomeTemplate);
+        ClickBackToCurrentModule();
+    }
+
     public void ClickAddSelectedModuleType() {
         //Debug.Log("ClickAddSelectedModuleType startPosCount: " + pendingEnvironmentGenomeTemplate.agentStartPositionsList.Count.ToString());
         // ACTUALLY ADD THE MODULE!!!!

@@ -29,7 +29,8 @@ public class PlayerPopulation {
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
     public PlayerPopulation(Challenge.Type challengeType, BodyGenome bodyTemplate, int numGenomes, int numBaseline, int numReps) {
-        bodyGenomeTemplate = bodyTemplate;
+        bodyGenomeTemplate = new BodyGenome();
+        bodyGenomeTemplate.CopyBodyGenomeFromTemplate(bodyTemplate);
         
         popSize = numGenomes;
         this.numBaseline = numBaseline;
@@ -62,7 +63,7 @@ public class PlayerPopulation {
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.InitializeForNewGeneration(agentGenomeList.Count);
         
-        trainingSettingsManager = new TrainingSettingsManager(0.005f, 0.5f);
+        trainingSettingsManager = new TrainingSettingsManager(0.005f, 0.5f, 0f, 0f);
     }
     public void InitializeLoadedPopulation() {
         // Assumes template has been set from defaults!

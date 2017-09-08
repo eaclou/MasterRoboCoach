@@ -407,6 +407,8 @@ public class TrainingMenuUI : MonoBehaviour {
         }
         txt += "Mutation Chance: " + (settings.mutationChance * 100f).ToString("F2") + "%\n";
         txt += "Mutation Step Size: " + (settings.mutationStepSize).ToString() + "\n";
+        txt += "New Link Chance: " + (settings.newLinkChance).ToString() + "\n";
+        txt += "New Hidden Node Chance: " + (settings.newHiddenNodeChance).ToString() + "\n";
         txt += "Max Evaluation Time Steps: " + gameManager.trainerRef.evaluationManager.maxTimeStepsDefault.ToString();
         return txt;
     }

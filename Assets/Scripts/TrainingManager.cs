@@ -116,6 +116,8 @@ public class TrainingManager : MonoBehaviour {
                 
         isTraining = true;
         //cameraEnabled = true;
+
+        gameManager.uiManager.panelTraining.moduleViewUI.SetPendingGenomesFromData(this);
     }
     public void LoadTrainingMode() {
         
@@ -399,6 +401,8 @@ public class TrainingManager : MonoBehaviour {
 
         // Reset default evals + exhibition
         evaluationManager.ResetForNewGeneration(teamsConfig);
+
+        gameManager.uiManager.panelTraining.moduleViewUI.SetPendingGenomesFromData(this);
     }
     private void NextGeneration() {
         Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
@@ -441,7 +445,8 @@ public class TrainingManager : MonoBehaviour {
         evaluationManager.ResetForNewGeneration(teamsConfig);
 
         playingCurGen++;
-        
+
+        gameManager.uiManager.panelTraining.moduleViewUI.SetPendingGenomesFromData(this);
     }
     private void Crossover() {
         // Query Fitness Managers to create:
@@ -493,8 +498,8 @@ public class TrainingManager : MonoBehaviour {
 
         FitnessManager fitnessManager = teamsConfig.playersList[playerIndex].fitnessManager;
         TrainingSettingsManager trainingSettingsManager = teamsConfig.playersList[playerIndex].trainingSettingsManager;
-        float mutationChance = trainingSettingsManager.mutationChance;
-        float mutationStepSize = trainingSettingsManager.mutationStepSize;
+        //float mutationChance = trainingSettingsManager.mutationChance;
+        //float mutationStepSize = trainingSettingsManager.mutationStepSize;
 
         // Keep top-half peformers + mutations:
         for (int x = 0; x < teamsConfig.playersList[playerIndex].agentGenomeList.Count; x++) {
@@ -510,7 +515,7 @@ public class TrainingManager : MonoBehaviour {
 
                 BrainGenome parentGenome = teamsConfig.playersList[playerIndex].agentGenomeList[parentIndex].brainGenome;
 
-                newBrainGenome.SetToMutatedCopyOfParentGenome(parentGenome, mutationChance, mutationStepSize);
+                newBrainGenome.SetToMutatedCopyOfParentGenome(parentGenome, trainingSettingsManager);
                 newGenBrainGenomeList.Add(newBrainGenome);
             }
         }        

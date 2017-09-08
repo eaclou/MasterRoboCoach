@@ -87,7 +87,15 @@ public class Agent : MonoBehaviour {
         }
         for (int i = 0; i < weaponTazerList.Count; i++) {
             weaponTazerList[i].MapNeuron(nid, neuron);            
-        }    
+        }
+        // Hidden nodes!
+        if(nid.moduleID == -1) {
+            //Debug.Log("Map Hidden Neuron #" + nid.neuronID.ToString());
+
+            neuron.currentValue = new float[1];
+            neuron.neuronType = NeuronGenome.NeuronType.Hid;
+            neuron.previousValue = 0f;
+        }
     }
 
     public void TickBrain() {

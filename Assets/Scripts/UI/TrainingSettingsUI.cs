@@ -16,6 +16,14 @@ public class TrainingSettingsUI : MonoBehaviour {
     public Button buttonMutationStepSizeIncrease;
     public Text textMutationStepSizeValue;
 
+    public Button buttonNewLinkChanceDecrease;
+    public Button buttonNewLinkChanceIncrease;
+    public Text textNewLinkChanceValue;
+
+    public Button buttonNewNeuronChanceDecrease;
+    public Button buttonNewNeuronChanceIncrease;
+    public Text textNewNeuronChanceValue;
+
     public Button buttonRepresentativesPerfDecrease;
     public Button buttonRepresentativesPerfIncrease;
     public Text textRepresentativesPerfValue;
@@ -70,6 +78,8 @@ public class TrainingSettingsUI : MonoBehaviour {
         textRepresentativesBaseValue.text = numBaseReps.ToString();
         textMutationChanceValue.text = (100f * currentTrainingSettingsRef.mutationChance).ToString("F3") + "%";
         textMutationStepSizeValue.text = (100f * currentTrainingSettingsRef.mutationStepSize).ToString("F1") + "%";
+        textNewLinkChanceValue.text = (100f * currentTrainingSettingsRef.newLinkChance).ToString("F2") + "%";
+        textNewNeuronChanceValue.text = (100f * currentTrainingSettingsRef.newHiddenNodeChance).ToString("F2") + "%";
 
         if (isEvolving) {
             buttonEvolving.GetComponent<Image>().color = Color.white;
@@ -105,6 +115,30 @@ public class TrainingSettingsUI : MonoBehaviour {
         currentTrainingSettingsRef.mutationStepSize *= 1.25f;
         if (currentTrainingSettingsRef.mutationStepSize > 1f) {
             currentTrainingSettingsRef.mutationStepSize = 1f;
+        }
+    }
+    public void ClickButtonNewLinkChanceDecrease() {
+        currentTrainingSettingsRef.newLinkChance *= 0.8f;
+        if (currentTrainingSettingsRef.newLinkChance < 0.0001f) {
+            currentTrainingSettingsRef.newLinkChance = 0.0001f;
+        }
+    }
+    public void ClickButtonNewLinkChanceIncrease() {
+        currentTrainingSettingsRef.newLinkChance *= 1.25f;
+        if (currentTrainingSettingsRef.newLinkChance > 1f) {
+            currentTrainingSettingsRef.newLinkChance = 1f;
+        }
+    }
+    public void ClickButtonNewNeuronChanceDecrease() {
+        currentTrainingSettingsRef.newHiddenNodeChance *= 0.8f;
+        if (currentTrainingSettingsRef.newHiddenNodeChance < 0.0001f) {
+            currentTrainingSettingsRef.newHiddenNodeChance = 0.0001f;
+        }
+    }
+    public void ClickButtonNewNeuronChanceIncrease() {
+        currentTrainingSettingsRef.newHiddenNodeChance *= 1.25f;
+        if (currentTrainingSettingsRef.newHiddenNodeChance > 1f) {
+            currentTrainingSettingsRef.newHiddenNodeChance = 1f;
         }
     }
 
