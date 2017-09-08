@@ -47,33 +47,47 @@ public class EnvironmentGenome {
         //obstaclePositions = new Vector2[6];
         //obstacleScales = new float[6];        
     }
-
+    public void InitializeRandomGenomeFromTemplate(EnvironmentGenome templateGenome) {
+        CopyGenomeFromTemplate(templateGenome);
+        if (useTerrain) {
+            terrainGenome.InitializeRandomGenome();
+        }
+        if (useBasicObstacles) {
+            basicObstaclesGenome.InitializeRandomGenome();
+        }        
+        if (useTargetColumn) {
+            targetColumnGenome.InitializeRandomGenome();
+        }
+    }
     public void CopyGenomeFromTemplate(EnvironmentGenome templateGenome) {
+        //Debug.Log("CopyGenomeFromTemplate BEFORE startPosCount: " + templateGenome.agentStartPositionsList.Count.ToString());
         // This method creates a clone of the provided ScriptableObject Genome - should have no shared references!!!
         this.challengeType = templateGenome.challengeType;
         arenaBounds = new Vector3(templateGenome.arenaBounds.x, templateGenome.arenaBounds.y, templateGenome.arenaBounds.z);
 
         agentStartPositionsList = new List<StartPositionGenome>(); 
         for(int i = 0; i < templateGenome.agentStartPositionsList.Count; i++) {
+            //Debug.Log("CopyGenomeFromTemplate DURING i: " + i.ToString());
             StartPositionGenome genomeCopy = new StartPositionGenome(templateGenome.agentStartPositionsList[i]);
             agentStartPositionsList.Add(genomeCopy);
         }
+        //Debug.Log("CopyGenomeFromTemplate AFTER startPosCount: " + agentStartPositionsList.Count.ToString());
 
         useTerrain = templateGenome.useTerrain;
         if (useTerrain) {
             terrainGenome = new TerrainGenome(templateGenome.terrainGenome);
-            terrainGenome.InitializeRandomGenome();
+            //terrainGenome.InitializeRandomGenome();
         }
         useBasicObstacles = templateGenome.useBasicObstacles;
         if (useBasicObstacles) {
             basicObstaclesGenome = new BasicObstaclesGenome(templateGenome.basicObstaclesGenome);
-            basicObstaclesGenome.InitializeRandomGenome();
+            //basicObstaclesGenome.InitializeRandomGenome();
         }
         useTargetColumn = templateGenome.useTargetColumn;
-        if(useTargetColumn) {
+        if (useTargetColumn) {
             targetColumnGenome = new TargetColumnGenome();
-            targetColumnGenome.InitializeRandomGenome();
-        }        
+            //targetColumnGenome.InitializeRandomGenome();
+        }
 
         // For now this is fine -- but eventually might want to copy brainGenome from saved asset!
         //brainGenome = new BrainGenome();  // creates neuron and axonLists

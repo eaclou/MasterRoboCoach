@@ -210,7 +210,7 @@ public class TrainingMenuUI : MonoBehaviour {
             panelTrainingSettings.SetActive(false);
 
             // Do I need the below?? v v v 
-            //trainingSettingsUI.SetStatusFromData(gameManager.trainerRef);
+            moduleViewUI.SetStatusFromData(gameManager.trainerRef);
         }
         else {
             panelModuleView.SetActive(false);
@@ -225,6 +225,10 @@ public class TrainingMenuUI : MonoBehaviour {
         }
         UpdateFitnessPanelUI();
         UpdateTrainingSettingsPanelUI();
+
+        moduleViewUI.currentModulesPanelOn = true;
+        moduleViewUI.editModulePanelOn = false;
+        moduleViewUI.addNewModulePanelOn = false;
         UpdateModuleViewPanelUI();
     }
     private void UpdateTimeStepsUI() {
@@ -277,21 +281,30 @@ public class TrainingMenuUI : MonoBehaviour {
             Agent curAgent = gameManager.trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
             if (curAgent.healthModuleList.Count > 0)
                 txt += "HEALTH: " + curAgent.healthModuleList[0].health.ToString() + " / " + curAgent.healthModuleList[0].maxHealth.ToString() + "\n";
+            if (curAgent.oscillatorList.Count > 0) {
+                txt += "\nOSCILLATOR INPUTS: ";
+                for (int i = 0; i < curAgent.oscillatorList.Count; i++) {
+                    txt += "\n" + i.ToString() + ": current value= " + curAgent.oscillatorList[i].value[0].ToString();
+                }
+                txt += "\n";
+            }
             if (curAgent.targetSensorList.Count > 0) {
                 txt += "\nTARGET SENSOR: ";
-                if (curAgent.targetSensorList[0].targetPosition != null)
+            
+                if (curAgent.targetSensorList[0].targetPosition != null) {
                     txt += curAgent.targetSensorList[0].targetPosition.position.ToString() + "\n";
-                txt += "DotX = " + curAgent.targetSensorList[0].dotX[0].ToString() + "\n";
-                txt += "DotZ = " + curAgent.targetSensorList[0].dotZ[0].ToString() + "\n";
-                txt += "Dist = " + curAgent.targetSensorList[0].dist[0].ToString() + "\n";
-                txt += "InvDist = " + curAgent.targetSensorList[0].invDist[0].ToString() + "\n";
-                //txt += "Forward = " + curAgent.targetSensorList[0].forward[0].ToString() + "\n";
-                //txt += "Horizontal = " + curAgent.targetSensorList[0].horizontal[0].ToString() + "\n";
-                //txt += "InTarget = " + curAgent.targetSensorList[0].inTarget[0].ToString() + "\n";
-                //txt += "VelX = " + curAgent.targetSensorList[0].velX[0].ToString() + "\n";
-                //txt += "VelZ = " + curAgent.targetSensorList[0].velZ[0].ToString() + "\n";
-                //txt += "Health = " + curAgent.targetSensorList[0].targetHealth[0].ToString() + "\n";
-                //txt += "Attacking = " + curAgent.targetSensorList[0].targetAttacking[0].ToString() + "\n";
+                    txt += "DotX = " + curAgent.targetSensorList[0].dotX[0].ToString() + "\n";
+                    txt += "DotZ = " + curAgent.targetSensorList[0].dotZ[0].ToString() + "\n";
+                    txt += "Dist = " + curAgent.targetSensorList[0].dist[0].ToString() + "\n";
+                    txt += "InvDist = " + curAgent.targetSensorList[0].invDist[0].ToString() + "\n";
+                    //txt += "Forward = " + curAgent.targetSensorList[0].forward[0].ToString() + "\n";
+                    //txt += "Horizontal = " + curAgent.targetSensorList[0].horizontal[0].ToString() + "\n";
+                    //txt += "InTarget = " + curAgent.targetSensorList[0].inTarget[0].ToString() + "\n";
+                    //txt += "VelX = " + curAgent.targetSensorList[0].velX[0].ToString() + "\n";
+                    //txt += "VelZ = " + curAgent.targetSensorList[0].velZ[0].ToString() + "\n";
+                    //txt += "Health = " + curAgent.targetSensorList[0].targetHealth[0].ToString() + "\n";
+                    //txt += "Attacking = " + curAgent.targetSensorList[0].targetAttacking[0].ToString() + "\n";
+                }
             }
             if (curAgent.raycastSensorList.Count > 0) {
                 txt += "\nRAYCAST SENSOR:\n";
@@ -541,11 +554,13 @@ public class TrainingMenuUI : MonoBehaviour {
     public void ClickButtonCycleFocusPop() {        
         gameManager.trainerRef.evaluationManager.ExhibitionCycleFocusPop(gameManager.trainerRef.teamsConfig);
         fitnessFunctionUI.SetStatusFromData(gameManager.trainerRef);
+        UpdateDebugLeftPanelUI();
         UpdateFocusPopUI();
     }
 
     public void ClickButtonDebugLeft() {
-        debugLeftOn = !debugLeftOn;        
+        debugLeftOn = !debugLeftOn;
+        UpdateDebugLeftPanelUI();
     }
     public void ClickButtonCycleDebugLeft() {
         //Debug.Log("ClickButtonCycleDebugLeft");
@@ -597,6 +612,7 @@ public class TrainingMenuUI : MonoBehaviour {
             moduleViewOn = false;
         }
         else {
+            //gameManager.trainerRef.Pause();
             moduleViewOn = true;
             moduleViewUI.SetStatusFromData(gameManager.trainerRef);
         }

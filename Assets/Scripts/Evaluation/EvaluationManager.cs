@@ -1002,6 +1002,7 @@ public class EvaluationManager {
             exhibitionTicketList[0].agentGenomesList[i] = teamsConfig.playersList[i].representativeGenomeList[0];
         }
         exhibitionTicketList[0].environmentGenome = teamsConfig.environmentPopulation.representativeGenomeList[0];
+        exhibitionTicketList[0].environmentGenome.ClearEnvironmentPrefab();
     }
     public void ResetExhibitionInstance(TeamsConfig teamsConfig) {
         // Create eval Ticket  TEMP all 0's:
@@ -1060,6 +1061,9 @@ public class EvaluationManager {
 
     public void ResetForNewGeneration(TeamsConfig teamsConfig) {
         //ResetEvaluationTicketList();
+        for(int i = 0; i < evaluationInstancesList.Count; i++) {
+            evaluationInstancesList[i].ClearInstance();
+        }
         ClearEvaluationTickets();
         CreateDefaultEvaluationTickets(teamsConfig);        
 

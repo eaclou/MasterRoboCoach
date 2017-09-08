@@ -38,13 +38,13 @@ public class EnvironmentPopulation {
         for (int e = 0; e < numGenomes; e++) {
             // Create new environmentGenome
             EnvironmentGenome envGenome = new EnvironmentGenome(e);
-            envGenome.CopyGenomeFromTemplate(templateGenome);
+            envGenome.InitializeRandomGenomeFromTemplate(templateGenome);
             // Add to envGenomesList:
             environmentGenomeList.Add(envGenome);
             
             // Create parallel initial batch of genomes to be used as baseline comparison
             EnvironmentGenome baseGenome = new EnvironmentGenome(e);
-            baseGenome.CopyGenomeFromTemplate(templateGenome);
+            baseGenome.InitializeRandomGenomeFromTemplate(templateGenome);
             baselineGenomePool.Add(baseGenome);
         }
         AppendBaselineGenomes();
@@ -102,6 +102,20 @@ public class EnvironmentPopulation {
         for(int i = 0; i < environmentGenomeList.Count; i++) {
             environmentGenomeList[i].index = i;
         }
+    }
+
+    public void ChangeGenomeTemplate(EnvironmentGenome pendingGenome) {
+        //Debug.Log("ChangeGenomeTemplate PENDING startPosCount: " + pendingGenome.agentStartPositionsList.Count.ToString());
+        // Apply to Population Template:
+        templateGenome.CopyGenomeFromTemplate(pendingGenome); // sets contents of genome to a copy of the sourceGenome
+
+        // Apply to each Environment Genome:
+        for (int i = 0; i < environmentGenomeList.Count; i++) {
+            environmentGenomeList[i].CopyGenomeFromTemplate(pendingGenome);
+        }
+
+        //Debug.Log("ChangeGenomeTemplate TEMPLATE startPosCount: " + templateGenome.agentStartPositionsList.Count.ToString());
+        //Debug.Log("ChangeGenomeTemplate ACTIVE startPosCount: " + environmentGenomeList[0].agentStartPositionsList.Count.ToString());
     }
 
     private void SetUpDefaultFitnessComponents(Challenge.Type challengeType, FitnessManager fitnessManager) {

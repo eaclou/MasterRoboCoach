@@ -25,11 +25,11 @@ public class PlayerPopulation {
     public int numBaselineReps = 0;
 
     [System.NonSerialized]
-    public AgentGenome templateGenome;
+    public BodyGenome bodyGenomeTemplate;
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
-    public PlayerPopulation(Challenge.Type challengeType, AgentGenomeTemplate template, int numGenomes, int numBaseline, int numReps) {
-        templateGenome = template.templateGenome;
+    public PlayerPopulation(Challenge.Type challengeType, BodyGenome bodyTemplate, int numGenomes, int numBaseline, int numReps) {
+        bodyGenomeTemplate = bodyTemplate;
         
         popSize = numGenomes;
         this.numBaseline = numBaseline;
@@ -40,15 +40,16 @@ public class PlayerPopulation {
         baselineGenomePool = new List<AgentGenome>();
 
         for (int j = 0; j < numGenomes; j++) {
-            AgentGenome agentGenome = new AgentGenome(j);  // empty constructor
-            agentGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
-            agentGenome.InitializeRandomBrainGenome(0.0f);
+            AgentGenome agentGenome = new AgentGenome(j);
+            agentGenome.InitializeBodyGenomeFromTemplate(bodyGenomeTemplate);
+            agentGenome.InitializeRandomBrainFromCurrentBody(0.0f);            
             agentGenomeList.Add(agentGenome);
 
-            AgentGenome baselineGenome = new AgentGenome(j);  // empty constructor
-            baselineGenome.CopyGenomeFromTemplate(templateGenome);  // copies attributes and creates random brain -- roll into Constructor method?
-            baselineGenome.InitializeRandomBrainGenome(0.0f);
-            baselineGenomePool.Add(baselineGenome);
+
+            AgentGenome baselineGenome = new AgentGenome(j);
+            baselineGenome.InitializeBodyGenomeFromTemplate(bodyGenomeTemplate);
+            baselineGenome.InitializeRandomBrainFromCurrentBody(0.0f);
+            baselineGenomePool.Add(baselineGenome);            
         }
         AppendBaselineGenomes();
 
@@ -107,6 +108,26 @@ public class PlayerPopulation {
         for (int i = 0; i < agentGenomeList.Count; i++) {
             agentGenomeList[i].index = i;
         }
+    }
+
+    public void ChangeBodyTemplate(BodyGenome pendingBody) {
+        // Change the Body Composition of this population's Agents:
+        // -- Replace the BodyGenome of population's existing templateBody with a copy of the pendingBody
+        // -- Do the same for all current Agents in the population
+        // -- Replace the bodyNeurons for all current Agents in the population
+        // -- Remove vestigial brain connections/nodes
+
+        bodyGenomeTemplate.CopyBodyGenomeFromTemplate(pendingBody); // sets contents of body to a copy of the sourceGenome
+             
+        for(int i = 0; i < agentGenomeList.Count; i++) {
+            agentGenomeList[i].bodyGenome.CopyBodyGenomeFromTemplate(pendingBody);
+            agentGenomeList[i].brainGenome.SetBodyNeuronsFromTemplate(pendingBody);
+        }
+
+        // once all existing agents are processed, update templateGenome to be the new one
+        // population's templateGenome is basically only for body-plan. All agents will share same Input/Output neurons, but differ in their hidden neurons + connections
+
+        //templateGenome = pendingGenome;
     }
 
     private void SetUpDefaultFitnessComponents(Challenge.Type challengeType, FitnessManager fitnessManager) {

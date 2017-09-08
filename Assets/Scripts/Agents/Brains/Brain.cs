@@ -18,29 +18,38 @@ public class Brain {
         neuronList = new List<Neuron>();
         IDs = new Dictionary<NID, int>();
         // I need access to all of the Modules in order to link the neuron values to the module values!!!!
-        for (int i = 0; i < genome.neuronList.Count; i++) {
+        for (int i = 0; i < genome.bodyNeuronList.Count; i++) {
             Neuron neuron = new Neuron();
-            // Find out what the source of this Neuron is -- i.e. which Module???
-            //Debug.Log("NeuronID: (" + genome.neuronList[i].nid.moduleID.ToString() + "," + genome.neuronList[i].nid.neuronID.ToString() + ")");
-            if(genome.neuronList[i].neuronType != NeuronGenome.NeuronType.Hid) {
-                agent.MapNeuronToModule(genome.neuronList[i].nid, neuron);
-            }
-            else {
-                neuron.neuronType = NeuronGenome.NeuronType.Hid;
-                neuron.currentValue = new float[1];
-            }
-            //Debug.Log("Add: Key=" + genome.neuronList[i].nid.moduleID.ToString() + "," + genome.neuronList[i].nid.neuronID.ToString() + "  Val=" + i.ToString());
-            IDs.Add(genome.neuronList[i].nid, i);
+            agent.MapNeuronToModule(genome.bodyNeuronList[i].nid, neuron);
+            IDs.Add(genome.bodyNeuronList[i].nid, i);
+            neuronList.Add(neuron);
+        }
+        for (int i = 0; i < genome.hiddenNeuronList.Count; i++) {  // REVISIT
+            Neuron neuron = new Neuron();
+            agent.MapNeuronToModule(genome.hiddenNeuronList[i].nid, neuron);
+            IDs.Add(genome.hiddenNeuronList[i].nid, i);
             neuronList.Add(neuron);
         }
 
         // Create Axons:
         axonList = new List<Axon>();
         for (int i = 0; i < genome.linkList.Count; i++) {
+            
             // find out neuronIDs:
             int fromID = -1;
-            IDs.TryGetValue(new NID(genome.linkList[i].fromModuleID, genome.linkList[i].fromNeuronID), out fromID);
-            int toID = IDs[new NID(genome.linkList[i].toModuleID, genome.linkList[i].toNeuronID)];
+            if(IDs.TryGetValue(new NID(genome.linkList[i].fromModuleID, genome.linkList[i].fromNeuronID), out fromID)) {
+
+            }
+            else {
+                Debug.LogError("fromNID NOT FOUND " + genome.linkList[i].fromModuleID.ToString() +", " +  genome.linkList[i].fromNeuronID.ToString());
+            }
+            int toID = -1;
+            if(IDs.TryGetValue(new NID(genome.linkList[i].toModuleID, genome.linkList[i].toNeuronID), out toID)) {
+
+            }
+            else {
+                Debug.LogError("toNID NOT FOUND " + genome.linkList[i].fromModuleID.ToString() + ", " + genome.linkList[i].fromNeuronID.ToString());
+            }
 
             //Debug.Log(fromID.ToString() + " --> " + toID.ToString() + ", " + genome.linkList[i].weight.ToString());
             //int fromID = IDs < new NID(genome.linkList[i].fromModuleID, genome.linkList[i].fromNeuronID) >;

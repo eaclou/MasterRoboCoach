@@ -112,8 +112,10 @@ public class EvaluationInstance : MonoBehaviour {
         return isEnded;
     }
     public void ClearInstance() {
-        currentEvalTicket.status = EvaluationTicket.EvaluationStatus.Pending;
-        currentEvalTicket = null;
+        if(currentEvalTicket != null) {
+            currentEvalTicket.status = EvaluationTicket.EvaluationStatus.Pending;
+            currentEvalTicket = null;
+        }        
         DeleteAllGameObjects();
     }
     public void DeleteAllGameObjects() {
@@ -228,8 +230,9 @@ public class EvaluationInstance : MonoBehaviour {
         for(int i = 0; i < currentAgentsArray.Length; i++) {
             
             // Create Agent Base Body:
-            GameObject agentGO = Instantiate(Resources.Load(AgentGenomeTemplate.GetAgentBodyTypeURL(currentEvalTicket.agentGenomesList[i].bodyType))) as GameObject;
+            GameObject agentGO = Instantiate(Resources.Load(AgentBodyGenomeTemplate.GetAgentBodyTypeURL(currentEvalTicket.agentGenomesList[i].bodyGenome.bodyType))) as GameObject;
             agentGO.transform.parent = gameObject.transform;
+            //Debug.Log("null check: " + currentEvalTicket.environmentGenome.agentStartPositionsList.Count.ToString());
             agentGO.transform.localPosition = currentEvalTicket.environmentGenome.agentStartPositionsList[i].agentStartPosition;
             agentGO.transform.localRotation = currentEvalTicket.environmentGenome.agentStartPositionsList[i].agentStartRotation;
             Agent agentScript = agentGO.GetComponent<Agent>();

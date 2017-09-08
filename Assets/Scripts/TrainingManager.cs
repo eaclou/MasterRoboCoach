@@ -357,7 +357,49 @@ public class TrainingManager : MonoBehaviour {
         //trainingMenuRef.mainMenuRef.EnterTournamentMode(tournamentInfo);        
     }
     
+    public void UpdateActorModules(int focusPop, EnvironmentGenome pendingEnvGenome, BodyGenome pendingBodyGenome) {
+        if(focusPop == 0) { // Environment:
+            //Debug.Log("UpdateActorModules startPosCount: " + pendingEnvGenome.agentStartPositionsList.Count.ToString());
+            teamsConfig.environmentPopulation.ChangeGenomeTemplate(pendingEnvGenome);
 
+        }
+        else {  // Agent:
+            teamsConfig.playersList[focusPop - 1].ChangeBodyTemplate(pendingBodyGenome);
+        }
+        ResetGeneration();
+    }
+    private void ResetGeneration() {
+        // Restarts the training generation from scratch immediately:
+
+
+        // Should be able to remove this eventually:
+        teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness(teamsConfig.environmentPopulation.popSize);
+        // Record and Remove Baseline Genomes:
+        teamsConfig.environmentPopulation.TrimBaselineGenomes();
+        for (int i = 0; i < teamsConfig.playersList.Count; i++) {
+            //Debug.Log("Player " + i.ToString());
+            teamsConfig.playersList[i].fitnessManager.ProcessAndRankRawFitness(teamsConfig.playersList[i].popSize);
+            // Record and Remove Baseline Genomes:
+            teamsConfig.playersList[i].TrimBaselineGenomes();
+        }        
+
+        // Cleanup for next Gen:
+        // Reset fitness data:
+        // RE-Sample and Add Baseline Genomes:
+        teamsConfig.environmentPopulation.AppendBaselineGenomes();
+        teamsConfig.environmentPopulation.fitnessManager.InitializeForNewGeneration(teamsConfig.environmentPopulation.environmentGenomeList.Count);
+        teamsConfig.environmentPopulation.ResetRepresentativesList();
+
+        for (int i = 0; i < teamsConfig.playersList.Count; i++) {
+            // RE-Sample and Add Baseline Genomes:
+            teamsConfig.playersList[i].AppendBaselineGenomes();
+            teamsConfig.playersList[i].fitnessManager.InitializeForNewGeneration(teamsConfig.playersList[i].agentGenomeList.Count);            
+            teamsConfig.playersList[i].ResetRepresentativesList();
+        }
+
+        // Reset default evals + exhibition
+        evaluationManager.ResetForNewGeneration(teamsConfig);
+    }
     private void NextGeneration() {
         Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
         //particleTrajectories.Clear();
@@ -372,7 +414,7 @@ public class TrainingManager : MonoBehaviour {
             teamsConfig.playersList[i].TrimBaselineGenomes();
         }
 
-        teamsConfig.ReloadAgentTemplates(); // see if I can hot-edit templates
+        //teamsConfig.ReloadAgentTemplates(); // see if I can hot-edit templates
         
         Crossover();
 
@@ -463,21 +505,12 @@ public class TrainingManager : MonoBehaviour {
             }
             else {
                 BrainGenome newBrainGenome = new BrainGenome();
-                // new BrainGenome creates new neuronList and linkList
+                
                 int parentIndex = fitnessManager.GetAgentIndexByLottery();
 
                 BrainGenome parentGenome = teamsConfig.playersList[playerIndex].agentGenomeList[parentIndex].brainGenome;
 
-                newBrainGenome.neuronList = parentGenome.neuronList; // UNSUSTAINABLE!!! might work now since all neuronLists are identical
-                for (int i = 0; i < parentGenome.linkList.Count; i++) {
-                    LinkGenome newLinkGenome = new LinkGenome(parentGenome.linkList[i].fromModuleID, parentGenome.linkList[i].fromNeuronID, parentGenome.linkList[i].toModuleID, parentGenome.linkList[i].toNeuronID, parentGenome.linkList[i].weight, true);
-                    float rand = UnityEngine.Random.Range(0f, 1f);
-                    if (rand < mutationChance) {
-                        float randomWeight = Gaussian.GetRandomGaussian();
-                        newLinkGenome.weight = Mathf.Lerp(newLinkGenome.weight, randomWeight, mutationStepSize);
-                    }
-                    newBrainGenome.linkList.Add(newLinkGenome);
-                }
+                newBrainGenome.SetToMutatedCopyOfParentGenome(parentGenome, mutationChance, mutationStepSize);
                 newGenBrainGenomeList.Add(newBrainGenome);
             }
         }        

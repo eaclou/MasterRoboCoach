@@ -21,7 +21,7 @@ public class BasicObstaclesGenome {
         }
     }
 
-    public void InitializeRandomGenome() {
+    public void InitializeRandomGenome() {        
         for (int i = 0; i < obstaclePositions.Length; i++) {
             obstaclePositions[i] = new Vector2(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
             // Revisit this for prepping agentStartPositions!!!!
@@ -30,6 +30,7 @@ public class BasicObstaclesGenome {
             }
             obstacleScales[i] = UnityEngine.Random.Range(1f, 1f);
         }
+        Debug.Log("InitializeRandomGenome scale[0]: " + obstacleScales[0].ToString());
     }
 
     public static BasicObstaclesGenome BirthNewGenome(BasicObstaclesGenome parentGenome, float mutationRate, float mutationDriftAmount) {

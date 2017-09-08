@@ -29,4 +29,9 @@ public class NeuronGenome {
         neuronType = type;
         this.nid = nid;
     }
+
+    public NeuronGenome(NeuronGenome template) {
+        neuronType = template.neuronType;
+        nid = template.nid;
+    }
 }

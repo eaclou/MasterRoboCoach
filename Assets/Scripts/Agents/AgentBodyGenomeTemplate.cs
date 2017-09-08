@@ -5,10 +5,10 @@ using UnityEngine;
 // Wrapper class to allow edit-time setup of AgentGenomes
 
 [CreateAssetMenuAttribute(fileName = "AgentGenomeTemplate", menuName = "AgentGenomeTemplates/New", order = 0)]
-public class AgentGenomeTemplate : ScriptableObject {
+public class AgentBodyGenomeTemplate : ScriptableObject {
 
     
-    public AgentGenome templateGenome;
+    public BodyGenome bodyGenome;
 
     void Awake() {
         Debug.Log("AgentGenomeTemplate Awake!");

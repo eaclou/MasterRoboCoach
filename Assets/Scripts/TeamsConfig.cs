@@ -30,17 +30,17 @@ public class TeamsConfig {
         playersList = new List<PlayerPopulation>();
         for(int i = 0; i < numPlayers; i++) {
             // Might have to revisit how to pass agent templates per population...
-            AgentGenomeTemplate templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
-            
+            AgentBodyGenomeTemplate templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
+            Debug.Log("TEMPLATE: " + templateAgentGenome.bodyGenome.ToString());
             // List of Agent Genomes
-            PlayerPopulation player = new PlayerPopulation(challengeType, templateAgentGenome, numAgentGenomesPerPlayer, numBaselineGenomes, numPlayerReps);
+            PlayerPopulation player = new PlayerPopulation(challengeType, templateAgentGenome.bodyGenome, numAgentGenomesPerPlayer, numBaselineGenomes, numPlayerReps);
 
             playersList.Add(player);
         }
     }
 
     public void InitializeFromLoadedData() {
-        ReloadAgentTemplates();  // get templates so Agents can be Instantiated!
+        //ReloadAgentTemplates();  // get templates so Agents can be Instantiated!
         // load template from prefab. This will have to be changed in order to support modular upgrades...
 
 
@@ -52,14 +52,14 @@ public class TeamsConfig {
         }
     }
 
-    public void ReloadAgentTemplates() {        
+    /*public void ReloadAgentTemplates() {        
         // Players:        
         for (int i = 0; i < playersList.Count; i++) {
             // Might have to revisit how to pass agent templates per population...
             AgentGenomeTemplate templateAgentGenome = GetDefaultTemplateAgentGenome(challengeType);
             playersList[i].templateGenome = templateAgentGenome.templateGenome;
         }
-    }
+    }*/
     
     private EnvironmentGenome GetDefaultTemplateEnvironmentGenome(Challenge.Type challengeType) {
         EnvironmentGenome templateGenome;
@@ -84,20 +84,20 @@ public class TeamsConfig {
         return templateGenome;
     }
 
-    private AgentGenomeTemplate GetDefaultTemplateAgentGenome(Challenge.Type challengeType) {
-        AgentGenomeTemplate templateGenome;
+    private AgentBodyGenomeTemplate GetDefaultTemplateAgentGenome(Challenge.Type challengeType) {
+        AgentBodyGenomeTemplate templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = Resources.Load("Templates/Agents/TemplateTelevisionWalker") as AgentGenomeTemplate;
+                templateGenome = Resources.Load("Templates/Agents/TemplateTelevisionWalker") as AgentBodyGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateTelevisionWalker.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
                 //Debug.Log("Loaded DogCar!");
-                templateGenome = Resources.Load("Templates/Agents/TemplateDogCar") as AgentGenomeTemplate;
+                templateGenome = Resources.Load("Templates/Agents/TemplateDogCar") as AgentBodyGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateDogCar.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Combat:
-                templateGenome = Resources.Load("Templates/Agents/TemplateCombatBot") as AgentGenomeTemplate;
+                templateGenome = Resources.Load("Templates/Agents/TemplateCombatBot") as AgentBodyGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
                 break;
             default:
