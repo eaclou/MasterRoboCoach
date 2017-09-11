@@ -7,6 +7,7 @@ public class TargetSensor : AgentModuleBase {
     //public int parentID;
     //public int inno;
     public float[] dotX;
+    public float[] dotY;
     public float[] dotZ;
     //public float[] forward;
     //public float[] horizontal;
@@ -45,6 +46,7 @@ public class TargetSensor : AgentModuleBase {
 
         sensorPosition = genome.sensorPosition;
         dotX = new float[1];
+        dotY = new float[1];
         dotZ = new float[1];
         //forward = new float[1];
         //horizontal = new float[1];
@@ -68,15 +70,20 @@ public class TargetSensor : AgentModuleBase {
             }
             if (nid.neuronID == 1) {
                 //Debug.Log("neuron match!!! targetSensorZ");
-                neuron.currentValue = dotZ;
+                neuron.currentValue = dotY;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
             if (nid.neuronID == 2) {
+                //Debug.Log("neuron match!!! targetSensorZ");
+                neuron.currentValue = dotZ;
+                neuron.neuronType = NeuronGenome.NeuronType.In;
+            }
+            if (nid.neuronID == 3) {
                 //Debug.Log("neuron match!!! targetSensorX");
                 neuron.currentValue = dist;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
-            if (nid.neuronID == 3) {
+            if (nid.neuronID == 4) {
                 //Debug.Log("neuron match!!! targetSensorZ");
                 neuron.currentValue = invDist;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
@@ -117,16 +124,20 @@ public class TargetSensor : AgentModuleBase {
         Vector3 segmentToTargetVect = new Vector3(targetPosition.position.x - parentObject.transform.position.x + sensorPosition.x, targetPosition.position.y - parentObject.transform.position.y + sensorPosition.x, targetPosition.position.z - parentObject.transform.position.z + sensorPosition.x);
         Vector3 segmentToTargetVectNormalized = segmentToTargetVect.normalized;
         Vector3 rightVector;
+        Vector3 upVector;
         Vector3 forwardVector;
 
         rightVector = parentObject.transform.right;
+        upVector = parentObject.transform.up;
         forwardVector = parentObject.transform.forward;
 
         // Not Normalized!
         float dotRight = Vector3.Dot(segmentToTargetVectNormalized, rightVector);
+        float dotUp = Vector3.Dot(segmentToTargetVectNormalized, upVector);
         float dotForward = Vector3.Dot(segmentToTargetVectNormalized, forwardVector);
 
         dotX[0] = dotRight;
+        dotY[0] = dotUp;
         dotZ[0] = dotForward;
 
         dist[0] = segmentToTargetVect.magnitude;

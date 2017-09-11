@@ -557,6 +557,7 @@ public class TrainingMenuUI : MonoBehaviour {
         gameManager.trainerRef.evaluationManager.ExhibitionCycleFocusPop(gameManager.trainerRef.teamsConfig);
         fitnessFunctionUI.SetStatusFromData(gameManager.trainerRef);
         UpdateDebugLeftPanelUI();
+        moduleViewUI.SetPendingGenomesFromData(gameManager.trainerRef);
         UpdateFocusPopUI();
     }
 
@@ -616,6 +617,7 @@ public class TrainingMenuUI : MonoBehaviour {
         else {
             //gameManager.trainerRef.Pause();
             moduleViewOn = true;
+            moduleViewUI.SetPendingGenomesFromData(gameManager.trainerRef);
             moduleViewUI.SetStatusFromData(gameManager.trainerRef);
         }
         fitnessFunctionOn = false;

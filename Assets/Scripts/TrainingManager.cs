@@ -446,7 +446,7 @@ public class TrainingManager : MonoBehaviour {
 
         playingCurGen++;
 
-        gameManager.uiManager.panelTraining.moduleViewUI.SetPendingGenomesFromData(this);
+        //gameManager.uiManager.panelTraining.moduleViewUI.SetPendingGenomesFromData(this);
     }
     private void Crossover() {
         // Query Fitness Managers to create:

@@ -11,10 +11,10 @@ public class ThrusterGenome {
     public float horsepowerX;
     public float horsepowerZ;
 
-    /*public ThrusterGenome(int parentID, int inno) {
+    public ThrusterGenome(int parentID, int inno) {
         this.parentID = parentID;
         this.inno = inno;
-    }*/
+    }
 
     public ThrusterGenome(ThrusterGenome template) {
         this.parentID = template.parentID;

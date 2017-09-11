@@ -63,6 +63,7 @@ public class ModuleViewUI : MonoBehaviour {
         }
         else {
             isEnvironment = false;
+            Debug.Log("SetPendingGenomesFromData pendingBodyGenomeTemplate.CopyBodyGenomeFromTemplate");
             pendingBodyGenomeTemplate.CopyBodyGenomeFromTemplate(trainerRef.teamsConfig.playersList[focusPop - 1].bodyGenomeTemplate);
             //currentTemplateAgentGenome.brainGenome.CopyCommunalBrainFromTemplate(trainerRef.teamsConfig.playersList[focusPop - 1].templateGenome.brainGenome); // only copies communal neurons
             //currentFitnessManagerRef = trainerRef.teamsConfig.playersList[focusPop - 1].fitnessManager;
@@ -350,59 +351,104 @@ public class ModuleViewUI : MonoBehaviour {
                     //textModuleDescription.text += "\nX Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useX.ToString();
                     //textModuleDescription.text += "\nY Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useY.ToString();
                     //textModuleDescription.text += "\nZ Axis: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].useZ.ToString();
+                    GameObject editBasicJointPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditBasicJointUI") as GameObject);
+                    EditBasicJointUI editBasicJointScript = editBasicJointPanelGO.GetComponent<EditBasicJointUI>();
+                    editBasicJointScript.genome = pendingBodyGenomeTemplate.basicJointList[moduleListIndex];
+                    editBasicJointScript.SetStatusFromData();
+                    editBasicJointPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.BasicWheel:
                     // do stuff
-                    
+                    GameObject editBasicWheelPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditBasicWheelUI") as GameObject);
+                    EditBasicWheelUI editBasicWheelScript = editBasicWheelPanelGO.GetComponent<EditBasicWheelUI>();
+                    editBasicWheelScript.genome = pendingBodyGenomeTemplate.basicWheelList[moduleListIndex];
+                    editBasicWheelScript.SetStatusFromData();
+                    editBasicWheelPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Contact:
                     // do stuff
-                    
+                    GameObject editContactPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditContactUI") as GameObject);
+                    EditContactUI editContactScript = editContactPanelGO.GetComponent<EditContactUI>();
+                    editContactScript.genome = pendingBodyGenomeTemplate.contactSensorList[moduleListIndex];
+                    editContactScript.SetStatusFromData();
+                    editContactPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Health:
                     // do stuff
-                    
+                    GameObject editHealthPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditHealthUI") as GameObject);
+                    EditHealthUI editHealthScript = editHealthPanelGO.GetComponent<EditHealthUI>();
+                    editHealthScript.genome = pendingBodyGenomeTemplate.healthModuleList[moduleListIndex];
+                    editHealthScript.SetStatusFromData();
+                    editHealthPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Oscillator:
                     // do stuff
-                    
+                    GameObject editOscillatorPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditOscillatorUI") as GameObject);
+                    EditOscillatorUI editOscillatorScript = editOscillatorPanelGO.GetComponent<EditOscillatorUI>();
 
-                    GameObject editModulePanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditOscillatorUI") as GameObject);
-                    EditOscillatorUI editOscillatorScript = editModulePanelGO.GetComponent<EditOscillatorUI>();
-
+                    // copy over attributes
+                    //editOscillatorScript.genome.CopyAttributesFromSourceGenome(pendingBodyGenomeTemplate.oscillatorInputList[moduleListIndex]);
                     editOscillatorScript.genome = pendingBodyGenomeTemplate.oscillatorInputList[moduleListIndex];
                     //moduleListItemScript.trainerRef = trainerRef;
                     //moduleListItemScript.moduleViewUI = this;
                     editOscillatorScript.SetStatusFromData();
-                    editModulePanelGO.transform.SetParent(transformEditModuleDock);
+                    editOscillatorPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Raycast:
                     // do stuff
-                    
+                    GameObject editRaycastPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditRaycastUI") as GameObject);
+                    EditRaycastUI editRaycastScript = editRaycastPanelGO.GetComponent<EditRaycastUI>();
+                    editRaycastScript.genome = pendingBodyGenomeTemplate.raycastSensorList[moduleListIndex];
+                    editRaycastScript.SetStatusFromData();
+                    editRaycastPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Target:
                     // do stuff
-                    
+                    GameObject editTargetPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditTargetUI") as GameObject);
+                    EditTargetUI editTargetScript = editTargetPanelGO.GetComponent<EditTargetUI>();
+                    editTargetScript.genome = pendingBodyGenomeTemplate.targetSensorList[moduleListIndex];
+                    editTargetScript.SetStatusFromData();
+                    editTargetPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Thruster:
                     // do stuff
-                    
+                    GameObject editThrusterPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditThrusterUI") as GameObject);
+                    EditThrusterUI editThrusterScript = editThrusterPanelGO.GetComponent<EditThrusterUI>();
+                    editThrusterScript.genome = pendingBodyGenomeTemplate.thrusterList[moduleListIndex];
+                    editThrusterScript.SetStatusFromData();
+                    editThrusterPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Torque:
                     // do stuff
-                    
+                    GameObject editTorquePanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditTorqueUI") as GameObject);
+                    EditTorqueUI editTorqueScript = editTorquePanelGO.GetComponent<EditTorqueUI>();
+                    editTorqueScript.genome = pendingBodyGenomeTemplate.torqueList[moduleListIndex];
+                    editTorqueScript.SetStatusFromData();
+                    editTorquePanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Value:
                     // do stuff
-                    
+                    GameObject editValuePanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditValueUI") as GameObject);
+                    EditValueUI editValueScript = editValuePanelGO.GetComponent<EditValueUI>();
+                    editValueScript.genome = pendingBodyGenomeTemplate.valueInputList[moduleListIndex];
+                    editValueScript.SetStatusFromData();
+                    editValuePanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.WeaponProjectile:
                     // do stuff
-                    
+                    GameObject editWeaponProjectilePanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditWeaponProjectileUI") as GameObject);
+                    EditWeaponProjectileUI editWeaponProjectileScript = editWeaponProjectilePanelGO.GetComponent<EditWeaponProjectileUI>();
+                    editWeaponProjectileScript.genome = pendingBodyGenomeTemplate.weaponProjectileList[moduleListIndex];
+                    editWeaponProjectileScript.SetStatusFromData();
+                    editWeaponProjectilePanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.WeaponTazer:
                     // do stuff
-                    
+                    GameObject editWeaponTazerPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditWeaponTazerUI") as GameObject);
+                    EditWeaponTazerUI editWeaponTazerScript = editWeaponTazerPanelGO.GetComponent<EditWeaponTazerUI>();
+                    editWeaponTazerScript.genome = pendingBodyGenomeTemplate.weaponTazerList[moduleListIndex];
+                    editWeaponTazerScript.SetStatusFromData();
+                    editWeaponTazerPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 default:
                     // do stuff
@@ -463,8 +509,8 @@ public class ModuleViewUI : MonoBehaviour {
                     // do stuff
                     // Complicated by the fact that it can be added onto any arbitrary segment!
                     // NOT ADDABLE CURRENTLY:
-                    textModuleTypeInfo.text = "A Sensor which detects collision pressure against this segment. Not currently available for addition";
-                    buttonAddSelectedModuleType.interactable = false;
+                    textModuleTypeInfo.text = "A Sensor which detects collision pressure against this segment.";
+                    buttonAddSelectedModuleType.interactable = true;
                     break;
                 case AgentModuleGenomeType.Health:
                     // do stuff
@@ -597,7 +643,7 @@ public class ModuleViewUI : MonoBehaviour {
         int focusPop = trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
 
         //trainerRef.TogglePlayPause();
-        Debug.Log("freq: " + pendingBodyGenomeTemplate.oscillatorInputList[0].freq.ToString());
+        //Debug.Log("freq: " + pendingBodyGenomeTemplate.oscillatorInputList[0].freq.ToString());
         trainerRef.UpdateActorModules(focusPop, pendingEnvironmentGenomeTemplate, pendingBodyGenomeTemplate);
         ClickBackToCurrentModule();
     }
@@ -652,6 +698,10 @@ public class ModuleViewUI : MonoBehaviour {
                     break;
                 case AgentModuleGenomeType.Contact:
                     // do stuff
+                    ContactGenome contactGenome = new ContactGenome(0, nextInno);
+                    nextInno++;
+                    contactGenome.parentID = 0;
+                    pendingBodyGenomeTemplate.contactSensorList.Add(contactGenome);
                     break;
                 case AgentModuleGenomeType.Health:
                     // do stuff
@@ -668,24 +718,61 @@ public class ModuleViewUI : MonoBehaviour {
                     break;
                 case AgentModuleGenomeType.Raycast:
                     // do stuff
+                    RaycastSensorGenome raycastGenome = new RaycastSensorGenome(0, nextInno);
+                    nextInno++;
+                    raycastGenome.parentID = 0;
+                    raycastGenome.sensorPosition = Vector3.zero;
+                    pendingBodyGenomeTemplate.raycastSensorList.Add(raycastGenome);
                     break;
                 case AgentModuleGenomeType.Target:
                     // do stuff
+                    TargetSensorGenome targetGenome = new TargetSensorGenome(0, nextInno);
+                    nextInno++;
+                    targetGenome.parentID = 0;
+                    targetGenome.sensorPosition = Vector3.zero;
+                    pendingBodyGenomeTemplate.targetSensorList.Add(targetGenome);
                     break;
                 case AgentModuleGenomeType.Thruster:
                     // do stuff
+                    ThrusterGenome thrusterGenome = new ThrusterGenome(0, nextInno);
+                    nextInno++;
+                    thrusterGenome.parentID = 0;
+                    thrusterGenome.forcePoint = Vector3.zero;
+                    thrusterGenome.horsepowerX = 1f;
+                    thrusterGenome.horsepowerZ = 1f;
+                    pendingBodyGenomeTemplate.thrusterList.Add(thrusterGenome);
                     break;
                 case AgentModuleGenomeType.Torque:
                     // do stuff
+                    TorqueGenome torqueGenome = new TorqueGenome(0, nextInno);
+                    nextInno++;
+                    torqueGenome.parentID = 0;
+                    torqueGenome.strength = 1f;
+                    pendingBodyGenomeTemplate.torqueList.Add(torqueGenome);
                     break;
                 case AgentModuleGenomeType.Value:
                     // do stuff
+                    ValueInputGenome valueGenome = new ValueInputGenome(0, nextInno);
+                    nextInno++;
+                    valueGenome.parentID = 0;
+                    valueGenome.val = 1f;
+                    pendingBodyGenomeTemplate.valueInputList.Add(valueGenome);
                     break;
                 case AgentModuleGenomeType.WeaponProjectile:
                     // do stuff
+                    WeaponProjectileGenome weaponProjectileGenome = new WeaponProjectileGenome(0, nextInno);
+                    nextInno++;
+                    weaponProjectileGenome.parentID = 0;
+                    weaponProjectileGenome.muzzleLocation = Vector3.zero;
+                    pendingBodyGenomeTemplate.weaponProjectileList.Add(weaponProjectileGenome);
                     break;
                 case AgentModuleGenomeType.WeaponTazer:
                     // do stuff
+                    WeaponTazerGenome weaponTazerGenome = new WeaponTazerGenome(0, nextInno);
+                    nextInno++;
+                    weaponTazerGenome.parentID = 0;
+                    weaponTazerGenome.muzzleLocation = Vector3.zero;
+                    pendingBodyGenomeTemplate.weaponTazerList.Add(weaponTazerGenome);
                     break;
                 default:
                     // do stuff

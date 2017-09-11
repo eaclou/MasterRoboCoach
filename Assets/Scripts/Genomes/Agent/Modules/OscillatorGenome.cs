@@ -26,4 +26,11 @@ public class OscillatorGenome {
         NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 0);
         neuronList.Add(neuron);
     }
+
+    /*public void CopyAttributesFromSourceGenome(OscillatorGenome sourceGenome) {
+        this.parentID = sourceGenome.parentID;
+        this.inno = sourceGenome.inno;
+        this.freq = sourceGenome.freq;
+        this.amp = sourceGenome.amp;
+    }*/
 }

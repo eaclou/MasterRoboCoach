@@ -205,7 +205,7 @@ public class BrainGenome {
                 else {
                     float randomWeight = Gaussian.GetRandomGaussian() * 2f;
                     LinkGenome linkGenome = new LinkGenome(fromNID.moduleID, fromNID.neuronID, toNID.moduleID, toNID.neuronID, randomWeight, true);
-                    Debug.Log("New Link! from: [" + fromNID.moduleID.ToString() + ", " + fromNID.neuronID.ToString() + "], to: [" + toNID.moduleID.ToString() + ", " + toNID.neuronID.ToString() + "]");
+                    //Debug.Log("New Link! from: [" + fromNID.moduleID.ToString() + ", " + fromNID.neuronID.ToString() + "], to: [" + toNID.moduleID.ToString() + ", " + toNID.neuronID.ToString() + "]");
                     linkList.Add(linkGenome);
                     break;
                 }
@@ -279,7 +279,7 @@ public class BrainGenome {
             linkList.Add(linkGenome1);
             linkList.Add(linkGenome2);
 
-            Debug.Log("New Neuron! " + newNeuronGenome.nid.neuronID.ToString() + " - from: [" + linkGenome1.fromModuleID.ToString() + ", " + linkGenome1.fromNeuronID.ToString() + "], to: [" + linkGenome2.toModuleID.ToString() + ", " + linkGenome2.toNeuronID.ToString() + "]");
+            //Debug.Log("New Neuron! " + newNeuronGenome.nid.neuronID.ToString() + " - from: [" + linkGenome1.fromModuleID.ToString() + ", " + linkGenome1.fromNeuronID.ToString() + "], to: [" + linkGenome2.toModuleID.ToString() + ", " + linkGenome2.toNeuronID.ToString() + "]");
         }            
     }
 

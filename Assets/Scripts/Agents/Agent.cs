@@ -216,7 +216,7 @@ public class Agent : MonoBehaviour {
                 // Find appropriate Prefab based on Agent & Module Genome:
                 GameObject thrusterGO = Instantiate(Resources.Load("Prefabs/Modules/Thrusters/thrusterTest")) as GameObject;
                 thrusterGO.transform.parent = agent.segmentList[genome.bodyGenome.thrusterList[i].parentID].transform;
-                thrusterGO.transform.localPosition = Vector3.zero;
+                thrusterGO.transform.localPosition = genome.bodyGenome.thrusterList[i].forcePoint;
                 thrusterGO.transform.localRotation = Quaternion.identity;
                 // Hook into Logic Module
                 thrusterEffector.thrusterComponent = thrusterGO.GetComponent<ThrusterComponent>();
