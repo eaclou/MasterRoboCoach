@@ -277,6 +277,9 @@ public class TrainingMenuUI : MonoBehaviour {
             // Index:
             txt += "Player: " + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
             txt += ", Genome: " + currentAgentGenome.index.ToString() + "\n";
+            txt += "BodyNeurons: " + currentAgentGenome.brainGenome.bodyNeuronList.Count.ToString() + "\n";
+            txt += "HiddenNeurons: " + currentAgentGenome.brainGenome.hiddenNeuronList.Count.ToString() + "\n";
+            txt += "Links: " + currentAgentGenome.brainGenome.linkList.Count.ToString() + "\n";
             // Modules:
             Agent curAgent = gameManager.trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
             if (curAgent.healthModuleList.Count > 0)

@@ -319,18 +319,23 @@ public class ModuleViewUI : MonoBehaviour {
                 case EnvironmentModuleGenomeType.Terrain:
                     // do stuff
                     //textModuleDescription.text += "\n\nColor: " + pendingEnvironmentGenomeTemplate.terrainGenome.color.ToString();
+                    GameObject editTerrainPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditTerrainUI") as GameObject);
+                    EditTerrainUI editTerrainScript = editTerrainPanelGO.GetComponent<EditTerrainUI>();
+                    editTerrainScript.genome = pendingEnvironmentGenomeTemplate.terrainGenome;
+                    editTerrainScript.SetStatusFromData();
+                    editTerrainPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case EnvironmentModuleGenomeType.Target:
                     // do stuff
-                    //textModuleDescription.text += "\n\nRadius: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.targetRadius.ToString();
-                    //textModuleDescription.text += "\nMinX: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.minX.ToString();
-                    //textModuleDescription.text += "\nMaxX: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.maxX.ToString();
-                    //textModuleDescription.text += "\nMinZ: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.minZ.ToString();
-                   // textModuleDescription.text += "\nMaxZ: " + pendingEnvironmentGenomeTemplate.targetColumnGenome.maxZ.ToString();
+                    
                     break;
                 case EnvironmentModuleGenomeType.Obstacles:
                     // do stuff
-                    //textModuleDescription.text += "\n\nNumObstacles: " + pendingEnvironmentGenomeTemplate.basicObstaclesGenome.obstaclePositions.Length.ToString();
+                    GameObject editObstaclesPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditObstaclesUI") as GameObject);
+                    EditObstaclesUI editObstaclesScript = editObstaclesPanelGO.GetComponent<EditObstaclesUI>();
+                    editObstaclesScript.genome = pendingEnvironmentGenomeTemplate.basicObstaclesGenome;
+                    editObstaclesScript.SetStatusFromData();
+                    editObstaclesPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 default:
                     // do stuff
@@ -665,8 +670,12 @@ public class ModuleViewUI : MonoBehaviour {
                 case EnvironmentModuleGenomeType.Obstacles:
                     // do stuff
                     BasicObstaclesGenome basicObstaclesGenome = new BasicObstaclesGenome();
-                    basicObstaclesGenome.obstaclePositions = new Vector2[5]; // default
-                    basicObstaclesGenome.obstacleScales = new float[5];
+                    //Defaults:
+                    basicObstaclesGenome.numObstacles = 4;
+                    basicObstaclesGenome.minObstacleSize = 0.5f;
+                    basicObstaclesGenome.maxObstacleSize = 6f;
+                    basicObstaclesGenome.obstaclePositions = new Vector2[4]; // default
+                    basicObstaclesGenome.obstacleScales = new float[4];
                     basicObstaclesGenome.InitializeRandomGenome();
 
                     pendingEnvironmentGenomeTemplate.basicObstaclesGenome = basicObstaclesGenome;

@@ -51,7 +51,7 @@ public class ExhibitionParticleCurves : MonoBehaviour {
         for (int x = 0; x < indices.Length; x++) {
             txt += indices[x].ToString();
         }
-        Debug.Log("particle: " + txt);
+        //Debug.Log("particle: " + txt);
         //string test = "";
         //for(int j = 0; j < ticket.genomeIndices.Length; j++) {
         //    test += ticket.genomeIndices[j].ToString();

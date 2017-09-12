@@ -5,6 +5,9 @@ using UnityEngine;
 public static class TerrainConstructor {
 
     public static float GetAltitude(EnvironmentGenome genome, float x, float z) {
+        if(!genome.terrainGenome.useAltitude) {
+            return 0f;
+        }
         float altitude = 0f;
         float distMultiplier = 0.02f;
         float dist = new Vector2(x, z).magnitude * distMultiplier;

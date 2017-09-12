@@ -14,6 +14,7 @@ public class Brain {
     }
 
     public void RebuildBrain(BrainGenome genome, Agent agent) {
+        
         // Create Neurons:
         neuronList = new List<Neuron>();
         IDs = new Dictionary<NID, int>();
@@ -30,6 +31,7 @@ public class Brain {
             IDs.Add(genome.hiddenNeuronList[i].nid, i);
             neuronList.Add(neuron);
         }
+        //Debug.Log("RebuildBrain " + genome.bodyNeuronList.Count + ", " + neuronList.Count.ToString());
 
         // Create Axons:
         axonList = new List<Axon>();
@@ -71,6 +73,7 @@ public class Brain {
         }
         // Once all axons are calculated, process the neurons:
         for(int j = 0; j < neuronList.Count; j++) {
+            //Debug.Log(neuronList[j].ToString());
             neuronList[j].previousValue = neuronList[j].currentValue[0]; // Save previous state
             if(neuronList[j].neuronType != NeuronGenome.NeuronType.In) {
                 neuronList[j].currentValue[0] = TransferFunctions.Evaluate(TransferFunctions.TransferFunction.RationalSigmoid, neuronList[j].inputTotal);

@@ -12,6 +12,10 @@ public class BasicJointGenome {
     public bool useX;
     public bool useY;
     public bool useZ;
+    public bool angleSensors;
+    public bool velocitySensors;
+    public bool positionSensors;
+    public bool quaternionSensors;
     // Settings
 
     public BasicJointGenome(BasicJointGenome template) {
@@ -22,26 +26,66 @@ public class BasicJointGenome {
         this.useX = template.useX;
         this.useY = template.useY;
         this.useZ = template.useZ;
+        this.angleSensors = template.angleSensors;
+        this.velocitySensors = template.velocitySensors;
+        this.positionSensors = template.positionSensors;
+        this.quaternionSensors = template.quaternionSensors;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
         if (useX) {
-            NeuronGenome throttleX = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 0);
-            NeuronGenome angleX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 3);
+            NeuronGenome throttleX = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 0);            
             neuronList.Add(throttleX);
-            neuronList.Add(angleX);
+            if (angleSensors) {
+                NeuronGenome angleX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 3);
+                neuronList.Add(angleX);
+            }
+            if (velocitySensors) {
+                NeuronGenome velX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 6);
+                neuronList.Add(velX);
+            }
         }
         if (useY) {
-            NeuronGenome throttleY = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 1);
-            NeuronGenome angleY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 4);
+            NeuronGenome throttleY = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 1);            
             neuronList.Add(throttleY);
-            neuronList.Add(angleY);
+            if(angleSensors) {
+                NeuronGenome angleY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 4);
+                neuronList.Add(angleY);
+            }
+            if (velocitySensors) {
+                NeuronGenome velY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 7);
+                neuronList.Add(velY);
+            }
         }
         if (useZ) {
-            NeuronGenome throttleZ = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 2);
-            NeuronGenome angleZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 5);
+            NeuronGenome throttleZ = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 2);            
             neuronList.Add(throttleZ);
-            neuronList.Add(angleZ);
+            if(angleSensors) {
+                NeuronGenome angleZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 5);
+                neuronList.Add(angleZ);
+            }
+            if (velocitySensors) {
+                NeuronGenome velZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 8);
+                neuronList.Add(velZ);
+            }
+        }        
+        if(positionSensors) {
+            NeuronGenome posX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 9);
+            neuronList.Add(posX);
+            NeuronGenome posY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 10);
+            neuronList.Add(posY);
+            NeuronGenome posZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 11);
+            neuronList.Add(posZ);
+        }
+        if(quaternionSensors) {
+            NeuronGenome quatX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 12);
+            neuronList.Add(quatX);
+            NeuronGenome quatY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 13);
+            neuronList.Add(quatY);
+            NeuronGenome quatZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 14);
+            neuronList.Add(quatZ);
+            NeuronGenome quatW = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 15);
+            neuronList.Add(quatW);
         }
     }
 }

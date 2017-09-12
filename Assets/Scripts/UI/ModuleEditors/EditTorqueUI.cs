@@ -29,7 +29,7 @@ public class EditTorqueUI : MonoBehaviour {
         textStrengthValue.text = genome.strength.ToString();
     }
 
-    public void SliderValue(float value) {
+    public void SliderStrength(float value) {
         genome.strength = value;
         textStrengthValue.text = genome.strength.ToString();
     }

@@ -363,7 +363,7 @@ public class TrainingManager : MonoBehaviour {
         if(focusPop == 0) { // Environment:
             //Debug.Log("UpdateActorModules startPosCount: " + pendingEnvGenome.agentStartPositionsList.Count.ToString());
             teamsConfig.environmentPopulation.ChangeGenomeTemplate(pendingEnvGenome);
-
+            //Debug.Log("")
         }
         else {  // Agent:
             teamsConfig.playersList[focusPop - 1].ChangeBodyTemplate(pendingBodyGenome);

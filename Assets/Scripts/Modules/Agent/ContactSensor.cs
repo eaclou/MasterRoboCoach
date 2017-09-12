@@ -23,7 +23,7 @@ public class ContactSensor : AgentModuleBase {
         isVisible = agent.isVisible;
 
         component = agent.segmentList[parentID].AddComponent<ContactSensorComponent>();
-        //Debug.Log(component.ToString());
+        //Debug.Log("Create Component!" + component.ToString());
         if (component == null) {
             Debug.LogAssertion("No existing ContactSensorComponent on segment " + parentID.ToString());
         }

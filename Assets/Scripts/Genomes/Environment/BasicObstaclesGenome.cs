@@ -5,6 +5,9 @@ using UnityEngine;
 [System.Serializable]
 public class BasicObstaclesGenome {
 
+    public int numObstacles = 4;
+    public float minObstacleSize = 0.5f;
+    public float maxObstacleSize = 6f;
     public Vector2[] obstaclePositions;
     public float[] obstacleScales;
 
@@ -12,12 +15,29 @@ public class BasicObstaclesGenome {
         
     }
     public BasicObstaclesGenome(BasicObstaclesGenome templateGenome) {
-        obstaclePositions = new Vector2[templateGenome.obstaclePositions.Length];
-        obstacleScales = new float[templateGenome.obstacleScales.Length];
+        numObstacles = templateGenome.numObstacles;
+        minObstacleSize = templateGenome.minObstacleSize;
+        maxObstacleSize = templateGenome.maxObstacleSize;
+
+        obstaclePositions = new Vector2[numObstacles];
+        obstacleScales = new float[numObstacles];
         for (int i = 0; i < obstaclePositions.Length; i++) {
-            obstaclePositions[i] = new Vector2(templateGenome.obstaclePositions[i].x, templateGenome.obstaclePositions[i].y);
-            float size = templateGenome.obstacleScales[i];
-            obstacleScales[i] = size;
+            if (i < templateGenome.obstaclePositions.Length) {  // when changing numOctaves, doesn't immediately change parentgenome terrainWaves array
+                //terrainWaves[i] = new Vector3(templateGenome.terrainWaves[i].x, templateGenome.terrainWaves[i].y, templateGenome.terrainWaves[i].z);
+                //Debug.Log("Copy Terrain Genome: " + terrainWaves[i].ToString());
+                obstaclePositions[i] = new Vector2(templateGenome.obstaclePositions[i].x, templateGenome.obstaclePositions[i].y);
+                obstacleScales[i] = templateGenome.obstacleScales[i];
+                // = size;
+            }
+            else {
+                obstaclePositions[i] = new Vector2(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+                // Revisit this for prepping agentStartPositions!!!!
+                if ((obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude < 0.15f) {
+                    obstaclePositions[i] = new Vector2(0.5f, 0.5f) + (obstaclePositions[i] - new Vector2(0.5f, 0.5f)) * 0.15f / (obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude;
+                }
+                obstacleScales[i] = UnityEngine.Random.Range(1f, 1f);
+            }
+            
         }
     }
 
@@ -35,9 +55,15 @@ public class BasicObstaclesGenome {
 
     public static BasicObstaclesGenome BirthNewGenome(BasicObstaclesGenome parentGenome, float mutationRate, float mutationDriftAmount) {
         // OBSTACLES:
+        // NEED TO COPY ALL ATTRIBUTES HERE unless I switch mutation process to go: full-copy, then re-traverse and mutate on a second sweep...
         BasicObstaclesGenome newGenome = new BasicObstaclesGenome();
-        newGenome.obstaclePositions = new Vector2[parentGenome.obstaclePositions.Length];
-        newGenome.obstacleScales = new float[parentGenome.obstacleScales.Length];
+        newGenome.numObstacles = parentGenome.numObstacles;
+        newGenome.minObstacleSize = parentGenome.minObstacleSize;
+        newGenome.maxObstacleSize = parentGenome.maxObstacleSize;
+
+        
+        newGenome.obstaclePositions = new Vector2[newGenome.numObstacles];
+        newGenome.obstacleScales = new float[newGenome.numObstacles];
         for (int i = 0; i < parentGenome.obstaclePositions.Length; i++) {
             newGenome.obstaclePositions[i] = new Vector2(parentGenome.obstaclePositions[i].x, parentGenome.obstaclePositions[i].y);
             newGenome.obstacleScales[i] = parentGenome.obstacleScales[i];
@@ -54,7 +80,7 @@ public class BasicObstaclesGenome {
                 newGenome.obstaclePositions[i] = new Vector2(0.5f, 0.5f) + (newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)) * 0.15f / (newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude;
             }
             if (rand < mutationRate) {
-                float newScale = UnityEngine.Random.Range(1f, 5f);
+                float newScale = UnityEngine.Random.Range(newGenome.minObstacleSize, newGenome.maxObstacleSize);
                 newGenome.obstacleScales[i] = Mathf.Lerp(newGenome.obstacleScales[i], newScale, mutationDriftAmount);
             }
         }

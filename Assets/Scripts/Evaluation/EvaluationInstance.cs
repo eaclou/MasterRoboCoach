@@ -374,6 +374,8 @@ public class EvaluationInstance : MonoBehaviour {
                     break;
                 case FitnessComponentType.ContactHazard:
                     FitCompContactHazard fitCompContactHazard = (FitCompContactHazard)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompContactHazard;
+                    //Debug.Log("NullCheck root: " + currentAgentsArray[populationIndex].rootObject.ToString());
+                    //Debug.Log("NullCheck component: " + currentAgentsArray[populationIndex].rootObject.GetComponent<ContactSensorComponent>().ToString());                    
                     fitCompContactHazard.contactingHazard = currentAgentsArray[populationIndex].rootObject.GetComponent<ContactSensorComponent>().contact;
                     //fitCompContactHazard
                     break;

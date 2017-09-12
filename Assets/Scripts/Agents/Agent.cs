@@ -110,7 +110,7 @@ public class Agent : MonoBehaviour {
             basicWheelList[i].Tick();
         }
         for (int i = 0; i < basicJointList.Count; i++) {
-            basicJointList[i].Tick();
+            basicJointList[i].Tick(this); // needed for root segment transform
         }
         for (int i = 0; i < contactSensorList.Count; i++) {
             contactSensorList[i].Tick();

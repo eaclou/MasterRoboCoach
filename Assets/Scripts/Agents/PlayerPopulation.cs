@@ -23,8 +23,7 @@ public class PlayerPopulation {
     public int numPerformanceReps = 1;
     public int numHistoricalReps = 0;
     public int numBaselineReps = 0;
-
-    [System.NonSerialized]
+    
     public BodyGenome bodyGenomeTemplate;
 
     // Representative system will be expanded later - for now, just defaults to Top # of performers
@@ -44,14 +43,9 @@ public class PlayerPopulation {
             AgentGenome agentGenome = new AgentGenome(j);
             agentGenome.InitializeBodyGenomeFromTemplate(bodyGenomeTemplate);
             agentGenome.InitializeRandomBrainFromCurrentBody(0.0f);            
-            agentGenomeList.Add(agentGenome);
-
-
-            AgentGenome baselineGenome = new AgentGenome(j);
-            baselineGenome.InitializeBodyGenomeFromTemplate(bodyGenomeTemplate);
-            baselineGenome.InitializeRandomBrainFromCurrentBody(0.0f);
-            baselineGenomePool.Add(baselineGenome);            
+            agentGenomeList.Add(agentGenome);         
         }
+        RepopulateBaselineGenomes();
         AppendBaselineGenomes();
 
         // Representatives:
@@ -76,6 +70,23 @@ public class PlayerPopulation {
         //fitnessManager.InitializeLoadedData(popSize);
         // Training Settings Manager:
         // -- so simple at this point no init is needed, it's just 2 floats
+    }
+    public void RepopulateBaselineGenomes() {
+        if(baselineGenomePool == null) {
+            baselineGenomePool = new List<AgentGenome>();
+        }
+        else {
+            baselineGenomePool.Clear();
+        }
+        
+
+        for (int j = 0; j < numBaseline; j++) {           
+
+            AgentGenome baselineGenome = new AgentGenome(j);
+            baselineGenome.InitializeBodyGenomeFromTemplate(bodyGenomeTemplate);
+            baselineGenome.InitializeRandomBrainFromCurrentBody(0.0f);
+            baselineGenomePool.Add(baselineGenome);
+        }
     }
 
     public void TrimBaselineGenomes() {
@@ -119,8 +130,10 @@ public class PlayerPopulation {
         // -- Remove vestigial brain connections/nodes
 
         bodyGenomeTemplate.CopyBodyGenomeFromTemplate(pendingBody); // sets contents of body to a copy of the sourceGenome
-             
-        for(int i = 0; i < agentGenomeList.Count; i++) {
+
+        RepopulateBaselineGenomes(); // update the baselineGenomes to have compatible body
+
+        for (int i = 0; i < agentGenomeList.Count; i++) {
             agentGenomeList[i].bodyGenome.CopyBodyGenomeFromTemplate(pendingBody);
             agentGenomeList[i].brainGenome.SetBodyNeuronsFromTemplate(pendingBody);
         }

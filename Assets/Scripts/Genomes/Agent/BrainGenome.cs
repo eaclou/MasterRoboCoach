@@ -210,55 +210,6 @@ public class BrainGenome {
                     break;
                 }
             }
-
-
-            /*
-            //create a master list of all neurons:
-            List<NeuronGenome> allNeuronsList = new List<NeuronGenome>();
-            for (int j = 0; j < bodyNeuronList.Count; j++) {
-                allNeuronsList.Add(bodyNeuronList[j]);
-            }
-            for (int j = 0; j < hiddenNeuronList.Count; j++) {
-                allNeuronsList.Add(hiddenNeuronList[j]);
-            }
-
-            // figure out how many connections each neuron has?
-            int[] neuronsConnectionCount = new int[allNeuronsList.Count];
-
-            // keep table of linearIndex positions for all neuron 2-dimensional ID's
-            Dictionary<NID, int> IDs = new Dictionary<NID, int>();
-            for (int j = 0; j < allNeuronsList.Count; j++) {
-                IDs.Add(allNeuronsList[j].nid, j);
-            }
-            for (int j = 0; j < linkList.Count; j++) {
-
-                // find out neuronIDs:
-                int fromID = -1;
-                if (IDs.TryGetValue(new NID(linkList[j].fromModuleID, linkList[j].fromNeuronID), out fromID)) {
-
-                }
-                else {
-                    Debug.LogError("fromNID NOT FOUND " + linkList[j].fromModuleID.ToString() + ", " + linkList[j].fromNeuronID.ToString());
-                }
-                int toID = -1;
-                if (IDs.TryGetValue(new NID(linkList[j].toModuleID, linkList[j].toNeuronID), out toID)) {
-
-                }
-                else {
-                    Debug.LogError("toNID NOT FOUND " + linkList[j].fromModuleID.ToString() + ", " + linkList[j].fromNeuronID.ToString());
-                }
-
-                neuronsConnectionCount[fromID]++;
-                neuronsConnectionCount[toID]++;
-            }
-            // First search for nodes with no connections, if so add there first
-            for(int k = 0; k < neuronsConnectionCount.Length; k++) {
-                if(neuronsConnectionCount[k] == 0) {
-
-                }
-            }
-            */
-            
         }
 
         // Add Brand New Hidden Neuron:
@@ -280,6 +231,42 @@ public class BrainGenome {
             linkList.Add(linkGenome2);
 
             //Debug.Log("New Neuron! " + newNeuronGenome.nid.neuronID.ToString() + " - from: [" + linkGenome1.fromModuleID.ToString() + ", " + linkGenome1.fromNeuronID.ToString() + "], to: [" + linkGenome2.toModuleID.ToString() + ", " + linkGenome2.toNeuronID.ToString() + "]");
+        }            
+    }
+
+    public void RemoveVestigialLinks() {
+        
+        //create a master list of all neurons:
+        List<NeuronGenome> allNeuronsList = new List<NeuronGenome>();
+        for (int j = 0; j < bodyNeuronList.Count; j++) {
+            allNeuronsList.Add(bodyNeuronList[j]);
+        }
+        for (int j = 0; j < hiddenNeuronList.Count; j++) {
+            allNeuronsList.Add(hiddenNeuronList[j]);
+        }
+        
+        // keep table of linearIndex positions for all neuron 2-dimensional ID's
+        Dictionary<NID, int> IDs = new Dictionary<NID, int>();
+        for (int j = 0; j < allNeuronsList.Count; j++) {
+            IDs.Add(allNeuronsList[j].nid, j);
+        }
+        for (int j = 0; j < linkList.Count; j++) {
+
+            // find out neuronIDs:
+            int fromID = -1;
+            if (IDs.TryGetValue(new NID(linkList[j].fromModuleID, linkList[j].fromNeuronID), out fromID)) {
+
+            }
+            else {
+                Debug.LogError("fromNID NOT FOUND " + linkList[j].fromModuleID.ToString() + ", " + linkList[j].fromNeuronID.ToString());
+            }
+            int toID = -1;
+            if (IDs.TryGetValue(new NID(linkList[j].toModuleID, linkList[j].toNeuronID), out toID)) {
+
+            }
+            else {
+                Debug.LogError("toNID NOT FOUND " + linkList[j].fromModuleID.ToString() + ", " + linkList[j].fromNeuronID.ToString());
+            }
         }            
     }
 
