@@ -17,13 +17,17 @@ public class Agent : MonoBehaviour {
     // in the future with more complex module additions, this might be extended programmatically.
     [SerializeField]
     public List<GameObject> visibleObjectList;
-        
+
     [System.NonSerialized]
-    public List<BasicWheel> basicWheelList;
+    public List<AtmosphereSensor> atmosphereSensorList;
     [System.NonSerialized]
     public List<BasicJoint> basicJointList;
     [System.NonSerialized]
+    public List<BasicWheel> basicWheelList;    
+    [System.NonSerialized]
     public List<ContactSensor> contactSensorList;
+    [System.NonSerialized]
+    public List<GravitySensor> gravitySensorList;
     [System.NonSerialized]
     public List<HealthModule> healthModuleList;
     [System.NonSerialized]
@@ -31,11 +35,15 @@ public class Agent : MonoBehaviour {
     [System.NonSerialized]
     public List<RaycastSensor> raycastSensorList;
     [System.NonSerialized]
+    public List<Shield> shieldList;
+    [System.NonSerialized]
     public List<TargetSensor> targetSensorList;
     [System.NonSerialized]
     public List<ThrusterEffector> thrusterEffectorList;
     [System.NonSerialized]
     public List<TorqueEffector> torqueEffectorList;
+    [System.NonSerialized]
+    public List<TrajectorySensor> trajectorySensorList;
     [System.NonSerialized]
     public List<InputValue> valueList;
     [System.NonSerialized]
@@ -52,14 +60,20 @@ public class Agent : MonoBehaviour {
     }
 
     public void MapNeuronToModule(NID nid, Neuron neuron) {
-        for (int i = 0; i < basicWheelList.Count; i++) {
-            basicWheelList[i].MapNeuron(nid, neuron);
+        for (int i = 0; i < atmosphereSensorList.Count; i++) {
+            atmosphereSensorList[i].MapNeuron(nid, neuron);
         }
         for (int i = 0; i < basicJointList.Count; i++) {
             basicJointList[i].MapNeuron(nid, neuron);
         }
+        for (int i = 0; i < basicWheelList.Count; i++) {
+            basicWheelList[i].MapNeuron(nid, neuron);
+        }        
         for (int i = 0; i < contactSensorList.Count; i++) {
             contactSensorList[i].MapNeuron(nid, neuron);
+        }
+        for (int i = 0; i < gravitySensorList.Count; i++) {
+            gravitySensorList[i].MapNeuron(nid, neuron);
         }
         for (int i = 0; i < healthModuleList.Count; i++) {
             healthModuleList[i].MapNeuron(nid, neuron);
@@ -70,6 +84,9 @@ public class Agent : MonoBehaviour {
         for (int i = 0; i < raycastSensorList.Count; i++) {
             raycastSensorList[i].MapNeuron(nid, neuron);
         }
+        for (int i = 0; i < shieldList.Count; i++) {
+            shieldList[i].MapNeuron(nid, neuron);
+        }
         for (int i = 0; i < targetSensorList.Count; i++) {
             targetSensorList[i].MapNeuron(nid, neuron);            
         }        
@@ -78,6 +95,9 @@ public class Agent : MonoBehaviour {
         }
         for (int i = 0; i < torqueEffectorList.Count; i++) {
             torqueEffectorList[i].MapNeuron(nid, neuron);            
+        }
+        for (int i = 0; i < trajectorySensorList.Count; i++) {
+            trajectorySensorList[i].MapNeuron(nid, neuron);
         }
         for (int i = 0; i < valueList.Count; i++) {
             valueList[i].MapNeuron(nid, neuron);
@@ -106,14 +126,39 @@ public class Agent : MonoBehaviour {
         //brain.PrintBrain();
     }
     public void RunModules(int timeStep) {
-        for (int i = 0; i < basicWheelList.Count; i++) {
-            basicWheelList[i].Tick();
+        for (int i = 0; i < atmosphereSensorList.Count; i++) {
+            atmosphereSensorList[i].Tick();
         }
         for (int i = 0; i < basicJointList.Count; i++) {
             basicJointList[i].Tick(this); // needed for root segment transform
         }
+        for (int i = 0; i < basicWheelList.Count; i++) {
+            basicWheelList[i].Tick();
+        }        
         for (int i = 0; i < contactSensorList.Count; i++) {
             contactSensorList[i].Tick();
+            if(contactSensorList[i].component.newCollision) {
+                // collision w/ damage!
+                // hacky!!!! warning!!!
+                float impulseDamageThreshold = 0.5f;
+                float impactForce  = contactSensorList[i].component.maxImpactForce;
+                if (healthModuleList.Count > 0) {
+                    if(impactForce > impulseDamageThreshold) {
+                        //Debug.Log("COLLISION DAMAGE!!! " + impactForce.ToString());
+                        float damage = 100f;
+                        if(impactForce > 2.5f) {
+                            damage += 100f;
+                            if (impactForce > 5f) {
+                                damage += 100f;
+                            }
+                        }
+                        healthModuleList[0].InflictDamage(damage);
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < gravitySensorList.Count; i++) {
+            gravitySensorList[i].Tick();
         }
         for (int i = 0; i < healthModuleList.Count; i++) {
             healthModuleList[i].Tick();
@@ -124,6 +169,9 @@ public class Agent : MonoBehaviour {
         for (int i = 0; i < raycastSensorList.Count; i++) {
             raycastSensorList[i].Tick();
         }
+        for (int i = 0; i < shieldList.Count; i++) {
+            shieldList[i].Tick();
+        }
         for (int i = 0; i < targetSensorList.Count; i++) {
             targetSensorList[i].Tick();
         }        
@@ -132,6 +180,9 @@ public class Agent : MonoBehaviour {
         }
         for (int i = 0; i < torqueEffectorList.Count; i++) {
             torqueEffectorList[i].Tick();            
+        }
+        for (int i = 0; i < trajectorySensorList.Count; i++) {
+            trajectorySensorList[i].Tick();
         }
         //for (int i = 0; i < valueList.Count; i++) {            
         //}
@@ -144,25 +195,27 @@ public class Agent : MonoBehaviour {
     }
 
     public void InitializeModules(AgentGenome genome, Agent agent) {
-        basicWheelList = new List<BasicWheel>();
-        basicJointList = new List<BasicJoint>();    
-        contactSensorList = new List<ContactSensor>();    
+        atmosphereSensorList = new List<AtmosphereSensor>();
+        basicJointList = new List<BasicJoint>();
+        basicWheelList = new List<BasicWheel>();        
+        contactSensorList = new List<ContactSensor>();  
+        gravitySensorList = new List<GravitySensor>();
         healthModuleList = new List<HealthModule>();    
         oscillatorList = new List<InputOscillator>();    
-        raycastSensorList = new List<RaycastSensor>();    
+        raycastSensorList = new List<RaycastSensor>();
+        shieldList = new List<Shield>();
         targetSensorList = new List<TargetSensor>();    
         thrusterEffectorList = new List<ThrusterEffector>();    
-        torqueEffectorList = new List<TorqueEffector>();    
+        torqueEffectorList = new List<TorqueEffector>();  
+        trajectorySensorList = new List<TrajectorySensor>();
         valueList = new List<InputValue>();    
         weaponProjectileList = new List<WeaponProjectile>();    
         weaponTazerList = new List<WeaponTazer>();
 
-        for (int i = 0; i < genome.bodyGenome.basicWheelList.Count; i++) {
-            BasicWheel basicWheel = new BasicWheel();
-            basicWheel.Initialize(genome.bodyGenome.basicWheelList[i], agent);
-            basicWheelList.Add(basicWheel);
-            //OLD:
-            //basicWheelList[i].Initialize(genome.basicWheelList[i]);
+        for (int i = 0; i < genome.bodyGenome.atmosphereSensorList.Count; i++) {
+            AtmosphereSensor atmosphereSensor = new AtmosphereSensor();
+            atmosphereSensor.Initialize(genome.bodyGenome.atmosphereSensorList[i], agent);
+            atmosphereSensorList.Add(atmosphereSensor);
         }
         for (int i = 0; i < genome.bodyGenome.basicJointList.Count; i++) {
             BasicJoint basicJoint = new BasicJoint();
@@ -170,6 +223,13 @@ public class Agent : MonoBehaviour {
             basicJointList.Add(basicJoint);
             //basicJointList[i].Initialize(genome.basicJointList[i]);
         }
+        for (int i = 0; i < genome.bodyGenome.basicWheelList.Count; i++) {
+            BasicWheel basicWheel = new BasicWheel();
+            basicWheel.Initialize(genome.bodyGenome.basicWheelList[i], agent);
+            basicWheelList.Add(basicWheel);
+            //OLD:
+            //basicWheelList[i].Initialize(genome.basicWheelList[i]);
+        }        
         for (int i = 0; i < genome.bodyGenome.contactSensorList.Count; i++) {
             ContactSensor contactSensor = new ContactSensor();
             //agent.segmentList[genome.contactSensorList[i].parentID].AddComponent<ContactSensorComponent>();
@@ -177,6 +237,11 @@ public class Agent : MonoBehaviour {
             contactSensorList.Add(contactSensor);
             
             //contactSensorList[i].Initialize(genome.contactSensorList[i]);
+        }
+        for (int i = 0; i < genome.bodyGenome.gravitySensorList.Count; i++) {
+            GravitySensor gravitySensor = new GravitySensor();
+            gravitySensor.Initialize(genome.bodyGenome.gravitySensorList[i], agent);
+            gravitySensorList.Add(gravitySensor);
         }
         for (int i = 0; i < genome.bodyGenome.healthModuleList.Count; i++) {
             HealthModule healthModule = new HealthModule();
@@ -196,6 +261,11 @@ public class Agent : MonoBehaviour {
             raycastSensor.Initialize(genome.bodyGenome.raycastSensorList[i], agent);
             raycastSensorList.Add(raycastSensor);
             //raycastSensorList[i].Initialize(genome.raycastSensorList[i]);
+        }
+        for (int i = 0; i < genome.bodyGenome.shieldList.Count; i++) {
+            Shield shield = new Shield();
+            shield.Initialize(genome.bodyGenome.shieldList[i], agent);
+            shieldList.Add(shield);
         }
         for (int i = 0; i < genome.bodyGenome.targetSensorList.Count; i++) {
             TargetSensor targetSensor = new TargetSensor();
@@ -229,6 +299,11 @@ public class Agent : MonoBehaviour {
             torqueEffector.Initialize(genome.bodyGenome.torqueList[i], agent);
             torqueEffectorList.Add(torqueEffector);
             //torqueEffectorList[i].Initialize(genome.torqueList[i]);
+        }
+        for (int i = 0; i < genome.bodyGenome.trajectorySensorList.Count; i++) {
+            TrajectorySensor trajectorySensor = new TrajectorySensor();
+            trajectorySensor.Initialize(genome.bodyGenome.trajectorySensorList[i], agent);
+            trajectorySensorList.Add(trajectorySensor);
         }
         for (int i = 0; i < genome.bodyGenome.valueInputList.Count; i++) {
             InputValue inputValue = new InputValue();

@@ -7,20 +7,26 @@ public enum EnvironmentModuleGenomeType {
     None,
     Terrain,
     Target,
-    Obstacles
+    Obstacles,
+    Atmosphere,
+    Meteorites
 }
 
 public enum AgentModuleGenomeType {
     None,
+    AtmosphereSensor,
     BasicJoint,
     BasicWheel,
     Contact,
+    GravitySensor,
     Health,
     Oscillator,
     Raycast,
+    Shield,
     Target,
     Thruster,
     Torque,
+    TrajectorySensor,
     Value,
     WeaponProjectile,
     WeaponTazer

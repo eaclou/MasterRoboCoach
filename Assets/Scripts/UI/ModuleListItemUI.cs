@@ -53,7 +53,15 @@ public class ModuleListItemUI : MonoBehaviour {
                 case EnvironmentModuleGenomeType.Obstacles:
                     // do stuff
                     textModuleName.text = "Obstacles " + moduleIndex.ToString();
-                    break;                
+                    break;
+                case EnvironmentModuleGenomeType.Atmosphere:
+                    // do stuff
+                    textModuleName.text = "Atmosphere " + moduleIndex.ToString();
+                    break;
+                case EnvironmentModuleGenomeType.Meteorites:
+                    // do stuff
+                    textModuleName.text = "Meteorites " + moduleIndex.ToString();
+                    break;
                 default:
                     // do stuff
                     Debug.LogError("NO SUCH ENUM TYPE!!! EnvironmentModuleGenomeType: " + envType.ToString());
@@ -62,6 +70,10 @@ public class ModuleListItemUI : MonoBehaviour {
         }
         else {
             switch (agentType) {
+                case AgentModuleGenomeType.AtmosphereSensor:
+                    // do stuff
+                    textModuleName.text = "Atmosphere Sensor #" + moduleIndex.ToString();
+                    break;
                 case AgentModuleGenomeType.BasicJoint:
                     // do stuff
                     textModuleName.text = "Basic Joint #" + moduleIndex.ToString();
@@ -73,6 +85,10 @@ public class ModuleListItemUI : MonoBehaviour {
                 case AgentModuleGenomeType.Contact:
                     // do stuff
                     textModuleName.text = "Contact Sensor #" + moduleIndex.ToString();
+                    break;
+                case AgentModuleGenomeType.GravitySensor:
+                    // do stuff
+                    textModuleName.text = "Gravity Sensor #" + moduleIndex.ToString();
                     break;
                 case AgentModuleGenomeType.Health:
                     // do stuff
@@ -86,6 +102,10 @@ public class ModuleListItemUI : MonoBehaviour {
                     // do stuff
                     textModuleName.text = "Raycast Sensor #" + moduleIndex.ToString();
                     break;
+                case AgentModuleGenomeType.Shield:
+                    // do stuff
+                    textModuleName.text = "Shield #" + moduleIndex.ToString();
+                    break;
                 case AgentModuleGenomeType.Target:
                     // do stuff
                     textModuleName.text = "Target Sensor #" + moduleIndex.ToString();
@@ -97,6 +117,10 @@ public class ModuleListItemUI : MonoBehaviour {
                 case AgentModuleGenomeType.Torque:
                     // do stuff
                     textModuleName.text = "Torque #" + moduleIndex.ToString();
+                    break;
+                case AgentModuleGenomeType.TrajectorySensor:
+                    // do stuff
+                    textModuleName.text = "Trajectory Sensor #" + moduleIndex.ToString();
                     break;
                 case AgentModuleGenomeType.Value:
                     // do stuff

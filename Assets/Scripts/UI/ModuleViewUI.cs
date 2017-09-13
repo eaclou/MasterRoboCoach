@@ -158,9 +158,43 @@ public class ModuleViewUI : MonoBehaviour {
                 moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.Obstacles, AgentModuleGenomeType.None, true);
                 moduleListItemGO.transform.SetParent(transformModuleListSpace);
             }
+            // ATMOSPHERE:
+            if (pendingEnvironmentGenomeTemplate.useAtmosphere) {
+                GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
+                ModuleListItemUI moduleListItemScript = moduleListItemGO.GetComponent<ModuleListItemUI>();
+
+                moduleListItemScript.moduleIndex = 0; // CHANGE LATER!!!!!!!
+                moduleListItemScript.trainerRef = trainerRef;
+                moduleListItemScript.moduleViewUI = this;
+                moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.Atmosphere, AgentModuleGenomeType.None, true);
+                moduleListItemGO.transform.SetParent(transformModuleListSpace);
+            }
+            // METEORITES:
+            if (pendingEnvironmentGenomeTemplate.useMeteorites) {
+                GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
+                ModuleListItemUI moduleListItemScript = moduleListItemGO.GetComponent<ModuleListItemUI>();
+
+                moduleListItemScript.moduleIndex = 0; // CHANGE LATER!!!!!!!
+                moduleListItemScript.trainerRef = trainerRef;
+                moduleListItemScript.moduleViewUI = this;
+                moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.Meteorites, AgentModuleGenomeType.None, true);
+                moduleListItemGO.transform.SetParent(transformModuleListSpace);
+            }
         }
         else { // AGENT:
 
+            // ATMOSPHERE SENSOR:
+            for (int i = 0; i < pendingBodyGenomeTemplate.atmosphereSensorList.Count; i++) {
+                GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
+
+                ModuleListItemUI moduleListItemScript = moduleListItemGO.GetComponent<ModuleListItemUI>();
+
+                moduleListItemScript.moduleIndex = i; // CHANGE LATER!!!!!!!
+                moduleListItemScript.trainerRef = trainerRef;
+                moduleListItemScript.moduleViewUI = this;
+                moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.None, AgentModuleGenomeType.AtmosphereSensor, false);
+                moduleListItemGO.transform.SetParent(transformModuleListSpace);
+            }
             // BASIC JOINT:
             for (int i = 0; i < pendingBodyGenomeTemplate.basicJointList.Count; i++) {
                 GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
@@ -195,6 +229,18 @@ public class ModuleViewUI : MonoBehaviour {
                 moduleListItemScript.trainerRef = trainerRef;
                 moduleListItemScript.moduleViewUI = this;
                 moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.None, AgentModuleGenomeType.Contact, false);
+                moduleListItemGO.transform.SetParent(transformModuleListSpace);
+            }
+            // GRAVITY SENSOR:
+            for (int i = 0; i < pendingBodyGenomeTemplate.gravitySensorList.Count; i++) {
+                GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
+
+                ModuleListItemUI moduleListItemScript = moduleListItemGO.GetComponent<ModuleListItemUI>();
+
+                moduleListItemScript.moduleIndex = i; // CHANGE LATER!!!!!!!
+                moduleListItemScript.trainerRef = trainerRef;
+                moduleListItemScript.moduleViewUI = this;
+                moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.None, AgentModuleGenomeType.GravitySensor, false);
                 moduleListItemGO.transform.SetParent(transformModuleListSpace);
             }
             // HEALTH SENSOR:
@@ -233,6 +279,17 @@ public class ModuleViewUI : MonoBehaviour {
                 moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.None, AgentModuleGenomeType.Raycast, false);
                 moduleListItemGO.transform.SetParent(transformModuleListSpace);
             }
+            // SHIELD:
+            for (int i = 0; i < pendingBodyGenomeTemplate.shieldList.Count; i++) {
+                GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
+                ModuleListItemUI moduleListItemScript = moduleListItemGO.GetComponent<ModuleListItemUI>();
+
+                moduleListItemScript.moduleIndex = i; // CHANGE LATER!!!!!!!
+                moduleListItemScript.trainerRef = trainerRef;
+                moduleListItemScript.moduleViewUI = this;
+                moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.None, AgentModuleGenomeType.Shield, false);
+                moduleListItemGO.transform.SetParent(transformModuleListSpace);
+            }
             //TARGET SENSOR:
             for (int i = 0; i < pendingBodyGenomeTemplate.targetSensorList.Count; i++) {
                 GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
@@ -267,6 +324,17 @@ public class ModuleViewUI : MonoBehaviour {
                 moduleListItemScript.trainerRef = trainerRef;
                 moduleListItemScript.moduleViewUI = this;
                 moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.None, AgentModuleGenomeType.Torque, false);
+                moduleListItemGO.transform.SetParent(transformModuleListSpace);
+            }
+            // TRAJECTORY SENSOR:
+            for (int i = 0; i < pendingBodyGenomeTemplate.trajectorySensorList.Count; i++) {
+                GameObject moduleListItemGO = (GameObject)Instantiate(goModuleListItemPrefab);
+                ModuleListItemUI moduleListItemScript = moduleListItemGO.GetComponent<ModuleListItemUI>();
+
+                moduleListItemScript.moduleIndex = i; // CHANGE LATER!!!!!!!
+                moduleListItemScript.trainerRef = trainerRef;
+                moduleListItemScript.moduleViewUI = this;
+                moduleListItemScript.SetStatusFromData(EnvironmentModuleGenomeType.None, AgentModuleGenomeType.TrajectorySensor, false);
                 moduleListItemGO.transform.SetParent(transformModuleListSpace);
             }
             // VALUE INPUT:
@@ -337,6 +405,22 @@ public class ModuleViewUI : MonoBehaviour {
                     editObstaclesScript.SetStatusFromData();
                     editObstaclesPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
+                case EnvironmentModuleGenomeType.Atmosphere:
+                    // do stuff
+                    GameObject editAtmospherePanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditAtmosphereUI") as GameObject);
+                    EditAtmosphereUI editAtmosphereScript = editAtmospherePanelGO.GetComponent<EditAtmosphereUI>();
+                    editAtmosphereScript.genome = pendingEnvironmentGenomeTemplate.atmosphereGenome;
+                    editAtmosphereScript.SetStatusFromData();
+                    editAtmospherePanelGO.transform.SetParent(transformEditModuleDock);
+                    break;
+                case EnvironmentModuleGenomeType.Meteorites:
+                    // do stuff
+                    GameObject editMeteoritesPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditMeteoritesUI") as GameObject);
+                    EditMeteoritesUI editMeteoritesScript = editMeteoritesPanelGO.GetComponent<EditMeteoritesUI>();
+                    editMeteoritesScript.genome = pendingEnvironmentGenomeTemplate.meteoritesGenome;
+                    editMeteoritesScript.SetStatusFromData();
+                    editMeteoritesPanelGO.transform.SetParent(transformEditModuleDock);
+                    break;
                 default:
                     // do stuff
                     Debug.LogError("NO SUCH ENUM TYPE!!! EnvironmentModuleGenomeType: " + envType.ToString());
@@ -347,6 +431,13 @@ public class ModuleViewUI : MonoBehaviour {
             //textModuleDescription.text = agentType.ToString() + " " + moduleListIndex.ToString();
 
             switch (agentType) {
+                case AgentModuleGenomeType.AtmosphereSensor:
+                    GameObject editAtmosphereSensorPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditAtmosphereSensorUI") as GameObject);
+                    EditAtmosphereSensorUI editAtmosphereSensorScript = editAtmosphereSensorPanelGO.GetComponent<EditAtmosphereSensorUI>();
+                    editAtmosphereSensorScript.genome = pendingBodyGenomeTemplate.atmosphereSensorList[moduleListIndex];
+                    editAtmosphereSensorScript.SetStatusFromData();
+                    editAtmosphereSensorPanelGO.transform.SetParent(transformEditModuleDock);
+                    break;
                 case AgentModuleGenomeType.BasicJoint:
                     // do stuff
                     //textModuleDescription.text += "\n\nInno: " + pendingBodyGenomeTemplate.basicJointList[moduleListIndex].inno.ToString();
@@ -378,6 +469,13 @@ public class ModuleViewUI : MonoBehaviour {
                     editContactScript.SetStatusFromData();
                     editContactPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
+                case AgentModuleGenomeType.GravitySensor:
+                    GameObject editGravitySensorPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditGravitySensorUI") as GameObject);
+                    EditGravityUI editGravitySensorScript = editGravitySensorPanelGO.GetComponent<EditGravityUI>();
+                    editGravitySensorScript.genome = pendingBodyGenomeTemplate.gravitySensorList[moduleListIndex];
+                    editGravitySensorScript.SetStatusFromData();
+                    editGravitySensorPanelGO.transform.SetParent(transformEditModuleDock);
+                    break;
                 case AgentModuleGenomeType.Health:
                     // do stuff
                     GameObject editHealthPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditHealthUI") as GameObject);
@@ -407,6 +505,13 @@ public class ModuleViewUI : MonoBehaviour {
                     editRaycastScript.SetStatusFromData();
                     editRaycastPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
+                case AgentModuleGenomeType.Shield:
+                    GameObject editShieldPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditShieldUI") as GameObject);
+                    EditShieldUI editShieldScript = editShieldPanelGO.GetComponent<EditShieldUI>();
+                    editShieldScript.genome = pendingBodyGenomeTemplate.shieldList[moduleListIndex];
+                    editShieldScript.SetStatusFromData();
+                    editShieldPanelGO.transform.SetParent(transformEditModuleDock);
+                    break;
                 case AgentModuleGenomeType.Target:
                     // do stuff
                     GameObject editTargetPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditTargetUI") as GameObject);
@@ -430,6 +535,13 @@ public class ModuleViewUI : MonoBehaviour {
                     editTorqueScript.genome = pendingBodyGenomeTemplate.torqueList[moduleListIndex];
                     editTorqueScript.SetStatusFromData();
                     editTorquePanelGO.transform.SetParent(transformEditModuleDock);
+                    break;
+                case AgentModuleGenomeType.TrajectorySensor:
+                    GameObject editTrajectorySensorPanelGO = (GameObject)Instantiate(Resources.Load("Prefabs/PrefabsUI/ModuleEditorPanels/PanelEditTrajectorySensorUI") as GameObject);
+                    EditTrajectoryUI editTrajectorySensorScript = editTrajectorySensorPanelGO.GetComponent<EditTrajectoryUI>();
+                    editTrajectorySensorScript.genome = pendingBodyGenomeTemplate.trajectorySensorList[moduleListIndex];
+                    editTrajectorySensorScript.SetStatusFromData();
+                    editTrajectorySensorPanelGO.transform.SetParent(transformEditModuleDock);
                     break;
                 case AgentModuleGenomeType.Value:
                     // do stuff
@@ -490,6 +602,30 @@ public class ModuleViewUI : MonoBehaviour {
                     }
                     
                     break;
+                case EnvironmentModuleGenomeType.Atmosphere:
+                    // do stuff
+                    textModuleTypeInfo.text = "Wind and atmospheric conditions";
+                    if (pendingEnvironmentGenomeTemplate.useAtmosphere) {
+                        // already has them
+                        textModuleTypeInfo.text += " - already applied!";
+                        buttonAddSelectedModuleType.interactable = false;
+                    }
+                    else {
+                        buttonAddSelectedModuleType.interactable = true;
+                    }
+                    break;
+                case EnvironmentModuleGenomeType.Meteorites:
+                    // do stuff
+                    textModuleTypeInfo.text = "Deadly Meteorites!";
+                    if (pendingEnvironmentGenomeTemplate.useMeteorites) {
+                        // already has them
+                        textModuleTypeInfo.text += " - already applied!";
+                        buttonAddSelectedModuleType.interactable = false;
+                    }
+                    else {
+                        buttonAddSelectedModuleType.interactable = true;
+                    }
+                    break;
                 default:
                     // do stuff
                     Debug.LogError("NO SUCH ENUM TYPE!!! EnvironmentModuleGenomeType: " + newEnvironmentModuleType.ToString());
@@ -500,6 +636,10 @@ public class ModuleViewUI : MonoBehaviour {
             textModuleType.text = newAgentModuleType.ToString();
 
             switch (newAgentModuleType) {
+                case AgentModuleGenomeType.AtmosphereSensor:
+                    textModuleTypeInfo.text = "Atmospheric conditions sensor - wind";
+                    buttonAddSelectedModuleType.interactable = true;
+                    break;
                 case AgentModuleGenomeType.BasicJoint:
                     // NOT ADDABLE CURRENTLY:
                     textModuleTypeInfo.text = "A Joint connection between two segments. Not currently available for addition";
@@ -515,6 +655,10 @@ public class ModuleViewUI : MonoBehaviour {
                     // Complicated by the fact that it can be added onto any arbitrary segment!
                     // NOT ADDABLE CURRENTLY:
                     textModuleTypeInfo.text = "A Sensor which detects collision pressure against this segment.";
+                    buttonAddSelectedModuleType.interactable = true;
+                    break;
+                case AgentModuleGenomeType.GravitySensor:
+                    textModuleTypeInfo.text = "Senses the direction of Gravity";
                     buttonAddSelectedModuleType.interactable = true;
                     break;
                 case AgentModuleGenomeType.Health:
@@ -533,6 +677,10 @@ public class ModuleViewUI : MonoBehaviour {
                     textModuleTypeInfo.text = "A collection of rangefinding lasers to measure distance to nearest solid surface";
                     buttonAddSelectedModuleType.interactable = true;
                     break;
+                case AgentModuleGenomeType.Shield:
+                    textModuleTypeInfo.text = "Active shield which protects against energy attacks";
+                    buttonAddSelectedModuleType.interactable = true;
+                    break;
                 case AgentModuleGenomeType.Target:
                     // do stuff
                     textModuleTypeInfo.text = "A sensor which describes the location of a target position relative to the Agent";
@@ -546,6 +694,10 @@ public class ModuleViewUI : MonoBehaviour {
                 case AgentModuleGenomeType.Torque:
                     // do stuff
                     textModuleTypeInfo.text = "Applies an angular force on the segment to which it is attached";
+                    buttonAddSelectedModuleType.interactable = true;
+                    break;
+                case AgentModuleGenomeType.TrajectorySensor:
+                    textModuleTypeInfo.text = "Senses the trajectories of hazardous projectiles";
                     buttonAddSelectedModuleType.interactable = true;
                     break;
                 case AgentModuleGenomeType.Value:
@@ -686,6 +838,34 @@ public class ModuleViewUI : MonoBehaviour {
 
                     //pendingBodyGenomeTemplate.oscillatorInputList.Add(oscillatorGenome);
                     break;
+                case EnvironmentModuleGenomeType.Atmosphere:
+                    // do stuff
+                    AtmosphereGenome atmosphereGenome = new AtmosphereGenome();
+                    //Defaults:
+                    //basicObstaclesGenome.numObstacles = 4;
+                    //basicObstaclesGenome.minObstacleSize = 0.5f;
+                    //basicObstaclesGenome.maxObstacleSize = 6f;
+                    //basicObstaclesGenome.obstaclePositions = new Vector2[4]; // default
+                    //basicObstaclesGenome.obstacleScales = new float[4];
+                    atmosphereGenome.InitializeRandomGenome();
+
+                    pendingEnvironmentGenomeTemplate.atmosphereGenome = atmosphereGenome;
+                    pendingEnvironmentGenomeTemplate.useAtmosphere = true;
+                    //nextInno++;
+                    //oscillatorGenome.freq = 1f;
+                    //oscillatorGenome.amp = 1f;
+
+                    //pendingBodyGenomeTemplate.oscillatorInputList.Add(oscillatorGenome);
+                    break;
+                case EnvironmentModuleGenomeType.Meteorites:
+                    // do stuff
+                    MeteoritesGenome meteoritesGenome = new MeteoritesGenome();
+                    //Defaults:
+                    meteoritesGenome.InitializeRandomGenome();
+
+                    pendingEnvironmentGenomeTemplate.meteoritesGenome = meteoritesGenome;
+                    pendingEnvironmentGenomeTemplate.useMeteorites = true;
+                    break;
                 default:
                     // do stuff
                     Debug.LogError("NO SUCH ENUM TYPE!!! EnvironmentModuleGenomeType: " + newEnvironmentModuleType.ToString());
@@ -699,6 +879,13 @@ public class ModuleViewUI : MonoBehaviour {
             int nextInno = pendingBodyGenomeTemplate.GetCurrentHighestInnoValue() + 1;
 
             switch (newAgentModuleType) {
+                case AgentModuleGenomeType.AtmosphereSensor:
+                    // do stuff
+                    AtmosphereSensorGenome atmosphereSensorGenome = new AtmosphereSensorGenome(0, nextInno);
+                    nextInno++;
+                    atmosphereSensorGenome.parentID = 0;
+                    pendingBodyGenomeTemplate.atmosphereSensorList.Add(atmosphereSensorGenome);
+                    break;
                 case AgentModuleGenomeType.BasicJoint:
                     // NOT ADDABLE CURRENTLY:
                     break;
@@ -711,6 +898,13 @@ public class ModuleViewUI : MonoBehaviour {
                     nextInno++;
                     contactGenome.parentID = 0;
                     pendingBodyGenomeTemplate.contactSensorList.Add(contactGenome);
+                    break;
+                case AgentModuleGenomeType.GravitySensor:
+                    // do stuff
+                    GravitySensorGenome gravitySensorGenome = new GravitySensorGenome(0, nextInno);
+                    nextInno++;
+                    gravitySensorGenome.parentID = 0;
+                    pendingBodyGenomeTemplate.gravitySensorList.Add(gravitySensorGenome);
                     break;
                 case AgentModuleGenomeType.Health:
                     // do stuff
@@ -732,6 +926,13 @@ public class ModuleViewUI : MonoBehaviour {
                     raycastGenome.parentID = 0;
                     raycastGenome.sensorPosition = Vector3.zero;
                     pendingBodyGenomeTemplate.raycastSensorList.Add(raycastGenome);
+                    break;
+                case AgentModuleGenomeType.Shield:
+                    // do stuff
+                    ShieldGenome shieldGenome = new ShieldGenome(0, nextInno);
+                    nextInno++;
+                    shieldGenome.parentID = 0;
+                    pendingBodyGenomeTemplate.shieldList.Add(shieldGenome);
                     break;
                 case AgentModuleGenomeType.Target:
                     // do stuff
@@ -758,6 +959,13 @@ public class ModuleViewUI : MonoBehaviour {
                     torqueGenome.parentID = 0;
                     torqueGenome.strength = 1f;
                     pendingBodyGenomeTemplate.torqueList.Add(torqueGenome);
+                    break;
+                case AgentModuleGenomeType.TrajectorySensor:
+                    // do stuff
+                    TrajectorySensorGenome trajectorySensorGenome = new TrajectorySensorGenome(0, nextInno);
+                    nextInno++;
+                    trajectorySensorGenome.parentID = 0;
+                    pendingBodyGenomeTemplate.trajectorySensorList.Add(trajectorySensorGenome);
                     break;
                 case AgentModuleGenomeType.Value:
                     // do stuff

@@ -65,7 +65,7 @@ public class WeaponTazer : AgentModuleBase {
                 RaycastHit hit;
                 if (Physics.Raycast(rayOrigin, rayDir, out hit, rayMaxDistance)) {
                     if (hit.collider.GetComponent<HealthModuleComponent>() != null) {
-                        hit.collider.GetComponent<HealthModuleComponent>().TakeDamage(25f);
+                        hit.collider.GetComponent<HealthModuleComponent>().InflictDamage(25f);
                         damageInflicted[0] = 25f;
                     }
                 }

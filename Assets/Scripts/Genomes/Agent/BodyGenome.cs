@@ -7,15 +7,19 @@ public class BodyGenome {
 
     public AgentBodyType bodyType;
     // Modules:
+    public List<AtmosphereSensorGenome> atmosphereSensorList;
     public List<BasicWheelGenome> basicWheelList;
     public List<BasicJointGenome> basicJointList;
     public List<ContactGenome> contactSensorList;
+    public List<GravitySensorGenome> gravitySensorList;
     public List<HealthGenome> healthModuleList;
     public List<OscillatorGenome> oscillatorInputList;
     public List<RaycastSensorGenome> raycastSensorList;
+    public List<ShieldGenome> shieldList;
     public List<TargetSensorGenome> targetSensorList;
     public List<ThrusterGenome> thrusterList;
     public List<TorqueGenome> torqueList;
+    public List<TrajectorySensorGenome> trajectorySensorList;
     public List<ValueInputGenome> valueInputList;
     public List<WeaponProjectileGenome> weaponProjectileList;
     public List<WeaponTazerGenome> weaponTazerList;
@@ -29,20 +33,30 @@ public class BodyGenome {
         
         bodyType = templateGenome.bodyType;
         // copy module lists:
-        basicWheelList = new List<BasicWheelGenome>();
-        for (int i = 0; i < templateGenome.basicWheelList.Count; i++) {
-            BasicWheelGenome genomeCopy = new BasicWheelGenome(templateGenome.basicWheelList[i]);
-            basicWheelList.Add(genomeCopy);
-        }
+        atmosphereSensorList = new List<AtmosphereSensorGenome>();
+        for (int i = 0; i < templateGenome.atmosphereSensorList.Count; i++) {
+            AtmosphereSensorGenome genomeCopy = new AtmosphereSensorGenome(templateGenome.atmosphereSensorList[i]);
+            atmosphereSensorList.Add(genomeCopy);
+        }        
         basicJointList = new List<BasicJointGenome>();
         for (int i = 0; i < templateGenome.basicJointList.Count; i++) {
             BasicJointGenome genomeCopy = new BasicJointGenome(templateGenome.basicJointList[i]);
             basicJointList.Add(genomeCopy);
         }
+        basicWheelList = new List<BasicWheelGenome>();
+        for (int i = 0; i < templateGenome.basicWheelList.Count; i++) {
+            BasicWheelGenome genomeCopy = new BasicWheelGenome(templateGenome.basicWheelList[i]);
+            basicWheelList.Add(genomeCopy);
+        }
         contactSensorList = new List<ContactGenome>();
         for (int i = 0; i < templateGenome.contactSensorList.Count; i++) {
             ContactGenome genomeCopy = new ContactGenome(templateGenome.contactSensorList[i]);
             contactSensorList.Add(genomeCopy);
+        }
+        gravitySensorList = new List<GravitySensorGenome>();
+        for (int i = 0; i < templateGenome.gravitySensorList.Count; i++) {
+            GravitySensorGenome genomeCopy = new GravitySensorGenome(templateGenome.gravitySensorList[i]);
+            gravitySensorList.Add(genomeCopy);
         }
         healthModuleList = new List<HealthGenome>();
         for (int i = 0; i < templateGenome.healthModuleList.Count; i++) {
@@ -59,6 +73,11 @@ public class BodyGenome {
             RaycastSensorGenome genomeCopy = new RaycastSensorGenome(templateGenome.raycastSensorList[i]);
             raycastSensorList.Add(genomeCopy);
         }
+        shieldList = new List<ShieldGenome>();
+        for (int i = 0; i < templateGenome.shieldList.Count; i++) {
+            ShieldGenome genomeCopy = new ShieldGenome(templateGenome.shieldList[i]);
+            shieldList.Add(genomeCopy);
+        }
         targetSensorList = new List<TargetSensorGenome>();
         for (int i = 0; i < templateGenome.targetSensorList.Count; i++) {
             TargetSensorGenome genomeCopy = new TargetSensorGenome(templateGenome.targetSensorList[i]);
@@ -73,6 +92,11 @@ public class BodyGenome {
         for (int i = 0; i < templateGenome.torqueList.Count; i++) {
             TorqueGenome genomeCopy = new TorqueGenome(templateGenome.torqueList[i]);
             torqueList.Add(genomeCopy);
+        }
+        trajectorySensorList = new List<TrajectorySensorGenome>();
+        for (int i = 0; i < templateGenome.trajectorySensorList.Count; i++) {
+            TrajectorySensorGenome genomeCopy = new TrajectorySensorGenome(templateGenome.trajectorySensorList[i]);
+            trajectorySensorList.Add(genomeCopy);
         }
         valueInputList = new List<ValueInputGenome>();
         for (int i = 0; i < templateGenome.valueInputList.Count; i++) {
@@ -94,6 +118,10 @@ public class BodyGenome {
     public int GetCurrentHighestInnoValue() {
         int highestInno = -1;
 
+        for (int i = 0; i < atmosphereSensorList.Count; i++) {
+            if (atmosphereSensorList[i].inno > highestInno)
+                highestInno = atmosphereSensorList[i].inno;
+        }
         for (int i = 0; i < basicJointList.Count; i++) {
             if (basicJointList[i].inno > highestInno)
                 highestInno = basicJointList[i].inno;
@@ -105,6 +133,10 @@ public class BodyGenome {
         for (int i = 0; i < contactSensorList.Count; i++) {
             if (contactSensorList[i].inno > highestInno)
                 highestInno = contactSensorList[i].inno;
+        }
+        for (int i = 0; i < gravitySensorList.Count; i++) {
+            if (gravitySensorList[i].inno > highestInno)
+                highestInno = gravitySensorList[i].inno;
         }
         for (int i = 0; i < healthModuleList.Count; i++) {
             if (healthModuleList[i].inno > highestInno)
@@ -118,6 +150,10 @@ public class BodyGenome {
             if (raycastSensorList[i].inno > highestInno)
                 highestInno = raycastSensorList[i].inno;
         }
+        for (int i = 0; i < shieldList.Count; i++) {
+            if (shieldList[i].inno > highestInno)
+                highestInno = shieldList[i].inno;
+        }
         for (int i = 0; i < targetSensorList.Count; i++) {
             if (targetSensorList[i].inno > highestInno)
                 highestInno = targetSensorList[i].inno;
@@ -129,6 +165,10 @@ public class BodyGenome {
         for (int i = 0; i < torqueList.Count; i++) {
             if (torqueList[i].inno > highestInno)
                 highestInno = torqueList[i].inno;
+        }
+        for (int i = 0; i < trajectorySensorList.Count; i++) {
+            if (trajectorySensorList[i].inno > highestInno)
+                highestInno = trajectorySensorList[i].inno;
         }
         for (int i = 0; i < valueInputList.Count; i++) {
             if (valueInputList[i].inno > highestInno)

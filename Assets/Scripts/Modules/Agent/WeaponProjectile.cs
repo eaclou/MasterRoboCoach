@@ -65,7 +65,7 @@ public class WeaponProjectile : AgentModuleBase {
                 RaycastHit hit;
                 if (Physics.Raycast(rayOrigin, rayDir, out hit, rayMaxDistance)) {
                     if (hit.collider.GetComponent<HealthModuleComponent>() != null) {
-                        hit.collider.GetComponent<HealthModuleComponent>().TakeDamage(5f);
+                        hit.collider.GetComponent<HealthModuleComponent>().InflictDamage(5f);
                         damageInflicted[0] = 5f;                          
                     }
                 }

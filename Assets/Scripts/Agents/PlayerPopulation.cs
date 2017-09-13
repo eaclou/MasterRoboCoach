@@ -57,7 +57,7 @@ public class PlayerPopulation {
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.InitializeForNewGeneration(agentGenomeList.Count);
         
-        trainingSettingsManager = new TrainingSettingsManager(0.005f, 0.5f, 0f, 0f);
+        trainingSettingsManager = new TrainingSettingsManager(0.05f, 0.5f, 0f, 0f);
     }
     public void InitializeLoadedPopulation() {
         // Assumes template has been set from defaults!
@@ -148,8 +148,12 @@ public class PlayerPopulation {
          
         switch(challengeType) {
             case Challenge.Type.Test:
-                FitnessComponentDefinition distToTargetSquared = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Avg, 0.1f, false);
-                fitnessManager.fitnessComponentDefinitions.Add(distToTargetSquared);
+                FitnessComponentDefinition fitTest1 = new FitnessComponentDefinition(FitnessComponentType.WinLoss, FitnessComponentMeasure.Last, 1f, false);
+                fitnessManager.fitnessComponentDefinitions.Add(fitTest1);
+                FitnessComponentDefinition fitTest2 = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Avg, 1f, false);
+                fitnessManager.fitnessComponentDefinitions.Add(fitTest2);
+                FitnessComponentDefinition fitTest3 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, false);
+                fitnessManager.fitnessComponentDefinitions.Add(fitTest3);
                 break;
             case Challenge.Type.Racing:
                 FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, false);

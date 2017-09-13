@@ -490,14 +490,23 @@ public class EvaluationInstance : MonoBehaviour {
                 }
             }
             if (challengeType == Challenge.Type.Test) {
-                agentGameScoresArray[0][0] = currentTimeStep;
+                agentGameScoresArray[0][0] = (float)currentTimeStep / (float)maxTimeSteps;  // 0-1
 
                 Vector2 targetPos = new Vector2(currentEnvironment.environmentGameplay.targetColumn.transform.position.x, currentEnvironment.environmentGameplay.targetColumn.transform.position.z);
                 Vector2 agentPos = new Vector2(currentAgentsArray[0].rootObject.transform.position.x + currentAgentsArray[0].rootCOM.x, currentAgentsArray[0].rootObject.transform.position.z + currentAgentsArray[0].rootCOM.z);
                 float distanceToTarget = (targetPos - agentPos).magnitude;
                 if(distanceToTarget < 2f) {
                     // In target!!!
+                    agentGameScoresArray[0][0] -= 2f;
                     gameWonOrLost = true;
+                }
+
+                if(currentAgentsArray[0].healthModuleList.Count > 0) {
+                    if (currentAgentsArray[0].healthModuleList[0].destroyed) {
+                        agentGameScoresArray[0][0] = 2f;  // higher is worse in this case
+                        gameWonOrLost = true;
+                        Debug.Log("Agent DIED from collision! " + currentTimeStep.ToString());
+                    }
                 }
             }
         }

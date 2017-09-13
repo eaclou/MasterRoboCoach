@@ -6,6 +6,7 @@ using UnityEngine;
 public class HealthModule : AgentModuleBase {
     //public int parentID;
     //public int inno;
+    public bool destroyed = false;
     public float maxHealth;
     public float prevHealth;
     public float health;
@@ -24,6 +25,7 @@ public class HealthModule : AgentModuleBase {
     }
 
     public void Initialize(HealthGenome genome, Agent agent) {
+        destroyed = false;
         healthSensor = new float[1];
         takingDamage = new float[1];
         maxHealth = genome.maxHealth;
@@ -51,6 +53,14 @@ public class HealthModule : AgentModuleBase {
                 neuron.currentValue = takingDamage;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
+        }
+    }
+
+    public void InflictDamage(float amount) {
+        health -= amount;
+        if(health <= 0f) {
+            health = 0f;
+            destroyed = true;
         }
     }
 

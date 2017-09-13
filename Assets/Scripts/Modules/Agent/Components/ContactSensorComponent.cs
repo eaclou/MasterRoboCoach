@@ -6,6 +6,8 @@ public class ContactSensorComponent : MonoBehaviour {
     
     public bool contact = false;
     public bool hazard = false;
+    public float maxImpactForce = 0f;
+    public bool newCollision = false;
 
     public ContactSensor sensor;
 
@@ -16,16 +18,29 @@ public class ContactSensorComponent : MonoBehaviour {
     private void FixedUpdate() {
         contact = false;
         hazard = false;
+        maxImpactForce = 0f;
+        newCollision = false;
     }
 
     private void OnCollisionEnter(Collision collision) {
-               
-    }
+        processCollisionForces(collision.impulse.magnitude);
+        newCollision = true;
 
-    private void OnCollisionStay(Collision collision) {
         if (collision.collider.tag == "hazard") {
             hazard = true;
         }
         contact = true;
+    }
+
+    private void OnCollisionStay(Collision collision) {
+        processCollisionForces(collision.impulse.magnitude);
+        if (collision.collider.tag == "hazard") {
+            hazard = true;
+        }
+        contact = true;
+    }
+
+    private void processCollisionForces(float collisionForce) {
+        maxImpactForce = Mathf.Max(maxImpactForce, collisionForce);
     }
 }

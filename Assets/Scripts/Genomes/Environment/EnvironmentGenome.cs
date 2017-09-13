@@ -38,6 +38,10 @@ public class EnvironmentGenome {
     public BasicObstaclesGenome basicObstaclesGenome;
     public bool useTargetColumn;
     public TargetColumnGenome targetColumnGenome;
+    public bool useAtmosphere;
+    public AtmosphereGenome atmosphereGenome;
+    public bool useMeteorites;
+    public MeteoritesGenome meteoritesGenome;
 
     public EnvironmentGenome(int index) {
         this.index = index;
@@ -57,6 +61,12 @@ public class EnvironmentGenome {
         }        
         if (useTargetColumn) {
             targetColumnGenome.InitializeRandomGenome();
+        }
+        if (useAtmosphere) {
+            atmosphereGenome.InitializeRandomGenome();
+        }
+        if (useMeteorites) {
+            meteoritesGenome.InitializeRandomGenome();
         }
     }
     public void CopyGenomeFromTemplate(EnvironmentGenome templateGenome) {
@@ -88,27 +98,22 @@ public class EnvironmentGenome {
             targetColumnGenome = new TargetColumnGenome();
             //targetColumnGenome.InitializeRandomGenome();
         }
+        useAtmosphere = templateGenome.useAtmosphere;
+        if (useAtmosphere) {
+            atmosphereGenome = new AtmosphereGenome(templateGenome.atmosphereGenome);
+            //basicObstaclesGenome.InitializeRandomGenome();
+        }
+        useMeteorites = templateGenome.useMeteorites;
+        if (useMeteorites) {
+            meteoritesGenome = new MeteoritesGenome(templateGenome.meteoritesGenome);
+            //basicObstaclesGenome.InitializeRandomGenome();
+        }
 
         // For now this is fine -- but eventually might want to copy brainGenome from saved asset!
         //brainGenome = new BrainGenome();  // creates neuron and axonLists
         //InitializeRandomBrainGenome();        
     }
-
-    public void TempInitializeGenome() {
-        // Creates a basic but functioning Genome
-        // This might be replaceable in the future with the use of prefab Templates, similar to Agent Bodies
-        // Terrain:
-        //altitude = 0f;        
-                
-
-        // Target:
-        /*if (challengeType == Challenge.Type.Test) {
-            targetColumnGenome = new TargetColumnGenome();
-
-            targetColumnGenome.InitializeRandomGenome();
-        }*/
-    }
-
+     
     public void ClearEnvironmentPrefab() {
         gameplayPrefab = null;
     }
@@ -130,6 +135,14 @@ public class EnvironmentGenome {
         newGenome.useTargetColumn = parentGenome.useTargetColumn;
         if (parentGenome.useTargetColumn) {
             newGenome.targetColumnGenome = TargetColumnGenome.BirthNewGenome(parentGenome.targetColumnGenome, mutationRate, mutationDriftAmount);
+        }
+        newGenome.useAtmosphere = parentGenome.useAtmosphere;
+        if (parentGenome.useAtmosphere) {
+            newGenome.atmosphereGenome = AtmosphereGenome.BirthNewGenome(parentGenome.atmosphereGenome, mutationRate, mutationDriftAmount);
+        }
+        newGenome.useMeteorites = parentGenome.useMeteorites;
+        if (parentGenome.useMeteorites) {
+            newGenome.meteoritesGenome = MeteoritesGenome.BirthNewGenome(parentGenome.meteoritesGenome, mutationRate, mutationDriftAmount);
         }
 
         // StartPositions:
