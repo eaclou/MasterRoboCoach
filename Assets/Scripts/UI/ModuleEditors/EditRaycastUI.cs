@@ -15,7 +15,8 @@ public class EditRaycastUI : MonoBehaviour {
     public Text textPositionYValue;
     public Slider sliderPositionZ;
     public Text textPositionZValue;
-
+    public Slider sliderMaxDistance;
+    public Text textMaxDistanceValue;
 
     // Use this for initialization
     void Start () {
@@ -35,6 +36,8 @@ public class EditRaycastUI : MonoBehaviour {
         textPositionYValue.text = genome.sensorPosition.y.ToString();
         sliderPositionZ.value = genome.sensorPosition.z;
         textPositionZValue.text = genome.sensorPosition.z.ToString();
+        sliderMaxDistance.value = genome.maxDistance;
+        textMaxDistanceValue.text = genome.maxDistance.ToString();
     }
 
     public void SliderPositionX(float value) {
@@ -53,5 +56,10 @@ public class EditRaycastUI : MonoBehaviour {
 
         genome.sensorPosition.z = value;
         textPositionZValue.text = genome.sensorPosition.z.ToString();
+    }
+    public void SliderMaxDistance(float value) {
+
+        genome.maxDistance = value;
+        textMaxDistanceValue.text = genome.maxDistance.ToString();
     }
 }

@@ -203,7 +203,7 @@ public class BrainGenome {
 
                 }
                 else {
-                    float randomWeight = Gaussian.GetRandomGaussian() * 2f;
+                    float randomWeight = Gaussian.GetRandomGaussian() * 0f;
                     LinkGenome linkGenome = new LinkGenome(fromNID.moduleID, fromNID.neuronID, toNID.moduleID, toNID.neuronID, randomWeight, true);
                     //Debug.Log("New Link! from: [" + fromNID.moduleID.ToString() + ", " + fromNID.neuronID.ToString() + "], to: [" + toNID.moduleID.ToString() + ", " + toNID.neuronID.ToString() + "]");
                     linkList.Add(linkGenome);

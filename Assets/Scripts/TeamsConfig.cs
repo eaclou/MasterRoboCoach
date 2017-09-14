@@ -88,7 +88,7 @@ public class TeamsConfig {
         AgentBodyGenomeTemplate templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = Resources.Load("Templates/Agents/TemplateRoombot") as AgentBodyGenomeTemplate;
+                templateGenome = Resources.Load("Templates/Agents/TemplateTelevisionWalker") as AgentBodyGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateTelevisionWalker.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
@@ -97,7 +97,7 @@ public class TeamsConfig {
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateDogCar.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Combat:
-                templateGenome = Resources.Load("Templates/Agents/TemplateCombatBot") as AgentBodyGenomeTemplate;
+                templateGenome = Resources.Load("Templates/Agents/TemplateCombat2") as AgentBodyGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateCombatBot.asset", typeof(AgentGenomeTemplate)));
                 break;
             default:

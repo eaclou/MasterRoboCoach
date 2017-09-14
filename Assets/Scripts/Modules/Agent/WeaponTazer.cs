@@ -64,9 +64,11 @@ public class WeaponTazer : AgentModuleBase {
                 Vector3 rayDir = parentBody.transform.TransformDirection(new Vector3(0f, 0f, 1f));
                 RaycastHit hit;
                 if (Physics.Raycast(rayOrigin, rayDir, out hit, rayMaxDistance)) {
-                    if (hit.collider.GetComponent<HealthModuleComponent>() != null) {
-                        hit.collider.GetComponent<HealthModuleComponent>().InflictDamage(25f);
+                    //Debug.Log("HIT! Tazer " + damageInflicted[0].ToString() + ", " + hit.collider.name.ToString());
+                    if (hit.collider.transform.parent.GetComponent<HealthModuleComponent>() != null) {
+                        hit.collider.transform.parent.GetComponent<HealthModuleComponent>().InflictDamage(25f);
                         damageInflicted[0] = 25f;
+                        
                     }
                 }
                 isFiring = true;

@@ -9,6 +9,10 @@ public class TorqueGenome {
 
     public float strength;
 
+    public bool useX;
+    public bool useY;
+    public bool useZ;
+
     public TorqueGenome(int parentID, int inno) {
         this.parentID = parentID;
         this.inno = inno;
@@ -19,10 +23,23 @@ public class TorqueGenome {
         this.inno = template.inno;
 
         this.strength = template.strength;
+        useX = template.useX;
+        useY = template.useY;
+        useZ = template.useZ;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
-        NeuronGenome neuron = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 0);
-        neuronList.Add(neuron);
+        if(useX) {
+            NeuronGenome neuron1 = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 0);
+            neuronList.Add(neuron1);
+        }
+        if (useY) {
+            NeuronGenome neuron2 = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 1);
+            neuronList.Add(neuron2);
+        }
+        if (useZ) {
+            NeuronGenome neuron3 = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 2);
+            neuronList.Add(neuron3);
+        }
     }
 }

@@ -125,9 +125,14 @@ public class Agent : MonoBehaviour {
         brain.BrainMasterFunction();
         //brain.PrintBrain();
     }
-    public void RunModules(int timeStep) {
+    public void RunModules(int timeStep, Environment currentEnvironment) {
+        // Apply wind!
+        if(currentEnvironment.environmentGameplay.atmosphere != null) {
+            rootObject.GetComponent<Rigidbody>().AddForce(currentEnvironment.environmentGameplay.atmosphere.genome.windForce);
+        }
+
         for (int i = 0; i < atmosphereSensorList.Count; i++) {
-            atmosphereSensorList[i].Tick();
+            atmosphereSensorList[i].Tick(currentEnvironment);
         }
         for (int i = 0; i < basicJointList.Count; i++) {
             basicJointList[i].Tick(this); // needed for root segment transform
@@ -145,11 +150,11 @@ public class Agent : MonoBehaviour {
                 if (healthModuleList.Count > 0) {
                     if(impactForce > impulseDamageThreshold) {
                         //Debug.Log("COLLISION DAMAGE!!! " + impactForce.ToString());
-                        float damage = 100f;
+                        float damage = 10f;
                         if(impactForce > 2.5f) {
-                            damage += 100f;
+                            damage += 10f;
                             if (impactForce > 5f) {
-                                damage += 100f;
+                                damage += 10f;
                             }
                         }
                         healthModuleList[0].InflictDamage(damage);

@@ -297,6 +297,7 @@ public class TrainingMenuUI : MonoBehaviour {
                 if (curAgent.targetSensorList[0].targetPosition != null) {
                     txt += curAgent.targetSensorList[0].targetPosition.position.ToString() + "\n";
                     txt += "DotX = " + curAgent.targetSensorList[0].dotX[0].ToString() + "\n";
+                    txt += "DotY = " + curAgent.targetSensorList[0].dotY[0].ToString() + "\n";
                     txt += "DotZ = " + curAgent.targetSensorList[0].dotZ[0].ToString() + "\n";
                     txt += "Dist = " + curAgent.targetSensorList[0].dist[0].ToString() + "\n";
                     txt += "InvDist = " + curAgent.targetSensorList[0].invDist[0].ToString() + "\n";
@@ -324,8 +325,12 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += curAgent.thrusterEffectorList[0].throttle[0].ToString() + "\n";
             }
             if (curAgent.torqueEffectorList.Count > 0) {
-                txt += "TORQUE: ";
-                txt += curAgent.torqueEffectorList[0].throttle[0].ToString() + "\n";
+                //txt += "TORQUE: ";
+                txt += "\nTORQUE: ";
+                txt += "X = " + curAgent.torqueEffectorList[0].throttleX[0].ToString() + ", ";
+                txt += "Y = " + curAgent.torqueEffectorList[0].throttleY[0].ToString() + ", ";
+                txt += "Z = " + curAgent.torqueEffectorList[0].throttleZ[0].ToString() + "\n";
+                //txt += curAgent.torqueEffectorList[0].throttleY[0].ToString() + "\n";
             }
             if (curAgent.weaponProjectileList.Count > 0) {
                 txt += "\nWEAPON-PROJECTILE:\n";
@@ -343,6 +348,12 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "\nCONTACT:\n";
                 txt += "Contact = " + curAgent.contactSensorList[0].contactSensor[0].ToString() + "\n";
             }
+            if (curAgent.gravitySensorList.Count > 0) {
+                txt += "\nGRAVITY SENSOR:\n";                
+                txt += "DotX = " + curAgent.gravitySensorList[0].dotX[0].ToString() + "\n";
+                txt += "DotY = " + curAgent.gravitySensorList[0].dotY[0].ToString() + "\n";
+                txt += "DotZ = " + curAgent.gravitySensorList[0].dotZ[0].ToString() + "\n";
+            }
             if (curAgent.healthModuleList.Count > 0) {
                 txt += "\nHEALTH:\n";
                 txt += "Health = " + curAgent.healthModuleList[0].healthSensor[0].ToString() + "\n";
@@ -354,6 +365,12 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "SteerAngle = " + curAgent.basicWheelList[0].steerAngle[0].ToString() + "\n";
                 txt += "Brake = " + curAgent.basicWheelList[0].brake[0].ToString() + "\n";
                 txt += "Speed = " + curAgent.basicWheelList[0].speed[0].ToString() + "\n";
+            }
+            if (curAgent.atmosphereSensorList.Count > 0) {
+                txt += "\nATMOSPHERE SENSOR:\n";
+                txt += "WindX = " + curAgent.atmosphereSensorList[0].windDotX[0].ToString() + "\n";
+                txt += "WindY = " + curAgent.atmosphereSensorList[0].windDotY[0].ToString() + "\n";
+                txt += "WindZ = " + curAgent.atmosphereSensorList[0].windDotZ[0].ToString() + "\n";
             }
         }
         return txt;

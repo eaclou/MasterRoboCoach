@@ -64,9 +64,11 @@ public class WeaponProjectile : AgentModuleBase {
                 Vector3 rayDir = parentBody.transform.TransformDirection(new Vector3(0f, 0f, 1f));
                 RaycastHit hit;
                 if (Physics.Raycast(rayOrigin, rayDir, out hit, rayMaxDistance)) {
-                    if (hit.collider.GetComponent<HealthModuleComponent>() != null) {
-                        hit.collider.GetComponent<HealthModuleComponent>().InflictDamage(5f);
-                        damageInflicted[0] = 5f;                          
+                    //Debug.Log("HIT! Projectile " + damageInflicted[0].ToString() + ", " + hit.collider.transform.parent.GetComponent<HealthModuleComponent>().ToString());
+                    if (hit.collider.transform.parent.GetComponent<HealthModuleComponent>() != null) {
+                        hit.collider.transform.parent.GetComponent<HealthModuleComponent>().InflictDamage(5f);
+                        damageInflicted[0] = 5f;
+                        //Debug.Log("HIT! Projectile " + damageInflicted[0].ToString());
                     }
                 }
                 isFiring = true;                

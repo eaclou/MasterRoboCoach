@@ -124,6 +124,9 @@ public class TournamentUI : MonoBehaviour {
         if(contestantColors.Length > 1) {
             contestantColors[1] = "<color=orange>";
         }
+        if (contestantColors.Length > 2) {
+            contestantColors[2] = "<color=lime>";
+        }
         string defaultColor = "<color=white>";
 
         

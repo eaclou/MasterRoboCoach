@@ -8,6 +8,7 @@ public class EnvironmentGameplay : MonoBehaviour {
     public List<GameObject> arenaWalls;
     public List<GameObject> obstacles;
     public TargetColumn targetColumn;
+    public Atmosphere atmosphere;
     
     public PhysicMaterial groundPhysicMaterial;
 

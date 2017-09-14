@@ -7,6 +7,7 @@ public class AtmosphereSensorGenome {
     public int parentID;
     public int inno;
     //public Vector3 sensorPosition;
+    
 
     public AtmosphereSensorGenome(int parentID, int inno) {
         this.parentID = parentID;

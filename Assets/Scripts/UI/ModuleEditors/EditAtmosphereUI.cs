@@ -9,8 +9,8 @@ public class EditAtmosphereUI : MonoBehaviour {
 
     public Text textModuleDescription;
 
-    //public Slider sliderValue;
-    //public Text textValueValue;
+    public Slider sliderMaxWindSpeed;
+    public Text textMaxWindSpeedValue;
 
 
 	// Use this for initialization
@@ -24,13 +24,13 @@ public class EditAtmosphereUI : MonoBehaviour {
 	}
 
     public void SetStatusFromData() {
-        textModuleDescription.text = "Atmosphere!";
-        //sliderValue.value = genome.val;
-        //textValueValue.text = genome.val.ToString();
+        textModuleDescription.text = "Atmosphere!\nWind Force: " + genome.windForce.ToString();
+        sliderMaxWindSpeed.value = genome.maxWindSpeed;
+        textMaxWindSpeedValue.text = genome.maxWindSpeed.ToString();
     }
 
-    /*public void SliderValue(float value) {
-        genome.val = value;
-        textValueValue.text = genome.val.ToString();
-    } */   
+    public void SliderMaxWindSpeed(float value) {
+        genome.maxWindSpeed = value;
+        textMaxWindSpeedValue.text = genome.maxWindSpeed.ToString();
+    }
 }

@@ -28,6 +28,8 @@ public class Environment : MonoBehaviour {
     //    this.genome = genome;
     //}
 
+    
+
     public void ResetDynamicContent(EnvironmentGenome genome) {
         // Resets all dynamic objects (and possibly meshes) back to their initial conditions, to allow for another evaluation without 
         // having to rebuild anything
@@ -338,7 +340,13 @@ public class Environment : MonoBehaviour {
                 obstacle.GetComponent<MeshRenderer>().enabled = false; // hide
                 environmentGameplay.obstacles.Add(obstacle);
             }
-        }        
+        }
+
+        // Atmosphere (WIND) !!!
+        if (genome.useAtmosphere) {
+            environmentGameplay.atmosphere = new Atmosphere();
+            environmentGameplay.atmosphere.Initialize(genome.atmosphereGenome);
+        }
 
         // Set Genome's prefab environment:
         genome.gameplayPrefab = environmentGameplay;

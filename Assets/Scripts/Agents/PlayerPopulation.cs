@@ -162,8 +162,14 @@ public class PlayerPopulation {
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompRacing2);
                 break;
             case Challenge.Type.Combat:
-                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.Random, FitnessComponentMeasure.Avg, 0.5f, false);
+                FitnessComponentDefinition fitCompCombat1 = new FitnessComponentDefinition(FitnessComponentType.Random, FitnessComponentMeasure.Avg, 0.1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat1);
+                FitnessComponentDefinition fitCompCombat2 = new FitnessComponentDefinition(FitnessComponentType.Health, FitnessComponentMeasure.Avg, 0.5f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat2);
+                FitnessComponentDefinition fitCompCombat3 = new FitnessComponentDefinition(FitnessComponentType.DamageInflicted, FitnessComponentMeasure.Avg, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat3);
+                FitnessComponentDefinition fitCompCombat4 = new FitnessComponentDefinition(FitnessComponentType.WinLoss, FitnessComponentMeasure.Avg, 1f, true);
+                fitnessManager.fitnessComponentDefinitions.Add(fitCompCombat4);
                 break;
             default:
                 Debug.LogError("ChallengeType Not Found! " + challengeType.ToString());

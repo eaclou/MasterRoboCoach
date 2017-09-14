@@ -17,6 +17,7 @@ public class RaycastSensor : AgentModuleBase {
 
     public GameObject parentObject;
     public Vector3 sensorPosition;
+    public float maxDistance;
 
     public Transform targetPosition;    
 
@@ -49,6 +50,7 @@ public class RaycastSensor : AgentModuleBase {
 
         parentObject = agent.segmentList[parentID];
         sensorPosition = genome.sensorPosition;
+        maxDistance = genome.maxDistance;
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {
@@ -95,7 +97,7 @@ public class RaycastSensor : AgentModuleBase {
 
         RaycastHit hit;
 
-        float rayMaxDistance = 25f;
+        float rayMaxDistance = maxDistance;
         float sensitivity = 1f / rayMaxDistance;
         //Debug.Log("raycastSensorList: ");
         distanceLeft[0] = rayMaxDistance * sensitivity;

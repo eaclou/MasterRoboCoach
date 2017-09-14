@@ -34,11 +34,12 @@ public class EvaluationInstance : MonoBehaviour {
         //print("Tick! " + currentTimeStep.ToString());
 
         CalculateGameScores();
-        CalculateFitnessScores();        
+        CalculateFitnessScores();
 
+        //currentEnvironment.RunModules();
         for (int i = 0; i < currentAgentsArray.Length; i++) {
             currentAgentsArray[i].TickBrain();
-            currentAgentsArray[i].RunModules(currentTimeStep);
+            currentAgentsArray[i].RunModules(currentTimeStep, currentEnvironment);
         }        
 
         if(CheckForEvaluationEnd()) {
@@ -436,6 +437,9 @@ public class EvaluationInstance : MonoBehaviour {
                             //if player 0 dead AND player 1 dead:
                             if (currentAgentsArray[1].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
                                 // ...then they died simultaneously -- DRAW
+                                agentGameScoresArray[0][0] = -1f;
+                                agentGameScoresArray[1][0] = -1f;
+                                gameWonOrLost = true;
                             }
                             else { // player 0 dead and player 1 alive
                                    // Player 1 WINS!
@@ -505,7 +509,7 @@ public class EvaluationInstance : MonoBehaviour {
                     if (currentAgentsArray[0].healthModuleList[0].destroyed) {
                         agentGameScoresArray[0][0] = 2f;  // higher is worse in this case
                         gameWonOrLost = true;
-                        Debug.Log("Agent DIED from collision! " + currentTimeStep.ToString());
+                        //Debug.Log("Agent DIED from collision! " + currentTimeStep.ToString());
                     }
                 }
             }

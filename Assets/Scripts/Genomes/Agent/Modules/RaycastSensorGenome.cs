@@ -7,6 +7,7 @@ public class RaycastSensorGenome {
     public int parentID;
     public int inno;
     public Vector3 sensorPosition;
+    public float maxDistance = 12f;
 
     public RaycastSensorGenome(int parentID, int inno) {
         this.parentID = parentID;
@@ -17,6 +18,7 @@ public class RaycastSensorGenome {
         this.parentID = template.parentID;
         this.inno = template.inno;
         this.sensorPosition = template.sensorPosition;
+        this.maxDistance = template.maxDistance;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
