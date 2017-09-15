@@ -6,11 +6,17 @@ using UnityEngine;
 public class ThrusterEffector : AgentModuleBase {
     //public int parentID;
     //public int inno;
-    public float[] throttle;
-    public float[] strafe;
+    public float[] throttleX;
+    public float[] throttleY;
+    public float[] throttleZ;    
 
     public float horsepowerX;
+    public float horsepowerY;
     public float horsepowerZ;
+
+    public bool useX;
+    public bool useY;
+    public bool useZ;
 
     public GameObject parentBody;
     public Vector3 forcePoint;
@@ -23,11 +29,7 @@ public class ThrusterEffector : AgentModuleBase {
     //public enum 
 
 	public ThrusterEffector() {
-        /*parentID = genome.parentID;
-        inno = genome.inno;
-        throttle = new float[1];
-        strafe = new float[1];
-        //throttle[0] = 0f;*/
+        
     }
 
     public void Initialize(ThrusterGenome genome, Agent agent) {
@@ -36,38 +38,49 @@ public class ThrusterEffector : AgentModuleBase {
         isVisible = agent.isVisible;
 
         forcePoint = genome.forcePoint;
-        throttle = new float[1];
-        strafe = new float[1];
+        throttleX = new float[1];
+        throttleY = new float[1];
+        throttleZ = new float[1];        
 
         horsepowerX = genome.horsepowerX;
+        horsepowerY = genome.horsepowerY;
         horsepowerZ = genome.horsepowerZ;
+
+        useX = genome.useX;
+        useY = genome.useY;
+        useZ = genome.useZ;
 
         parentBody = agent.segmentList[parentID];
 
-        // Create renderable elements:
-        
+        // Create renderable elements:        
     }
 
     public void MapNeuron(NID nid, Neuron neuron) {
         if (inno == nid.moduleID) {
             //Debug.Log("neuron match!!! thrusterEffector");
             if (nid.neuronID == 0) {
-                neuron.currentValue = throttle;
+                neuron.currentValue = throttleX;
                 neuron.neuronType = NeuronGenome.NeuronType.Out;
             }
             if (nid.neuronID == 1) {
-                neuron.currentValue = strafe;
+                neuron.currentValue = throttleY;
+                neuron.neuronType = NeuronGenome.NeuronType.Out;
+            }
+            if (nid.neuronID == 2) {
+                neuron.currentValue = throttleZ;
                 neuron.neuronType = NeuronGenome.NeuronType.Out;
             }
         }
     }
 
     public void Tick() {
-        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.forward * Mathf.Clamp01(throttle[0]) * horsepowerZ, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint); //.AddRelativeForce(new Vector3(0f, 0f, Mathf.Clamp01(throttle[0])) * horsepowerZ, ForceMode.Force);
-        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.right * Mathf.Clamp01(strafe[0]) * horsepowerX, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint);
+        
+        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.right * Mathf.Clamp01(throttleX[0]) * horsepowerX, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint);
+        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.up * Mathf.Clamp01(throttleY[0]) * horsepowerY, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint);
+        parentBody.GetComponent<Rigidbody>().AddForceAtPosition(parentBody.transform.forward * Mathf.Clamp01(throttleZ[0]) * horsepowerZ, parentBody.GetComponent<Rigidbody>().worldCenterOfMass + forcePoint); //.AddRelativeForce(new Vector3(0f, 0f, Mathf.Clamp01(throttle[0])) * horsepowerZ, ForceMode.Force);
 
-        if(isVisible) {
-            thrusterComponent.throttle = throttle[0];
+        if (isVisible) {
+            thrusterComponent.throttle = throttleY[0];
             thrusterComponent.Tick();
 
             /*ParticleSystem.MainModule mainModule = rearThrusterParticle.main;

@@ -400,6 +400,10 @@ public class EvaluationInstance : MonoBehaviour {
                     fitCompDistFromOrigin.pointA = currentAgentsArray[populationIndex].rootObject.transform.localPosition;
                     fitCompDistFromOrigin.pointB = currentEvalTicket.environmentGenome.agentStartPositionsList[populationIndex].agentStartPosition;
                     break;
+                case FitnessComponentType.Altitude:
+                    FitCompAltitude fitCompAltitude = (FitCompAltitude)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompAltitude;                    
+                    fitCompAltitude.altitude = currentAgentsArray[populationIndex].rootObject.transform.position.y - this.transform.position.y - Vector3.Dot(currentAgentsArray[populationIndex].rootObject.transform.up, Physics.gravity.normalized) * 2f;
+                    break;
                 default:
                     Debug.LogError("ERROR!!! Fitness Type found!!! " + fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString());
                     break;

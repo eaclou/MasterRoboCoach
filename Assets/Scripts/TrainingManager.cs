@@ -473,7 +473,7 @@ public class TrainingManager : MonoBehaviour {
         
         // Keep top-half peformers + mutations:
         for (int x = 0; x < teamsConfig.environmentPopulation.environmentGenomeList.Count; x++) {
-            if (x == 0) {
+            if (false) { //x == 0) {
                 // Top performer stays
                 EnvironmentGenome parentGenome = teamsConfig.environmentPopulation.environmentGenomeList[fitnessManager.rankedIndicesList[x]];
                 parentGenome.index = 0;

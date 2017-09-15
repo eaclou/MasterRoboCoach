@@ -9,34 +9,22 @@ public class TargetSensor : AgentModuleBase {
     public float[] dotX;
     public float[] dotY;
     public float[] dotZ;
-    //public float[] forward;
-    //public float[] horizontal;
-    //public float[] inTarget;
-    //public float[] velX;
-    //public float[] velZ;
-    //public float[] targetHealth;
-    //public float[] targetAttacking;
+    public float[] dotVelX;
+    public float[] dotVelY;
+    public float[] dotVelZ;
     public float[] dist;
     public float[] invDist;
 
-    public float sensitivity = 0.1f;
+    public float sensitivity;
     public Transform targetPosition;
+    public Vector3 targetPreviousPosition;
+    public Vector3 ownPreviousPosition;
 
     public GameObject parentObject;
     public Vector3 sensorPosition;
 
     public TargetSensor() {
-        /*parentID = genome.parentID;
-        inno = genome.inno;
-        dotX = new float[1];
-        dotZ = new float[1];
-        forward = new float[1];
-        horizontal = new float[1];
-        inTarget = new float[1];
-        velX = new float[1];
-        velZ = new float[1];
-        targetHealth = new float[1];
-        targetAttacking = new float[1];*/
+        
     }
 
     public void Initialize(TargetSensorGenome genome, Agent agent) {
@@ -45,16 +33,13 @@ public class TargetSensor : AgentModuleBase {
         isVisible = agent.isVisible;
 
         sensorPosition = genome.sensorPosition;
+        sensitivity = genome.sensitivity;
         dotX = new float[1];
         dotY = new float[1];
         dotZ = new float[1];
-        //forward = new float[1];
-        //horizontal = new float[1];
-        //inTarget = new float[1];
-        //velX = new float[1];
-        //velZ = new float[1];
-        //targetHealth = new float[1];
-        //targetAttacking = new float[1];
+        dotVelX = new float[1];
+        dotVelY = new float[1];
+        dotVelZ = new float[1];
         dist = new float[1];
         invDist = new float[1];
 
@@ -64,65 +49,53 @@ public class TargetSensor : AgentModuleBase {
     public void MapNeuron(NID nid, Neuron neuron) {
         if (inno == nid.moduleID) {
             if (nid.neuronID == 0) {
-                //Debug.Log("neuron match!!! targetSensorX");
                 neuron.currentValue = dotX;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
             if (nid.neuronID == 1) {
-                //Debug.Log("neuron match!!! targetSensorZ");
-                neuron.currentValue = dotY;
+                neuron.currentValue = dotVelX;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
             if (nid.neuronID == 2) {
-                //Debug.Log("neuron match!!! targetSensorZ");
+                neuron.currentValue = dotY;
+                neuron.neuronType = NeuronGenome.NeuronType.In;
+            }
+            if (nid.neuronID == 3) {
+                neuron.currentValue = dotVelY;
+                neuron.neuronType = NeuronGenome.NeuronType.In;
+            }
+            if (nid.neuronID == 4) {
                 neuron.currentValue = dotZ;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
-            if (nid.neuronID == 3) {
-                //Debug.Log("neuron match!!! targetSensorX");
-                neuron.currentValue = dist;
-                neuron.neuronType = NeuronGenome.NeuronType.In;
-            }
-            if (nid.neuronID == 4) {
-                //Debug.Log("neuron match!!! targetSensorZ");
-                neuron.currentValue = invDist;
-                neuron.neuronType = NeuronGenome.NeuronType.In;
-            }
-            /*if (nid.neuronID == 2) {
-                neuron.currentValue = targetSensorList[i].forward;
-                neuron.neuronType = NeuronGenome.NeuronType.In;
-            }
-            if (nid.neuronID == 3) {
-                neuron.currentValue = targetSensorList[i].horizontal;
-                neuron.neuronType = NeuronGenome.NeuronType.In;
-            }
-            if (nid.neuronID == 4) {
-                neuron.currentValue = targetSensorList[i].inTarget;
-                neuron.neuronType = NeuronGenome.NeuronType.In;
-            }
             if (nid.neuronID == 5) {
-                neuron.currentValue = targetSensorList[i].velX;
+                neuron.currentValue = dotVelZ;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
             if (nid.neuronID == 6) {
-                neuron.currentValue = targetSensorList[i].velZ;
+                neuron.currentValue = dist;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
             if (nid.neuronID == 7) {
-                neuron.currentValue = targetSensorList[i].targetHealth;
+                neuron.currentValue = invDist;
                 neuron.neuronType = NeuronGenome.NeuronType.In;
             }
-            if (nid.neuronID == 8) {
-                neuron.currentValue = targetSensorList[i].targetAttacking;
-                neuron.neuronType = NeuronGenome.NeuronType.In;
-            }*/
         }
     }
 
     public void Tick() {
-        // NORMALIZED!!!!
+
+
         Vector3 segmentToTargetVect = new Vector3(targetPosition.position.x - parentObject.transform.position.x + sensorPosition.x, targetPosition.position.y - parentObject.transform.position.y + sensorPosition.x, targetPosition.position.z - parentObject.transform.position.z + sensorPosition.x);
         Vector3 segmentToTargetVectNormalized = segmentToTargetVect.normalized;
+
+        Vector3 ownVel = parentObject.transform.position - ownPreviousPosition;
+        Vector3 targetVel = targetPosition.position - targetPreviousPosition;
+        Vector3 relativeVel = ownVel - targetVel;
+
+        targetPreviousPosition = targetPosition.position;
+        ownPreviousPosition = parentObject.transform.position;               
+
         Vector3 rightVector;
         Vector3 upVector;
         Vector3 forwardVector;
@@ -135,6 +108,12 @@ public class TargetSensor : AgentModuleBase {
         float dotRight = Vector3.Dot(segmentToTargetVectNormalized, rightVector);
         float dotUp = Vector3.Dot(segmentToTargetVectNormalized, upVector);
         float dotForward = Vector3.Dot(segmentToTargetVectNormalized, forwardVector);
+
+        if(relativeVel.magnitude > 0f) {
+            dotVelX[0] = Vector3.Dot(relativeVel, rightVector);
+            dotVelY[0] = Vector3.Dot(relativeVel, upVector);
+            dotVelZ[0] = Vector3.Dot(relativeVel, forwardVector);
+        }        
 
         dotX[0] = dotRight;
         dotY[0] = dotUp;

@@ -18,8 +18,14 @@ public class EditThrusterUI : MonoBehaviour {
 
     public Slider sliderHorsepowerX;
     public Text textHorsepowerXValue;
+    public Slider sliderHorsepowerY;
+    public Text textHorsepowerYValue;
     public Slider sliderHorsepowerZ;
     public Text textHorsepowerZValue;
+
+    public Toggle toggleUseX;
+    public Toggle toggleUseY;
+    public Toggle toggleUseZ;
 
 
     // Use this for initialization
@@ -43,8 +49,14 @@ public class EditThrusterUI : MonoBehaviour {
 
         sliderHorsepowerX.value = genome.horsepowerX;
         textHorsepowerXValue.text = genome.horsepowerX.ToString();
+        sliderHorsepowerY.value = genome.horsepowerY;
+        textHorsepowerYValue.text = genome.horsepowerY.ToString();
         sliderHorsepowerZ.value = genome.horsepowerZ;
         textHorsepowerZValue.text = genome.horsepowerZ.ToString();
+
+        toggleUseX.isOn = genome.useX;
+        toggleUseY.isOn = genome.useY;
+        toggleUseZ.isOn = genome.useZ;
     }
 
     public void SliderPositionX(float value) {
@@ -59,16 +71,25 @@ public class EditThrusterUI : MonoBehaviour {
         genome.forcePoint.z = value;
         textPositionZValue.text = genome.forcePoint.z.ToString();
     }
-
     public void SliderHorsepowerX(float value) {
-
         genome.horsepowerX = value;
         textHorsepowerXValue.text = genome.horsepowerX.ToString();
     }
-
+    public void SliderHorsepowerY(float value) {
+        genome.horsepowerY = value;
+        textHorsepowerYValue.text = genome.horsepowerY.ToString();
+    }
     public void SliderHorsepowerZ(float value) {
-
         genome.horsepowerZ = value;
         textHorsepowerZValue.text = genome.horsepowerZ.ToString();
+    }
+    public void ToggleUseX(bool value) {
+        genome.useX = value;
+    }
+    public void ToggleUseY(bool value) {
+        genome.useY = value;
+    }
+    public void ToggleUseZ(bool value) {
+        genome.useZ = value;
     }
 }

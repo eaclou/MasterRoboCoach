@@ -46,6 +46,10 @@ public class FitnessComponentEvaluationGroup {
                     FitCompDistFromOrigin fitCompDistFromOrigin = new FitCompDistFromOrigin(fitnessManager.fitnessComponentDefinitions[i]);
                     fitCompList.Add(fitCompDistFromOrigin);
                     break;
+                case FitnessComponentType.Altitude:
+                    FitCompAltitude fitCompAltitude = new FitCompAltitude(fitnessManager.fitnessComponentDefinitions[i]);
+                    fitCompList.Add(fitCompAltitude);
+                    break;
                 default:
                     Debug.LogError("No such component type! (" + fitnessManager.fitnessComponentDefinitions[i].type.ToString() + ")");
                     break;

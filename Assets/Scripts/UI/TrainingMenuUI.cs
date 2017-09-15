@@ -299,6 +299,9 @@ public class TrainingMenuUI : MonoBehaviour {
                     txt += "DotX = " + curAgent.targetSensorList[0].dotX[0].ToString() + "\n";
                     txt += "DotY = " + curAgent.targetSensorList[0].dotY[0].ToString() + "\n";
                     txt += "DotZ = " + curAgent.targetSensorList[0].dotZ[0].ToString() + "\n";
+                    txt += "DotVelX = " + curAgent.targetSensorList[0].dotVelX[0].ToString() + "\n";
+                    txt += "DotVelY = " + curAgent.targetSensorList[0].dotVelY[0].ToString() + "\n";
+                    txt += "DotVelZ = " + curAgent.targetSensorList[0].dotVelZ[0].ToString() + "\n";
                     txt += "Dist = " + curAgent.targetSensorList[0].dist[0].ToString() + "\n";
                     txt += "InvDist = " + curAgent.targetSensorList[0].invDist[0].ToString() + "\n";
                     //txt += "Forward = " + curAgent.targetSensorList[0].forward[0].ToString() + "\n";
@@ -322,7 +325,11 @@ public class TrainingMenuUI : MonoBehaviour {
             }
             if (curAgent.thrusterEffectorList.Count > 0) {
                 txt += "\nTHRUSTER: ";
-                txt += curAgent.thrusterEffectorList[0].throttle[0].ToString() + "\n";
+                for (int i = 0; i < curAgent.thrusterEffectorList.Count; i++) {
+                    txt += "\n" + i.ToString() + ": current value= " + curAgent.thrusterEffectorList[i].throttleY[0].ToString();
+                }
+                txt += "\n";
+                //txt += curAgent.thrusterEffectorList[0].throttleZ[0].ToString() + "\n";
             }
             if (curAgent.torqueEffectorList.Count > 0) {
                 //txt += "TORQUE: ";

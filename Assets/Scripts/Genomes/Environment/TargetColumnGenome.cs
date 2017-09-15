@@ -34,7 +34,7 @@ public class TargetColumnGenome {
         maxX = UnityEngine.Random.Range(1f, 1f);
         minZ = UnityEngine.Random.Range(0f, 1f);
         maxZ = UnityEngine.Random.Range(1f, 1f);
-        minDistanceFromAgent = 0.15f;
+        minDistanceFromAgent = 0.2f;
     }
 
     public static TargetColumnGenome BirthNewGenome(TargetColumnGenome parentGenome, float mutationRate, float mutationDriftAmount) {
