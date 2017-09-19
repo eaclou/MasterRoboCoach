@@ -12,7 +12,8 @@ public enum FitnessComponentType {
     Random,
     WinLoss,
     DistToOrigin,
-    Altitude
+    Altitude,
+    Custom
 };
 [System.Serializable]
 public enum FitnessComponentMeasure {

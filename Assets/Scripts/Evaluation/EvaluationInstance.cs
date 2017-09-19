@@ -402,7 +402,11 @@ public class EvaluationInstance : MonoBehaviour {
                     break;
                 case FitnessComponentType.Altitude:
                     FitCompAltitude fitCompAltitude = (FitCompAltitude)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompAltitude;                    
-                    fitCompAltitude.altitude = currentAgentsArray[populationIndex].rootObject.transform.position.y - this.transform.position.y - Vector3.Dot(currentAgentsArray[populationIndex].rootObject.transform.up, Physics.gravity.normalized) * 2f;
+                    fitCompAltitude.altitude = currentAgentsArray[populationIndex].rootObject.transform.TransformPoint(currentAgentsArray[populationIndex].rootCOM).y - this.transform.position.y - Vector3.Dot(currentAgentsArray[populationIndex].rootObject.transform.up, Physics.gravity.normalized) * 1f;
+                    break;
+                case FitnessComponentType.Custom:
+                    FitCompCustom fitCompCustom = (FitCompCustom)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompCustom;
+                    fitCompCustom.custom = currentAgentsArray[populationIndex].rootObject.GetComponent<Rigidbody>().angularVelocity.sqrMagnitude + currentAgentsArray[populationIndex].gravitySensorList[0].dotY[0];
                     break;
                 default:
                     Debug.LogError("ERROR!!! Fitness Type found!!! " + fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString());

@@ -50,6 +50,10 @@ public class FitnessComponentEvaluationGroup {
                     FitCompAltitude fitCompAltitude = new FitCompAltitude(fitnessManager.fitnessComponentDefinitions[i]);
                     fitCompList.Add(fitCompAltitude);
                     break;
+                case FitnessComponentType.Custom:
+                    FitCompCustom fitCompCustom = new FitCompCustom(fitnessManager.fitnessComponentDefinitions[i]);
+                    fitCompList.Add(fitCompCustom);
+                    break;
                 default:
                     Debug.LogError("No such component type! (" + fitnessManager.fitnessComponentDefinitions[i].type.ToString() + ")");
                     break;

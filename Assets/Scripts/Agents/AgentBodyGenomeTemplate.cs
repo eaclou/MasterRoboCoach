@@ -41,6 +41,24 @@ public class AgentBodyGenomeTemplate : ScriptableObject {
             case AgentBodyType.CombatBot:
                 bodyURL = "Prefabs/AgentPrefabs/AgentCombatBot";
                 break;
+            case AgentBodyType.Unicycle:
+                bodyURL = "Prefabs/AgentPrefabs/AgentUnicycle";
+                break;
+            case AgentBodyType.BipedA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentBipedA";
+                break;
+            case AgentBodyType.TripodA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentTripodA";
+                break;
+            case AgentBodyType.HexapodA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentHexapodA";
+                break;
+            case AgentBodyType.AbsWheelA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentAbsWheelA";
+                break;
+            case AgentBodyType.SphereShipA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentSphereShipA";
+                break;
             default:
                 bodyURL = "";
                 Debug.LogError("NO BODYURL FOUND");
@@ -54,5 +72,11 @@ public enum AgentBodyType {
     HoverBot,
     TelevisionWalker,
     DogCar,
-    CombatBot
+    CombatBot,
+    Unicycle,
+    BipedA,
+    TripodA,
+    HexapodA,
+    AbsWheelA,
+    SphereShipA
 }
