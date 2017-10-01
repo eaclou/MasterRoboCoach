@@ -26,10 +26,14 @@ public class PlayerPopulation {
     
     public BodyGenome bodyGenomeTemplate;
 
+    public TheGraphKing graphKing;
+
     // Representative system will be expanded later - for now, just defaults to Top # of performers
     public PlayerPopulation(Challenge.Type challengeType, BodyGenome bodyTemplate, int numGenomes, int numBaseline, int numReps) {
         bodyGenomeTemplate = new BodyGenome();
         bodyGenomeTemplate.CopyBodyGenomeFromTemplate(bodyTemplate);
+
+        graphKing = new TheGraphKing();
         
         popSize = numGenomes;
         this.numBaseline = numBaseline;
@@ -63,7 +67,7 @@ public class PlayerPopulation {
         // Assumes template has been set from defaults!
         ResetRepresentativesList();
         fitnessManager.InitializeLoadedData(agentGenomeList.Count);
-
+        graphKing = new TheGraphKing();
         // ENV:
         //ResetRepresentativesList();
         // Fitness Manager

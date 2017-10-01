@@ -29,6 +29,8 @@ public class BasicJoint : AgentModuleBase {
     public float[] quatY;
     public float[] quatZ;
     public float[] quatW;
+    public float[] pistonThrottleY;
+    public float[] pistonPosY;
 
     public bool useX;
     public bool useY;
@@ -37,6 +39,7 @@ public class BasicJoint : AgentModuleBase {
     public bool velocitySensors;
     public bool positionSensors;
     public bool quaternionSensors;
+    public bool usePistonY;
 
     public BasicJoint() {
         //parentID = genome.parentID;
@@ -58,6 +61,7 @@ public class BasicJoint : AgentModuleBase {
         velocitySensors = genome.velocitySensors;
         positionSensors = genome.positionSensors;
         quaternionSensors = genome.quaternionSensors;
+        usePistonY = genome.usePistonY;
         isVisible = agent.isVisible;
 
         
@@ -100,6 +104,10 @@ public class BasicJoint : AgentModuleBase {
             quatY = new float[1];
             quatZ = new float[1];
             quatW = new float[1];
+        }
+        if(usePistonY) {
+            pistonThrottleY = new float[1];
+            pistonPosY = new float[1];
         }
 
         joint = agent.segmentList[parentID].GetComponent<ConfigurableJoint>();
@@ -201,11 +209,24 @@ public class BasicJoint : AgentModuleBase {
                     neuron.neuronType = NeuronGenome.NeuronType.In;
                 }
             }
+            if (usePistonY) {
+                if (nid.neuronID == 16) {
+                    neuron.currentValue = pistonThrottleY;
+                    neuron.neuronType = NeuronGenome.NeuronType.Out;
+                }
+                if (nid.neuronID == 17) {
+                    neuron.currentValue = pistonPosY;
+                    neuron.neuronType = NeuronGenome.NeuronType.In;
+                }
+            }
         }
     }
 
     public void Tick(Agent agent) {
         joint.targetAngularVelocity = new Vector3(throttleX[0] * motorStrength, throttleY[0] * motorStrength, throttleZ[0] * motorStrength);
+        if(usePistonY) {
+            joint.targetPosition = new Vector3(0f, pistonThrottleY[0] * motorStrength, 0f);
+        }        
 
         MeasureJointAngles(agent);
     }

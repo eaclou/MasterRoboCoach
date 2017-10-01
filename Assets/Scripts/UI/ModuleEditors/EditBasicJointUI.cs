@@ -20,7 +20,7 @@ public class EditBasicJointUI : MonoBehaviour {
     public Toggle toggleVelocity;
     public Toggle togglePosition;
     public Toggle toggleQuaternion;
-
+    public Toggle togglePistonY;
 
     // Use this for initialization
     void Start () {
@@ -46,6 +46,7 @@ public class EditBasicJointUI : MonoBehaviour {
         toggleVelocity.isOn = genome.velocitySensors;
         togglePosition.isOn = genome.positionSensors;
         toggleQuaternion.isOn = genome.quaternionSensors;
+        togglePistonY.isOn = genome.usePistonY;
     }
 
     public void SliderMotorStrength(float value) {
@@ -76,5 +77,8 @@ public class EditBasicJointUI : MonoBehaviour {
     }
     public void ToggleQuaternion(bool value) {
         genome.quaternionSensors = value;
+    }
+    public void TogglePistonY(bool value) {
+        genome.usePistonY = value;
     }
 }

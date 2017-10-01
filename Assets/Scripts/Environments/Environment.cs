@@ -321,7 +321,7 @@ public class Environment : MonoBehaviour {
             targetColumnGO.transform.parent = environmentGameplay.gameObject.transform;
             environmentGameplay.targetColumn = targetColumnGO.AddComponent<TargetColumn>();
             environmentGameplay.targetColumn.GetComponent<MeshRenderer>().enabled = false; // hide
-            environmentGameplay.targetColumn.Initialize(genome.targetColumnGenome);
+            environmentGameplay.targetColumn.Initialize(genome.targetColumnGenome, genome);
         }
         
         // Obstacles:

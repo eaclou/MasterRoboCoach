@@ -240,7 +240,7 @@ public class TournamentManager : MonoBehaviour {
                         //Debug.Log(tournamentInstance.ToString());
                         //Debug.Log(currentMatchup.ToString());
                         //Debug.Log(currentMatchup.evalTicket.ToString());
-                        tournamentInstance.SetUpInstance(currentMatchup.evalTicket, gameManager.trainerRef.teamsConfig);
+                        tournamentInstance.SetUpInstance(currentMatchup.evalTicket, gameManager.trainerRef.teamsConfig, gameManager.trainerRef.evaluationManager.exhibitionParticleCurves);
 
                         Play();
                         isSimulating = true;

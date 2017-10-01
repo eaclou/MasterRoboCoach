@@ -50,7 +50,8 @@ public class BasicWheel : AgentModuleBase {
             if (wheel == null) {
                 Debug.LogAssertion("No existing WheelCollider on segment " + genome.wheelIdList[i].ToString());
             }
-            wheelList.Add(wheel);
+            wheel.motorTorque = 0.00001f;
+            wheelList.Add(wheel);            
         }
         parentBody = agent.segmentList[parentID];
 

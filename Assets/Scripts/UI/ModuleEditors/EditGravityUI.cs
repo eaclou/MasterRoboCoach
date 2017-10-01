@@ -11,6 +11,9 @@ public class EditGravityUI : MonoBehaviour {
 
     //public Slider sliderValue;
     //public Text textValueValue;
+    public Toggle toggleUseGravityDirection;
+    public Toggle toggleUseVelocity;
+    public Toggle toggleUseAltitude;
 
 
 	// Use this for initialization
@@ -27,10 +30,23 @@ public class EditGravityUI : MonoBehaviour {
         textModuleDescription.text = "Gravity Sensor " + genome.inno.ToString();
         //sliderValue.value = genome.val;
         //textValueValue.text = genome.val.ToString();
+
+        toggleUseGravityDirection.isOn = genome.useGravityDir;
+        toggleUseVelocity.isOn = genome.useVel;
+        toggleUseAltitude.isOn = genome.useAltitude;
     }
 
     /*public void SliderValue(float value) {
         genome.val = value;
         textValueValue.text = genome.val.ToString();
-    }  */  
+    }  */
+    public void ToggleGravityDirection(bool value) {
+        genome.useGravityDir = value;
+    }
+    public void ToggleVelocity(bool value) {
+        genome.useVel = value;
+    }
+    public void ToggleAltitude(bool value) {
+        genome.useAltitude = value;
+    }
 }

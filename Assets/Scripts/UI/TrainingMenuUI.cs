@@ -69,6 +69,8 @@ public class TrainingMenuUI : MonoBehaviour {
     public Button buttonTournaments;
     public Button buttonShowHideUI;
 
+    public Image imageFitnessGraph;
+
     public bool tournamentSelectOn = false;
 
     public bool showUI = true;
@@ -143,6 +145,10 @@ public class TrainingMenuUI : MonoBehaviour {
         textTestingProgress.text = GetTestingProgressText();
     }
 
+    public void UpdateGraphData() {
+        imageFitnessGraph.GetComponent<Image>().material.SetTexture("_FitnessTex", gameManager.trainerRef.teamsConfig.playersList[0].graphKing.texFitnessBasic);
+        Debug.Log("UpdateGraphData()!! " + gameManager.trainerRef.teamsConfig.playersList[0].graphKing.texFitnessBasic.width.ToString());
+    }
     public void InitializeUIFromGameState() {
         UpdateDebugLeftPanelUI();
         UpdateFitnessPanelUI();
@@ -151,6 +157,11 @@ public class TrainingMenuUI : MonoBehaviour {
         UpdateTimeStepsUI();
         UpdateProgressUI();
         UpdateCameraButtonUI();
+
+        //Debug.Log("InitializeUIFromGameState()!! " );
+        //if (gameManager.trainerRef.playingCurGen > 1) {
+        //    UpdateGraphData();
+        //}
 
         //UpdateTournamentSelectUI();
         if (tournamentSelectOn) {
@@ -268,7 +279,23 @@ public class TrainingMenuUI : MonoBehaviour {
             // ENVIRONMENT:
             //EnvironmentGenome currentEnvironmentGenome = trainerRef.teamsConfig.environmentPopulation.environmentGenomeList[trainerRef.evaluationManager.exhibitionTicketList[trainerRef.evaluationManager.exhibitionTicketCurrentIndex].genomeIndices[0]];
             EnvironmentGenome currentEnvironmentGenome = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].environmentGenome;
-            txt += "Environment Genome: " + currentEnvironmentGenome.index;
+            txt += "Environment Genome: " + currentEnvironmentGenome.index + "\n\n";
+            if (currentEnvironmentGenome.useAtmosphere) {
+                txt += "ATMOSPHERE\nWind: " + currentEnvironmentGenome.atmosphereGenome.windForce.ToString();                
+                //txt += "\n";
+            }
+            if (currentEnvironmentGenome.useBasicObstacles) {
+                txt += "\nOBSTACLES ON\n";
+            }
+            if (currentEnvironmentGenome.useMeteorites) {
+                txt += "\nMETEORITES ON\n";
+            }
+            if (currentEnvironmentGenome.useTargetColumn) {
+                txt += "\nTARGET LOCATION ON\n";
+            }
+            if (currentEnvironmentGenome.terrainGenome.useAltitude) {
+                txt += "\nALTITUDE ON\n";
+            }
         }
         else {
             // AGENT:
@@ -292,25 +319,25 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "\n";
             }
             if (curAgent.targetSensorList.Count > 0) {
-                txt += "\nTARGET SENSOR: ";
-            
+                txt += "\nTARGET SENSOR: ";            
                 if (curAgent.targetSensorList[0].targetPosition != null) {
                     txt += curAgent.targetSensorList[0].targetPosition.position.ToString() + "\n";
-                    txt += "DotX = " + curAgent.targetSensorList[0].dotX[0].ToString() + "\n";
-                    txt += "DotY = " + curAgent.targetSensorList[0].dotY[0].ToString() + "\n";
-                    txt += "DotZ = " + curAgent.targetSensorList[0].dotZ[0].ToString() + "\n";
-                    txt += "DotVelX = " + curAgent.targetSensorList[0].dotVelX[0].ToString() + "\n";
-                    txt += "DotVelY = " + curAgent.targetSensorList[0].dotVelY[0].ToString() + "\n";
-                    txt += "DotVelZ = " + curAgent.targetSensorList[0].dotVelZ[0].ToString() + "\n";
-                    txt += "Dist = " + curAgent.targetSensorList[0].dist[0].ToString() + "\n";
-                    txt += "InvDist = " + curAgent.targetSensorList[0].invDist[0].ToString() + "\n";
-                    //txt += "Forward = " + curAgent.targetSensorList[0].forward[0].ToString() + "\n";
-                    //txt += "Horizontal = " + curAgent.targetSensorList[0].horizontal[0].ToString() + "\n";
-                    //txt += "InTarget = " + curAgent.targetSensorList[0].inTarget[0].ToString() + "\n";
-                    //txt += "VelX = " + curAgent.targetSensorList[0].velX[0].ToString() + "\n";
-                    //txt += "VelZ = " + curAgent.targetSensorList[0].velZ[0].ToString() + "\n";
-                    //txt += "Health = " + curAgent.targetSensorList[0].targetHealth[0].ToString() + "\n";
-                    //txt += "Attacking = " + curAgent.targetSensorList[0].targetAttacking[0].ToString() + "\n";
+                    if(currentAgentGenome.bodyGenome.targetSensorList[0].useX)
+                        txt += "DotX = " + curAgent.targetSensorList[0].dotX[0].ToString() + "\n";
+                    if (currentAgentGenome.bodyGenome.targetSensorList[0].useY)
+                        txt += "DotY = " + curAgent.targetSensorList[0].dotY[0].ToString() + "\n";
+                    if (currentAgentGenome.bodyGenome.targetSensorList[0].useZ)
+                        txt += "DotZ = " + curAgent.targetSensorList[0].dotZ[0].ToString() + "\n";
+                    if (currentAgentGenome.bodyGenome.targetSensorList[0].useX && currentAgentGenome.bodyGenome.targetSensorList[0].useVel)
+                        txt += "DotVelX = " + curAgent.targetSensorList[0].dotVelX[0].ToString() + "\n";
+                    if (currentAgentGenome.bodyGenome.targetSensorList[0].useY && currentAgentGenome.bodyGenome.targetSensorList[0].useVel)
+                        txt += "DotVelY = " + curAgent.targetSensorList[0].dotVelY[0].ToString() + "\n";
+                    if (currentAgentGenome.bodyGenome.targetSensorList[0].useZ && currentAgentGenome.bodyGenome.targetSensorList[0].useVel)
+                        txt += "DotVelZ = " + curAgent.targetSensorList[0].dotVelZ[0].ToString() + "\n";
+                    if (currentAgentGenome.bodyGenome.targetSensorList[0].useDist)
+                        txt += "Dist = " + curAgent.targetSensorList[0].dist[0].ToString() + "\n";
+                    if (currentAgentGenome.bodyGenome.targetSensorList[0].useInvDist)
+                        txt += "InvDist = " + curAgent.targetSensorList[0].invDist[0].ToString() + "\n";
                 }
             }
             if (curAgent.raycastSensorList.Count > 0) {
@@ -326,17 +353,26 @@ public class TrainingMenuUI : MonoBehaviour {
             if (curAgent.thrusterEffectorList.Count > 0) {
                 txt += "\nTHRUSTER: ";
                 for (int i = 0; i < curAgent.thrusterEffectorList.Count; i++) {
-                    txt += "\n" + i.ToString() + ": current value= " + curAgent.thrusterEffectorList[i].throttleY[0].ToString();
+                    //txt += "\n" + i.ToString() + ": current value= " + curAgent.thrusterEffectorList[i].throttleY[0].ToString();
+                    if (currentAgentGenome.bodyGenome.thrusterList[0].useX)
+                        txt += "X = " + curAgent.torqueEffectorList[0].throttleX[0].ToString() + ", ";
+                    if (currentAgentGenome.bodyGenome.thrusterList[0].useY)
+                        txt += "Y = " + curAgent.torqueEffectorList[0].throttleY[0].ToString() + ", ";
+                    if (currentAgentGenome.bodyGenome.thrusterList[0].useZ)
+                        txt += "Z = " + curAgent.torqueEffectorList[0].throttleZ[0].ToString() + "\n";
                 }
-                txt += "\n";
+                //txt += "\n";
                 //txt += curAgent.thrusterEffectorList[0].throttleZ[0].ToString() + "\n";
             }
             if (curAgent.torqueEffectorList.Count > 0) {
                 //txt += "TORQUE: ";
                 txt += "\nTORQUE: ";
-                txt += "X = " + curAgent.torqueEffectorList[0].throttleX[0].ToString() + ", ";
-                txt += "Y = " + curAgent.torqueEffectorList[0].throttleY[0].ToString() + ", ";
-                txt += "Z = " + curAgent.torqueEffectorList[0].throttleZ[0].ToString() + "\n";
+                if (currentAgentGenome.bodyGenome.torqueList[0].useX)
+                    txt += "X = " + curAgent.torqueEffectorList[0].throttleX[0].ToString() + ", ";
+                if (currentAgentGenome.bodyGenome.torqueList[0].useY)
+                    txt += "Y = " + curAgent.torqueEffectorList[0].throttleY[0].ToString() + ", ";
+                if (currentAgentGenome.bodyGenome.torqueList[0].useZ)
+                    txt += "Z = " + curAgent.torqueEffectorList[0].throttleZ[0].ToString() + "\n";
                 //txt += curAgent.torqueEffectorList[0].throttleY[0].ToString() + "\n";
             }
             if (curAgent.weaponProjectileList.Count > 0) {
@@ -356,10 +392,20 @@ public class TrainingMenuUI : MonoBehaviour {
                 txt += "Contact = " + curAgent.contactSensorList[0].contactSensor[0].ToString() + "\n";
             }
             if (curAgent.gravitySensorList.Count > 0) {
-                txt += "\nGRAVITY SENSOR:\n";                
-                txt += "DotX = " + curAgent.gravitySensorList[0].dotX[0].ToString() + "\n";
-                txt += "DotY = " + curAgent.gravitySensorList[0].dotY[0].ToString() + "\n";
-                txt += "DotZ = " + curAgent.gravitySensorList[0].dotZ[0].ToString() + "\n";
+                txt += "\nGRAVITY SENSOR:\n";
+                if (currentAgentGenome.bodyGenome.gravitySensorList[0].useGravityDir) {
+                    txt += "DotX = " + curAgent.gravitySensorList[0].dotX[0].ToString() + "\n";
+                    txt += "DotY = " + curAgent.gravitySensorList[0].dotY[0].ToString() + "\n";
+                    txt += "DotZ = " + curAgent.gravitySensorList[0].dotZ[0].ToString() + "\n";
+                }
+                if (currentAgentGenome.bodyGenome.gravitySensorList[0].useVel) {
+                    txt += "VelX = " + curAgent.gravitySensorList[0].velX[0].ToString() + "\n";
+                    txt += "VelY = " + curAgent.gravitySensorList[0].velY[0].ToString() + "\n";
+                    txt += "VelZ = " + curAgent.gravitySensorList[0].velZ[0].ToString() + "\n";
+                }
+                if (currentAgentGenome.bodyGenome.gravitySensorList[0].useAltitude) {
+                    txt += "Altitude = " + curAgent.gravitySensorList[0].altitude[0].ToString() + "\n";
+                }
             }
             if (curAgent.healthModuleList.Count > 0) {
                 txt += "\nHEALTH:\n";
@@ -368,10 +414,16 @@ public class TrainingMenuUI : MonoBehaviour {
             }
             if (curAgent.basicWheelList.Count > 0) {
                 txt += "\nBASIC AXLE:\n";
-                txt += "Throttle = " + curAgent.basicWheelList[0].throttle[0].ToString() + "\n";
-                txt += "SteerAngle = " + curAgent.basicWheelList[0].steerAngle[0].ToString() + "\n";
-                txt += "Brake = " + curAgent.basicWheelList[0].brake[0].ToString() + "\n";
-                txt += "Speed = " + curAgent.basicWheelList[0].speed[0].ToString() + "\n";
+                for (int i = 0; i < curAgent.basicWheelList.Count; i++) {
+                    txt += "Throttle = " + curAgent.basicWheelList[i].throttle[0].ToString() + "\n";
+                    txt += "SteerAngle = " + curAgent.basicWheelList[i].steerAngle[0].ToString() + "\n";
+                    txt += "Brake = " + curAgent.basicWheelList[i].brake[0].ToString() + "\n";
+                    txt += "Speed = " + curAgent.basicWheelList[i].speed[0].ToString() + "\n\n";
+                }
+                //txt += "Throttle = " + curAgent.basicWheelList[0].throttle[0].ToString() + "\n";
+                //txt += "SteerAngle = " + curAgent.basicWheelList[0].steerAngle[0].ToString() + "\n";
+                //txt += "Brake = " + curAgent.basicWheelList[0].brake[0].ToString() + "\n";
+                //txt += "Speed = " + curAgent.basicWheelList[0].speed[0].ToString() + "\n";
             }
             if (curAgent.atmosphereSensorList.Count > 0) {
                 txt += "\nATMOSPHERE SENSOR:\n";

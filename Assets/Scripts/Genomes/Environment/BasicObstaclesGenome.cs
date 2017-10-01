@@ -14,7 +14,7 @@ public class BasicObstaclesGenome {
     public BasicObstaclesGenome() {
         
     }
-    public BasicObstaclesGenome(BasicObstaclesGenome templateGenome) {
+    public BasicObstaclesGenome(BasicObstaclesGenome templateGenome, EnvironmentGenome envGenomeRef) {
         numObstacles = templateGenome.numObstacles;
         minObstacleSize = templateGenome.minObstacleSize;
         maxObstacleSize = templateGenome.maxObstacleSize;
@@ -32,8 +32,9 @@ public class BasicObstaclesGenome {
             else {
                 obstaclePositions[i] = new Vector2(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
                 // Revisit this for prepping agentStartPositions!!!!
-                if ((obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude < 0.15f) {
-                    obstaclePositions[i] = new Vector2(0.5f, 0.5f) + (obstaclePositions[i] - new Vector2(0.5f, 0.5f)) * 0.15f / (obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude;
+                Vector2 startCoords = new Vector2(envGenomeRef.agentStartPositionsList[0].agentStartPosition.x / 40f + 0.5f, envGenomeRef.agentStartPositionsList[0].agentStartPosition.z / 40f + 0.5f);
+                if ((obstaclePositions[i] - startCoords).magnitude < 0.15f) {
+                    obstaclePositions[i] = startCoords + (obstaclePositions[i] - startCoords) * 0.15f / (obstaclePositions[i] - startCoords).magnitude;
                 }
                 obstacleScales[i] = UnityEngine.Random.Range(1f, 1f);
             }
@@ -53,7 +54,7 @@ public class BasicObstaclesGenome {
         Debug.Log("InitializeRandomGenome scale[0]: " + obstacleScales[0].ToString());
     }
 
-    public static BasicObstaclesGenome BirthNewGenome(BasicObstaclesGenome parentGenome, float mutationRate, float mutationDriftAmount) {
+    public static BasicObstaclesGenome BirthNewGenome(BasicObstaclesGenome parentGenome, float mutationRate, float mutationDriftAmount, EnvironmentGenome envGenomeRef) {
         // OBSTACLES:
         // NEED TO COPY ALL ATTRIBUTES HERE unless I switch mutation process to go: full-copy, then re-traverse and mutate on a second sweep...
         BasicObstaclesGenome newGenome = new BasicObstaclesGenome();
@@ -76,8 +77,9 @@ public class BasicObstaclesGenome {
                 float newPosZ = UnityEngine.Random.Range(0f, 1f);
                 newGenome.obstaclePositions[i].y = Mathf.Lerp(newGenome.obstaclePositions[i].y, newPosZ, mutationDriftAmount);
             }
-            if ((newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude < 0.15f) {
-                newGenome.obstaclePositions[i] = new Vector2(0.5f, 0.5f) + (newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)) * 0.15f / (newGenome.obstaclePositions[i] - new Vector2(0.5f, 0.5f)).magnitude;
+            Vector2 startCoords = new Vector2(envGenomeRef.agentStartPositionsList[0].agentStartPosition.x / 40f + 0.5f, envGenomeRef.agentStartPositionsList[0].agentStartPosition.z / 40f + 0.5f);
+            if ((newGenome.obstaclePositions[i] - startCoords).magnitude < 0.15f) {
+                newGenome.obstaclePositions[i] = startCoords + (newGenome.obstaclePositions[i] - startCoords) * 0.15f / (newGenome.obstaclePositions[i] - startCoords).magnitude;
             }
             if (rand < mutationRate) {
                 float newScale = UnityEngine.Random.Range(newGenome.minObstacleSize, newGenome.maxObstacleSize);

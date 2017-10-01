@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using System.IO;
+using System;
 
 public class TrainingManager : MonoBehaviour {
 
@@ -69,6 +70,13 @@ public class TrainingManager : MonoBehaviour {
         if (isTraining) { // && debugFrameCounter < 2) {
             //Debug.Log("FixedUpdate isTraining");
             if (evaluationManager.allEvalsComplete) {
+                /*if(playingCurGen % 100 == 0) {
+                    long prevMem = GC.GetTotalMemory(false);
+                    SaveTraining("auto");
+                    GC.Collect();
+                    long newMem = GC.GetTotalMemory(false);
+                    Debug.Log("Garbage Collection!!! old: " + prevMem.ToString() + ", new: " + newMem.ToString());
+                }*/
                 // NEXT GEN!!!
                 NextGeneration();
             }
@@ -405,7 +413,7 @@ public class TrainingManager : MonoBehaviour {
         gameManager.uiManager.panelTraining.moduleViewUI.SetPendingGenomesFromData(this);
     }
     private void NextGeneration() {
-        Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
+        //Debug.Log("Next Generation! (" + playingCurGen.ToString() + ")");
         //particleTrajectories.Clear();
         // Crossover:
         teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness(teamsConfig.environmentPopulation.popSize);
@@ -414,9 +422,15 @@ public class TrainingManager : MonoBehaviour {
         for (int i = 0; i < teamsConfig.playersList.Count; i++) {
             //Debug.Log("Player " + i.ToString());
             teamsConfig.playersList[i].fitnessManager.ProcessAndRankRawFitness(teamsConfig.playersList[i].popSize);
+            // GRAPHING!!!
+            teamsConfig.playersList[i].graphKing.BuildTexturesFitnessBasic(teamsConfig.playersList[i].fitnessManager);
+            gameManager.uiManager.panelTraining.UpdateGraphData();
             // Record and Remove Baseline Genomes:
             teamsConfig.playersList[i].TrimBaselineGenomes();
         }
+
+        
+
 
         //teamsConfig.ReloadAgentTemplates(); // see if I can hot-edit templates
         
@@ -483,7 +497,7 @@ public class TrainingManager : MonoBehaviour {
                 int parentIndex = fitnessManager.GetAgentIndexByLottery();
                 
                 EnvironmentGenome parentGenome = teamsConfig.environmentPopulation.environmentGenomeList[parentIndex];
-                EnvironmentGenome newGenome = EnvironmentGenome.BirthNewGenome(parentGenome, newGenGenomeList.Count, teamsConfig.challengeType, mutationChance, mutationStepSize);
+                EnvironmentGenome newGenome = parentGenome.BirthNewGenome(parentGenome, newGenGenomeList.Count, teamsConfig.challengeType, mutationChance, mutationStepSize);
                                 
                 newGenGenomeList.Add(newGenome);
             }                       

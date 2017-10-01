@@ -35,31 +35,25 @@ public class TargetSensorGenome {
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
         if(useX) {
-            if (!useVel) {
-                NeuronGenome neuronX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 0);
-                neuronList.Add(neuronX);
-            }
-            else {
+            NeuronGenome neuronX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 0);
+            neuronList.Add(neuronX);
+            if (useVel) {
                 NeuronGenome neuronVelX = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 1);
                 neuronList.Add(neuronVelX);
             }
         }
         if (useY) {
-            if (!useVel) {
-                NeuronGenome neuronY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 2);
-                neuronList.Add(neuronY);
-            }
-            else {
+            NeuronGenome neuronY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 2);
+            neuronList.Add(neuronY);
+            if (useVel) {
                 NeuronGenome neuronVelY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 3);
                 neuronList.Add(neuronVelY);
             }
         }
         if (useZ) {
-            if (!useVel) {
-                NeuronGenome neuronZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 4);
-                neuronList.Add(neuronZ);
-            }
-            else {
+            NeuronGenome neuronZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 4);
+            neuronList.Add(neuronZ);
+            if (useVel) {
                 NeuronGenome neuronVelZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 5);
                 neuronList.Add(neuronVelZ);
             }

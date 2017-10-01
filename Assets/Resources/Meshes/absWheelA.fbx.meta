@@ -6,10 +6,44 @@ ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: //RootNode
+    100002: chassis
+    100004: frontWheelVisible
+    100006: glass
+    100008: jnt_antenna1
+    100010: jnt_antenna2
+    100012: jnt_head1
+    100014: jnt_LT_arm1
+    100016: jnt_root
+    100018: jnt_RT_arm1
+    100020: rearWheelVisible
     400000: //RootNode
+    400002: chassis
+    400004: frontWheelVisible
+    400006: glass
+    400008: jnt_antenna1
+    400010: jnt_antenna2
+    400012: jnt_head1
+    400014: jnt_LT_arm1
+    400016: jnt_root
+    400018: jnt_RT_arm1
+    400020: rearWheelVisible
     2300000: //RootNode
+    2300002: chassis
+    2300004: frontWheelVisible
+    2300006: glass
+    2300008: rearWheelVisible
     3300000: //RootNode
+    3300002: chassis
+    3300004: frontWheelVisible
+    3300006: glass
+    3300008: rearWheelVisible
     4300000: polySurface16
+    4300002: glass
+    4300004: chassis
+    4300006: frontWheelVisible
+    4300008: rearWheelVisible
+    9500000: //RootNode
+    13700000: chassis
   materials:
     importMaterials: 0
     materialName: 0
@@ -26,7 +60,7 @@ ModelImporter:
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
-    animationCompression: 1
+    animationCompression: 3
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
@@ -68,13 +102,13 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    rootMotionBoneName: 
+    rootMotionBoneName: jnt_root
     rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
-    hasExtraRoot: 0
+    hasExtraRoot: 1
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 0
+  animationType: 2
   humanoidOversampling: 1
   additionalBone: 0
   userData: 

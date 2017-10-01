@@ -16,6 +16,7 @@ public class BasicJointGenome {
     public bool velocitySensors;
     public bool positionSensors;
     public bool quaternionSensors;
+    public bool usePistonY;
     // Settings
 
     public BasicJointGenome(BasicJointGenome template) {
@@ -30,6 +31,7 @@ public class BasicJointGenome {
         this.velocitySensors = template.velocitySensors;
         this.positionSensors = template.positionSensors;
         this.quaternionSensors = template.quaternionSensors;
+        this.usePistonY = template.usePistonY;
     }
 
     public void InitializeBrainGenome(List<NeuronGenome> neuronList) {
@@ -86,6 +88,14 @@ public class BasicJointGenome {
             neuronList.Add(quatZ);
             NeuronGenome quatW = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 15);
             neuronList.Add(quatW);
+        }
+        if (usePistonY) {
+            NeuronGenome pistonThrottleY = new NeuronGenome(NeuronGenome.NeuronType.Out, inno, 16);
+            neuronList.Add(pistonThrottleY);
+            NeuronGenome pistonPosY = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 17);
+            neuronList.Add(pistonPosY);
+            //NeuronGenome posZ = new NeuronGenome(NeuronGenome.NeuronType.In, inno, 11);
+            //neuronList.Add(posZ);
         }
     }
 }

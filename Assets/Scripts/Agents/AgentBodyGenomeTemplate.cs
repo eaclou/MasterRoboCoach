@@ -29,35 +29,59 @@ public class AgentBodyGenomeTemplate : ScriptableObject {
     public static string GetAgentBodyTypeURL(AgentBodyType type) {
         string bodyURL;
         switch(type) {
-            case AgentBodyType.HoverBot:
-                bodyURL = "Prefabs/AgentPrefabs/AgentRoombot";
-                break;
-            case AgentBodyType.TelevisionWalker:
-                bodyURL = "Prefabs/AgentPrefabs/AgentTelevisionWalker";
-                break;
-            case AgentBodyType.DogCar:
-                bodyURL = "Prefabs/AgentPrefabs/AgentDogCar";
-                break;
-            case AgentBodyType.CombatBot:
-                bodyURL = "Prefabs/AgentPrefabs/AgentCombatBot";
-                break;
-            case AgentBodyType.Unicycle:
-                bodyURL = "Prefabs/AgentPrefabs/AgentUnicycle";
+            case AgentBodyType.AbsWheelA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentAbsWheelA";
                 break;
             case AgentBodyType.BipedA:
                 bodyURL = "Prefabs/AgentPrefabs/AgentBipedA";
                 break;
-            case AgentBodyType.TripodA:
-                bodyURL = "Prefabs/AgentPrefabs/AgentTripodA";
+            case AgentBodyType.CombatBotA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentCombatBotA";
+                break;
+            case AgentBodyType.DogCarA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentDogCarA";
+                break;
+            case AgentBodyType.GroundRollerA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentGroundRollerA";
+                break;
+            case AgentBodyType.GroundRollerB:
+                bodyURL = "Prefabs/AgentPrefabs/AgentGroundRollerB";
                 break;
             case AgentBodyType.HexapodA:
                 bodyURL = "Prefabs/AgentPrefabs/AgentHexapodA";
                 break;
-            case AgentBodyType.AbsWheelA:
-                bodyURL = "Prefabs/AgentPrefabs/AgentAbsWheelA";
+            case AgentBodyType.HoverBotA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentHoverBotA";
+                break;
+            case AgentBodyType.HoverBotB:
+                bodyURL = "Prefabs/AgentPrefabs/AgentHoverBotB";
+                break;
+            case AgentBodyType.PistonWalkerA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentPistonWalkerA";
+                break;
+            case AgentBodyType.SlapperTurtleA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentSlapperTurtleA";
+                break;
+            case AgentBodyType.SnakeA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentSnakeA";
+                break;
+            case AgentBodyType.SphereA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentSphereA";
                 break;
             case AgentBodyType.SphereShipA:
                 bodyURL = "Prefabs/AgentPrefabs/AgentSphereShipA";
+                break;
+            case AgentBodyType.TelevisionWalkerA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentTelevisionWalkerA";
+                break;
+            case AgentBodyType.TelevisionWalkerB:
+                bodyURL = "Prefabs/AgentPrefabs/AgentTelevisionWalkerB";
+                break;
+            case AgentBodyType.TripodA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentTripodA";
+                break;
+            case AgentBodyType.UnicycleA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentUnicycleA";
                 break;
             default:
                 bodyURL = "";
@@ -69,14 +93,22 @@ public class AgentBodyGenomeTemplate : ScriptableObject {
 }
 
 public enum AgentBodyType {
-    HoverBot,
-    TelevisionWalker,
-    DogCar,
-    CombatBot,
-    Unicycle,
-    BipedA,
-    TripodA,
-    HexapodA,
     AbsWheelA,
-    SphereShipA
+    BipedA,
+    CombatBotA,
+    DogCarA,
+    GroundRollerA,
+    GroundRollerB,
+    HexapodA,
+    HoverBotA,
+    HoverBotB,
+    PistonWalkerA,
+    SlapperTurtleA,
+    SnakeA,
+    SphereA,
+    SphereShipA,
+    TelevisionWalkerA,
+    TelevisionWalkerB,    
+    TripodA,
+    UnicycleA
 }

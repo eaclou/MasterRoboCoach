@@ -90,7 +90,7 @@ public class EnvironmentGenome {
         }
         useBasicObstacles = templateGenome.useBasicObstacles;
         if (useBasicObstacles) {
-            basicObstaclesGenome = new BasicObstaclesGenome(templateGenome.basicObstaclesGenome);
+            basicObstaclesGenome = new BasicObstaclesGenome(templateGenome.basicObstaclesGenome, this);
             //basicObstaclesGenome.InitializeRandomGenome();
         }
         useTargetColumn = templateGenome.useTargetColumn;
@@ -118,7 +118,7 @@ public class EnvironmentGenome {
         gameplayPrefab = null;
     }
 
-    public static EnvironmentGenome BirthNewGenome(EnvironmentGenome parentGenome, int index, Challenge.Type challengeType, float mutationRate, float mutationDriftAmount) {
+    public EnvironmentGenome BirthNewGenome(EnvironmentGenome parentGenome, int index, Challenge.Type challengeType, float mutationRate, float mutationDriftAmount) {
         EnvironmentGenome newGenome = new EnvironmentGenome(index);
 
         newGenome.challengeType = parentGenome.challengeType;
@@ -130,7 +130,7 @@ public class EnvironmentGenome {
         }
         newGenome.useBasicObstacles = parentGenome.useBasicObstacles;
         if (parentGenome.useBasicObstacles) {
-            newGenome.basicObstaclesGenome = BasicObstaclesGenome.BirthNewGenome(parentGenome.basicObstaclesGenome, mutationRate, mutationDriftAmount);
+            newGenome.basicObstaclesGenome = BasicObstaclesGenome.BirthNewGenome(parentGenome.basicObstaclesGenome, mutationRate, mutationDriftAmount, this);
         }
         newGenome.useTargetColumn = parentGenome.useTargetColumn;
         if (parentGenome.useTargetColumn) {

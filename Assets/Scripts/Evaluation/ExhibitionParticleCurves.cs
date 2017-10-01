@@ -6,7 +6,8 @@ public class ExhibitionParticleCurves : MonoBehaviour {
 
     // Top List: one for each Player
     // Next List: one for each opponent rep combination (env + other players)
-    public Dictionary<string,ParticleSystem> particleDictionary;
+    //public Dictionary<string,ParticleSystem> particleDictionary;
+    public ParticleSystem singleTrajectoryCurvesPS;
 
 	// Use this for initialization
 	void Start () {
@@ -19,15 +20,21 @@ public class ExhibitionParticleCurves : MonoBehaviour {
 	}
 
     public void ClearAllSystems() {
-        foreach (KeyValuePair<string, ParticleSystem> particle in particleDictionary) {
+        /*foreach (KeyValuePair<string, ParticleSystem> particle in particleDictionary) {
             //Now you can access the key and value both separately from this attachStat as:
             //Debug.Log(particle.Key);
             //particle.Value.gameObject.SetActive(false);
             particle.Value.Clear();
-        }
+        }*/
+        singleTrajectoryCurvesPS.Clear();
     }
 
     public void SetActiveParticle(EvaluationTicket ticket) {
+        if (ticket.environmentGenome.index == 0) { // if this instance is testing an agent vs. the Top Environment, record its curves:
+            singleTrajectoryCurvesPS.gameObject.layer = LayerMask.NameToLayer("Default");            
+        }        
+
+        /*
         foreach (KeyValuePair<string, ParticleSystem> particle in particleDictionary) {
             //Now you can access the key and value both separately from this attachStat as:
             //Debug.Log(particle.Key);
@@ -64,12 +71,18 @@ public class ExhibitionParticleCurves : MonoBehaviour {
         else {
             //Debug.Log("FAILED! " + txt);
         }
-
+        */
     }
 
-    public void CreateRepresentativeParticleSystems(TeamsConfig teamsConfig) {
+    public void CreateOneTrueParticleSystem(TeamsConfig teamsConfig) {
 
-        var children = new List<GameObject>();
+        GameObject particleGO = Instantiate(Resources.Load("Prefabs/ParticleSystems/Trajectory")) as GameObject;
+        particleGO.name = "theOneTrueCurve";
+        particleGO.transform.parent = this.transform;
+        singleTrajectoryCurvesPS = particleGO.GetComponent<ParticleSystem>();
+        
+
+        /*var children = new List<GameObject>();
         foreach (Transform child in gameObject.transform) children.Add(child.gameObject);
         children.ForEach(child => Destroy(child));
 
@@ -136,6 +149,6 @@ public class ExhibitionParticleCurves : MonoBehaviour {
                     particleDictionary.Add(txt, particle);
                 }
             }
-        }
+        }*/
     }
 }

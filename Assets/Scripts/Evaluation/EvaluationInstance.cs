@@ -93,6 +93,10 @@ public class EvaluationInstance : MonoBehaviour {
             emitterParamsDefault.position = currentAgentsArray[currentEvalTicket.focusPopIndex - 1].gameObject.transform.TransformPoint(currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootObject.transform.localPosition + currentAgentsArray[currentEvalTicket.focusPopIndex - 1].rootCOM) - gameObject.transform.position;
 
             if(particleCurves != null) {
+                //Debug.Log("Emit!");
+                if(isExhibition) {
+                    emitterParamsDefault.startColor = new Color(1f, 1f, 1f, 1f);
+                }
                 particleCurves.Emit(emitterParamsDefault, 1);
             }
         }       
@@ -133,7 +137,7 @@ public class EvaluationInstance : MonoBehaviour {
         children.ForEach(child => Destroy(child));
     }
 
-    public void SetUpInstance(EvaluationTicket evalTicket, TeamsConfig teamsConfig) {
+    public void SetUpInstance(EvaluationTicket evalTicket, TeamsConfig teamsConfig, ExhibitionParticleCurves exhibitionParticleCurves) {
         this.teamsConfig = teamsConfig;
         this.challengeType = teamsConfig.challengeType;
         this.maxTimeSteps = evalTicket.maxTimeSteps;
@@ -154,7 +158,7 @@ public class EvaluationInstance : MonoBehaviour {
         }
         indices[indices[0] + 1] = 0; // focusPop is 0
         */
-        int[] indices = new int[teamsConfig.playersList.Count + 2];
+        /*int[] indices = new int[teamsConfig.playersList.Count + 2];
         indices[0] = evalTicket.focusPopIndex;
         for (int i = 0; i < evalTicket.agentGenomesList.Count + 1; i++) {
             if (i == 0) {
@@ -169,7 +173,7 @@ public class EvaluationInstance : MonoBehaviour {
         string txt = "";
         for(int i = 0; i < indices.Length; i++) {
             txt += indices[i].ToString();
-        }
+        }*/
         //Debug.Log(txt);
         /*if (exhibitionParticleRef.particleDictionary != null) {
             if (exhibitionParticleRef.particleDictionary.TryGetValue(txt, out particleCurves)) {
@@ -186,6 +190,21 @@ public class EvaluationInstance : MonoBehaviour {
                 emit = false;
             }
         }*/
+        if(evalTicket.environmentGenome.index == 0) { // if this instance is testing an agent vs. the Top Environment, record its curves:            
+
+            if (isExhibition) {
+                //emit = false;
+                particleCurves = exhibitionParticleCurves.singleTrajectoryCurvesPS;
+                emit = true;
+            }
+            else {
+                particleCurves = exhibitionParticleCurves.singleTrajectoryCurvesPS;
+                emit = true;
+            }               
+        }
+        else {
+            emit = false;
+        }
         
 
         currentEvalTicket = evalTicket;
@@ -270,6 +289,13 @@ public class EvaluationInstance : MonoBehaviour {
         currentChallenge.agent = currentAgentsArray[0]; // hacky to prevent error, hardcoded for Test challengeType
         currentChallenge.environment = currentEnvironment;
         //currentChallenge.HookUpModules(); // maybe do this through the modules themselves -- by passing relevant agent/environment info through function?
+
+        /*if (isExhibition) {
+            if(currentEvalTicket.environmentGenome.useAtmosphere) {
+                Debug.Log("Wind: " + currentEvalTicket.environmentGenome.atmosphereGenome.windForce.ToString());
+            }
+        }*/
+            
 
         HookUpModules();
 

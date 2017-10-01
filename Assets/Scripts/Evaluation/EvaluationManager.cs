@@ -18,9 +18,9 @@ public class EvaluationManager {
     public EvaluationInstance exhibitionInstance;
     public ExhibitionParticleCurves exhibitionParticleCurves;
 
-    private int maxInstancesX = 5;
+    private int maxInstancesX = 3;
     private int maxInstancesY = 3;
-    private int maxInstancesZ = 5;    
+    private int maxInstancesZ = 3;    
     private float instanceBufferX = 2.5f;
     private float instanceBufferY = 2.5f;
     private float instanceBufferZ = 2.5f;
@@ -66,7 +66,7 @@ public class EvaluationManager {
 
         GameObject exhibitionParticleCurvesGO = new GameObject("ExhibitionParticleCurves");
         exhibitionParticleCurves = exhibitionParticleCurvesGO.AddComponent<ExhibitionParticleCurves>();
-        exhibitionParticleCurves.CreateRepresentativeParticleSystems(teamsConfig);
+        exhibitionParticleCurves.CreateOneTrueParticleSystem(teamsConfig);
 
         Debug.Log("EvalManager Initialized!");
     }
@@ -511,7 +511,7 @@ public class EvaluationManager {
                     // Pending -- Set up instance:
                     if (evaluationTicketList[currentEvalTicketIndex].status == EvaluationTicket.EvaluationStatus.Pending) {
                         //Debug.Log("currentEvalPair: " + currentEvalTicketIndex.ToString() + " (" + evaluationTicketList[currentEvalTicketIndex].status.ToString() + "), [" + evaluationTicketList[currentEvalTicketIndex].genomeIndices[0].ToString() + "," + evaluationTicketList[currentEvalTicketIndex].genomeIndices[1].ToString() + "]");
-                        evaluationInstancesList[0].SetUpInstance(evaluationTicketList[currentEvalTicketIndex], teamsConfig); //, exhibitionParticleCurves);
+                        evaluationInstancesList[0].SetUpInstance(evaluationTicketList[currentEvalTicketIndex], teamsConfig, exhibitionParticleCurves);
                     }
                     if (evaluationTicketList[currentEvalTicketIndex].status == EvaluationTicket.EvaluationStatus.PendingComplete) {
                         // Instance finished but not fully processed
@@ -588,7 +588,7 @@ public class EvaluationManager {
                         }
                         else {
                             //print("evalPair: " + currentEvalPairIndex.ToString() + " (" + evaluationPairsList[currentEvalPairIndex].status.ToString() + "), [" + evaluationPairsList[currentEvalPairIndex].evalPairIndices[0].ToString() + "," + evaluationPairsList[currentEvalPairIndex].evalPairIndices[1].ToString() + "]");
-                            evaluationInstancesList[i].SetUpInstance(evaluationTicketList[currentEvalPairIndex], teamsConfig); //, exhibitionParticleCurves);
+                            evaluationInstancesList[i].SetUpInstance(evaluationTicketList[currentEvalPairIndex], teamsConfig, exhibitionParticleCurves);
                             numEvalConstructionsThisFrame++;
                         }
                     }                    
@@ -681,7 +681,7 @@ public class EvaluationManager {
         for(int i = 0; i < numPlayers; i++) {
             agentGenomesList.Add(teamsConfig.playersList[i].representativeGenomeList[0]);
         }
-        EvaluationTicket evalTicket = new EvaluationTicket(teamsConfig.environmentPopulation.representativeGenomeList[0], agentGenomesList, 0, maxTimeStepsDefault * 10);
+        EvaluationTicket evalTicket = new EvaluationTicket(teamsConfig.environmentPopulation.representativeGenomeList[0], agentGenomesList, 0, maxTimeStepsDefault * 100);
         exhibitionTicketList.Add(evalTicket);
 
         // OLD!!!
@@ -1018,7 +1018,7 @@ public class EvaluationManager {
         }*/        
 
         exhibitionParticleCurves.SetActiveParticle(exhibitionTicketList[exhibitionTicketCurrentIndex]);
-        exhibitionInstance.SetUpInstance(exhibitionTicketList[exhibitionTicketCurrentIndex], teamsConfig); //, exhibitionParticleCurves);        
+        exhibitionInstance.SetUpInstance(exhibitionTicketList[exhibitionTicketCurrentIndex], teamsConfig, exhibitionParticleCurves);      
     }
 
     private int GetNextPendingEvalPairIndex() {
@@ -1068,7 +1068,7 @@ public class EvaluationManager {
         CreateDefaultEvaluationTickets(teamsConfig);        
 
         exhibitionParticleCurves.ClearAllSystems();
-        exhibitionParticleCurves.CreateRepresentativeParticleSystems(teamsConfig);
+        //exhibitionParticleCurves.CreateOneTrueParticleSystem(teamsConfig);
 
         allEvalsComplete = false;
         ResetExhibitionTicket(teamsConfig);

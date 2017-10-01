@@ -20,6 +20,12 @@ public class FitnessManager {
 
     [System.NonSerialized]
     public List<float> baselineScoresAvgList;
+    [System.NonSerialized]
+    public List<float> baselineScoresSmoothedList;
+    // scores for random baseline Separated from blank genome score
+    // running average for random baseline genomes -- as long as it's reset when fitness/time changes?
+    // scores relative to all-time record values -- reset when fitness or training time changes!
+    // show mutation rates over time
 
     //public int[] debugFitnessLottery;
     // TEMP OLD:
@@ -34,6 +40,7 @@ public class FitnessManager {
         fitnessComponentDefinitions = new List<FitnessComponentDefinition>();
         pendingFitnessComponentDefinitions = new List<FitnessComponentDefinition>();
         baselineScoresAvgList = new List<float>();
+        baselineScoresSmoothedList = new List<float>();
     }
    
     public void InitializeForNewGeneration(int populationSize) {
@@ -68,6 +75,7 @@ public class FitnessManager {
         SetPendingFitnessListFromMaster(); // master fitness list exists, make the pending definitions list a copy of it
 
         baselineScoresAvgList = new List<float>();  // initialize!
+        baselineScoresSmoothedList = new List<float>();
 
         // get evaluation groups ready:
         if (FitnessEvalGroupArray == null) {
@@ -149,7 +157,16 @@ public class FitnessManager {
         totalScore = totalScore / popSize;
 
         //Debug.Log("PrimaryScore: " + totalScore.ToString() + ", baselineScore: " + baselineScoresAvg.ToString() + ", Ratio: " + (totalScore / baselineScoresAvg).ToString());
-        baselineScoresAvgList.Add(totalScore / baselineScoresAvg);
+        float scoreRatio = totalScore / baselineScoresAvg;
+        float weight = 0.1f;
+        if(baselineScoresSmoothedList.Count > 0) {
+            baselineScoresSmoothedList.Add(baselineScoresSmoothedList[baselineScoresSmoothedList.Count - 1] * (1f - weight) + scoreRatio * weight);
+        }
+        else {
+            baselineScoresSmoothedList.Add(1f);
+        }
+        baselineScoresAvgList.Add(scoreRatio);
+        
         string txt = "FitnessRatios: \n";
         int numLines = Mathf.RoundToInt(Mathf.Min(20, baselineScoresAvgList.Count));
         for(int i = 0; i < numLines; i++) {
