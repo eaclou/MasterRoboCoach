@@ -621,15 +621,19 @@ public class TrainingMenuUI : MonoBehaviour {
     }
 
     public void ClickButtonIncreaseTimeSteps() {
-        gameManager.trainerRef.evaluationManager.maxTimeStepsDefault += 30;
+        gameManager.trainerRef.evaluationManager.maxTimeStepsDefault *= 2;
         UpdateTimeStepsUI();
     }
     public void ClickButtonDecreaseTimeSteps() {
-        gameManager.trainerRef.evaluationManager.maxTimeStepsDefault -= 30;
-        if(gameManager.trainerRef.evaluationManager.maxTimeStepsDefault < 30) {
-            gameManager.trainerRef.evaluationManager.maxTimeStepsDefault = 30;
+        gameManager.trainerRef.evaluationManager.maxTimeStepsDefault /= 2;
+        if(gameManager.trainerRef.evaluationManager.maxTimeStepsDefault < 4) {
+            gameManager.trainerRef.evaluationManager.maxTimeStepsDefault = 4;
         }
         UpdateTimeStepsUI();
+    }
+
+    public void ResetHistoricalData() {
+        gameManager.trainerRef.teamsConfig.playersList[0].fitnessManager.ResetHistoricalData(); // only works for one player for now
     }
 
     public void ClickButtonCycleFocusPop() {        

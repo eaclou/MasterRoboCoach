@@ -22,6 +22,16 @@ public class FitnessManager {
     public List<float> baselineScoresAvgList;
     [System.NonSerialized]
     public List<float> baselineScoresSmoothedList;
+    [System.NonSerialized]
+    public float blankGenomeScore; // processed score for a blank brain versus current representatives
+    //int numComponents = fitnessComponentDefinitions.Count;
+    [System.NonSerialized]
+    public float[] historicalComponentRecordMinimums; // keeps track of all-time value range of each fitnessComponent
+    [System.NonSerialized]
+    public float[] historicalComponentRecordMaximums;  // keeps track of all-time value range of each fitnessComponent
+
+
+    //float[] historicalComponentWeightsNormalized = new float[numComponents];
     // scores for random baseline Separated from blank genome score
     // running average for random baseline genomes -- as long as it's reset when fitness/time changes?
     // scores relative to all-time record values -- reset when fitness or training time changes!
@@ -41,6 +51,18 @@ public class FitnessManager {
         pendingFitnessComponentDefinitions = new List<FitnessComponentDefinition>();
         baselineScoresAvgList = new List<float>();
         baselineScoresSmoothedList = new List<float>();
+    }
+
+    public void ResetHistoricalData() {
+        Debug.Log("ResetHISTORICALDATA!");
+        historicalComponentRecordMinimums = new float[fitnessComponentDefinitions.Count];  // keeps track of all-time value range of each fitnessComponent
+        for(int i = 0; i < historicalComponentRecordMinimums.Length; i++) {
+            historicalComponentRecordMinimums[i] = float.PositiveInfinity;
+        }
+        historicalComponentRecordMaximums = new float[fitnessComponentDefinitions.Count];  // keeps track of all-time value range of each fitnessComponent
+        for (int i = 0; i < historicalComponentRecordMaximums.Length; i++) {
+            historicalComponentRecordMaximums[i] = float.NegativeInfinity;
+        }
     }
    
     public void InitializeForNewGeneration(int populationSize) {
@@ -69,6 +91,7 @@ public class FitnessManager {
         // copy pending changes into main List.
         SetFitnessFunctionFromPending();
         // then update pending list
+        
     }
     public void InitializeLoadedData(int populationSize) {
 
@@ -97,6 +120,8 @@ public class FitnessManager {
                 }
             }
         }
+
+        ResetHistoricalData();
     }
 
     public void SetFitnessFunctionFromPending() {
@@ -194,8 +219,9 @@ public class FitnessManager {
         float[] componentRecordMaximums = new float[numComponents];
         float[] componentWeightsNormalized = new float[numComponents];
         
+
         // Loop through all scores and find the total range of values for this generation in order to normalize them
-        for(int i = 0; i < numComponents; i++) {  // for each fitness component
+        for (int i = 0; i < numComponents; i++) {  // for each fitness component
             componentRecordMinimums[i] = float.PositiveInfinity;
             componentRecordMaximums[i] = float.NegativeInfinity;
             for (int j = 0; j < FitnessEvalGroupArray.Length; j++) { // loop through each genome
@@ -206,6 +232,10 @@ public class FitnessManager {
                     componentRecordMaximums[i] = Mathf.Max(score, componentRecordMaximums[i]);
                 }
             }
+            // Assume ResetHistoricalData() has been called:
+            //Debug.Log(historicalComponentRecordMinimums.ToString());
+            historicalComponentRecordMinimums[i] = Mathf.Min(historicalComponentRecordMinimums[i], componentRecordMinimums[i]);
+            historicalComponentRecordMaximums[i] = Mathf.Max(historicalComponentRecordMaximums[i], componentRecordMinimums[i]);
         }
         // Loop through components and get normalized weights:
         float totalFitCompWeight = 0f; 

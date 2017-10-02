@@ -77,10 +77,21 @@ public class BasicObstaclesGenome {
                 float newPosZ = UnityEngine.Random.Range(0f, 1f);
                 newGenome.obstaclePositions[i].y = Mathf.Lerp(newGenome.obstaclePositions[i].y, newPosZ, mutationDriftAmount);
             }
+            // Check for intersection with Agent Start Position:
             Vector2 startCoords = new Vector2(envGenomeRef.agentStartPositionsList[0].agentStartPosition.x / 40f + 0.5f, envGenomeRef.agentStartPositionsList[0].agentStartPosition.z / 40f + 0.5f);
             if ((newGenome.obstaclePositions[i] - startCoords).magnitude < 0.15f) {
                 newGenome.obstaclePositions[i] = startCoords + (newGenome.obstaclePositions[i] - startCoords) * 0.15f / (newGenome.obstaclePositions[i] - startCoords).magnitude;
             }
+            // Check for intersection with Target Position:
+            // will need to do this as env is being created since target pos is random
+            /*if(envGenomeRef.useTargetColumn) {
+                Vector2 targetCoords = new Vector2(envGenomeRef.targetColumnGenome..agentStartPosition.x / 40f + 0.5f, envGenomeRef.agentStartPositionsList[0].agentStartPosition.z / 40f + 0.5f);
+                if ((newGenome.obstaclePositions[i] - startCoords).magnitude < 0.15f) {
+                    newGenome.obstaclePositions[i] = startCoords + (newGenome.obstaclePositions[i] - startCoords) * 0.15f / (newGenome.obstaclePositions[i] - startCoords).magnitude;
+                }
+                //
+            }*/
+
             if (rand < mutationRate) {
                 float newScale = UnityEngine.Random.Range(newGenome.minObstacleSize, newGenome.maxObstacleSize);
                 newGenome.obstacleScales[i] = Mathf.Lerp(newGenome.obstacleScales[i], newScale, mutationDriftAmount);

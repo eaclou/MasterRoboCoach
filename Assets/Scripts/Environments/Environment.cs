@@ -330,8 +330,17 @@ public class Environment : MonoBehaviour {
             for (int i = 0; i < genome.basicObstaclesGenome.obstaclePositions.Length; i++) {
                 GameObject obstacle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 obstacle.transform.parent = environmentGameplay.gameObject.transform;
+                //float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
+                //float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
                 float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
                 float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
+                if (genome.useTargetColumn) {
+                    float distToTarget = (new Vector2(environmentGameplay.targetColumn.transform.localPosition.x, environmentGameplay.targetColumn.transform.localPosition.z) - new Vector2(x, z)).magnitude;
+                    if(distToTarget < genome.basicObstaclesGenome.obstacleScales[i] * 0.6f) {
+                        obstacle.SetActive(false);
+                    }
+                }
+
                 float y = TerrainConstructor.GetAltitude(genome, x, z) + 0.5f;
                 obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], 1f, genome.basicObstaclesGenome.obstacleScales[i]);
                 obstacle.transform.localPosition = new Vector3(x, y, z);

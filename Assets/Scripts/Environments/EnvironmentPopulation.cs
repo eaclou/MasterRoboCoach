@@ -56,6 +56,7 @@ public class EnvironmentPopulation {
 
         fitnessManager = new FitnessManager();
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
+        fitnessManager.ResetHistoricalData();
         fitnessManager.InitializeForNewGeneration(environmentGenomeList.Count);
 
         trainingSettingsManager = new TrainingSettingsManager(1f, 1f, 0f, 0f);
