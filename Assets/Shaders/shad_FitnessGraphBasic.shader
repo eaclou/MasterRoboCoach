@@ -97,7 +97,7 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 				//fixed tempZoomY = 0.2;  // Replace with _ZoomFactorY !!!
 				
 				
-				float lineWidth = 0.025 * _ZoomFactorY;	
+				float lineWidth = 0.01 * _ZoomFactorY;	
 				float gridLineWidthX = 0.002 * _ZoomFactorX;	
 				float gridLineWidthY = 0.002 * _ZoomFactorY;	
 				float gridDivisions = 10;	

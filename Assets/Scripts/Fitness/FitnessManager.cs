@@ -21,6 +21,8 @@ public class FitnessManager {
     [System.NonSerialized]
     public List<float> baselineScoresAvgList;
     [System.NonSerialized]
+    public float baselineScoresMaximumRatio;
+    [System.NonSerialized]
     public List<float> baselineScoresSmoothedList;
     [System.NonSerialized]
     public float blankGenomeScore; // processed score for a blank brain versus current representatives
@@ -159,7 +161,7 @@ public class FitnessManager {
     }
 
     public void ProcessAndRankRawFitness(int popSize) {
-        ProcessRawFitness();
+        ProcessRawFitness(popSize);
 
         float totalBaselineScore = 0f;
         for(int i = popSize; i < processedFitnessScores.Length; i++) {
@@ -182,13 +184,19 @@ public class FitnessManager {
         totalScore = totalScore / popSize;
 
         //Debug.Log("PrimaryScore: " + totalScore.ToString() + ", baselineScore: " + baselineScoresAvg.ToString() + ", Ratio: " + (totalScore / baselineScoresAvg).ToString());
-        float scoreRatio = totalScore / baselineScoresAvg;
-        float weight = 0.1f;
+        float scoreRatio = totalScore / baselineScoresAvg;   // compare active genome avg to baseline genome avg
+        
+        float weight = 0.1f; // how smoothed to make line
         if(baselineScoresSmoothedList.Count > 0) {
             baselineScoresSmoothedList.Add(baselineScoresSmoothedList[baselineScoresSmoothedList.Count - 1] * (1f - weight) + scoreRatio * weight);
         }
         else {
-            baselineScoresSmoothedList.Add(1f);
+            baselineScoresSmoothedList.Add(scoreRatio); // start the list at first value
+        }
+
+        if (scoreRatio > baselineScoresMaximumRatio) {
+            baselineScoresMaximumRatio = scoreRatio;
+            Debug.Log("new max ratio: " + baselineScoresMaximumRatio.ToString());
         }
         baselineScoresAvgList.Add(scoreRatio);
         
@@ -201,15 +209,15 @@ public class FitnessManager {
         RankProcessedFitness();
     }
 
-    public void ProcessRawFitness() {
-        int popSize = FitnessEvalGroupArray.Length;
+    public void ProcessRawFitness(int popSize) {
+        //int popSize = FitnessEvalGroupArray.Length;
 
         if(processedFitnessScores == null) {
-            processedFitnessScores = new float[popSize];
+            processedFitnessScores = new float[FitnessEvalGroupArray.Length];
         }
         else {
-            if(processedFitnessScores.Length != popSize) {
-                processedFitnessScores = new float[popSize];
+            if(processedFitnessScores.Length != FitnessEvalGroupArray.Length) {
+                processedFitnessScores = new float[FitnessEvalGroupArray.Length];
             }
         }
 
@@ -218,24 +226,41 @@ public class FitnessManager {
         float[] componentRecordMinimums = new float[numComponents];
         float[] componentRecordMaximums = new float[numComponents];
         float[] componentWeightsNormalized = new float[numComponents];
-        
+
+        float[] componentAverageBaselineScore = new float[numComponents];
+        float[] componentAveragePopulationScore = new float[numComponents];
 
         // Loop through all scores and find the total range of values for this generation in order to normalize them
         for (int i = 0; i < numComponents; i++) {  // for each fitness component
             componentRecordMinimums[i] = float.PositiveInfinity;
             componentRecordMaximums[i] = float.NegativeInfinity;
             for (int j = 0; j < FitnessEvalGroupArray.Length; j++) { // loop through each genome
+                //string txt = "ProcessRawFitness()";
+                
                 for(int k = 0; k < FitnessEvalGroupArray[j].Count; k++) { // for each EvalGroup of this genome
                     float score = FitnessEvalGroupArray[j][k].fitCompList[i].rawScore;
                     // Won't work if evalTimes are different? -- among other things...
                     componentRecordMinimums[i] = Mathf.Min(score, componentRecordMinimums[i]);
                     componentRecordMaximums[i] = Mathf.Max(score, componentRecordMaximums[i]);
+                    //txt += "\nMin: " + componentRecordMinimums[i].ToString() + ",  Max: " + componentRecordMaximums[i].ToString() + ", score: " + score.ToString();
+
+                    if(j < popSize) {
+                        componentAveragePopulationScore[i] += score;
+                    }
+                    else {
+                        componentAverageBaselineScore[i] += score;
+                    }
                 }
+                //Debug.Log(txt);
             }
+
+            componentAveragePopulationScore[i] /= popSize;  // divide by number of Agents in population
+            componentAverageBaselineScore[i] /= (FitnessEvalGroupArray.Length - popSize);  // divide by number of random baseline Agents
+
             // Assume ResetHistoricalData() has been called:
             //Debug.Log(historicalComponentRecordMinimums.ToString());
             historicalComponentRecordMinimums[i] = Mathf.Min(historicalComponentRecordMinimums[i], componentRecordMinimums[i]);
-            historicalComponentRecordMaximums[i] = Mathf.Max(historicalComponentRecordMaximums[i], componentRecordMinimums[i]);
+            historicalComponentRecordMaximums[i] = Mathf.Max(historicalComponentRecordMaximums[i], componentRecordMaximums[i]);
         }
         // Loop through components and get normalized weights:
         float totalFitCompWeight = 0f; 
@@ -248,30 +273,81 @@ public class FitnessManager {
             //temp
             //Debug.Log("component[" + f.ToString() + "] min: " + componentRecordMinimums[f].ToString() + ", max: " + componentRecordMaximums[f].ToString());
         }
+
+        // FitnessRATIOS
+        float avgRatio = 0f;
+        float avgRatioBest = 0f;  // the top scores vs baseline avg
+        for (int f = 0; f < numComponents; f++) {
+            float ratio;
+            float ratioBest;            
+            
+            float numerator;
+            float denominator;
+            float numeratorBest;
+            float denominatorBest;
+            if (fitnessComponentDefinitions[f].biggerIsBetter) { // swap if smaller values are better
+                numerator = componentAveragePopulationScore[f];
+                numeratorBest = componentRecordMaximums[f];
+                denominator = componentAverageBaselineScore[f];
+                denominatorBest = componentAverageBaselineScore[f];
+            }
+            else {
+                numerator = componentAverageBaselineScore[f];
+                numeratorBest = componentAverageBaselineScore[f];
+                denominator = componentAveragePopulationScore[f];
+                denominatorBest = componentRecordMinimums[f];
+            }
+
+            if (denominator != 0f) {
+                ratio = (numerator / denominator);
+            }
+            else {
+                ratio = ((numerator + 1.1f) / (denominator + 1.1f));
+            }
+            if (denominatorBest != 0f) {
+                ratioBest = (numeratorBest / denominatorBest);
+            }
+            else {
+                ratioBest = ((numeratorBest + 1.1f) / (denominatorBest + 1.1f));
+            }
+
+            avgRatio += ratio * componentWeightsNormalized[f];
+            avgRatioBest += ratioBest * componentWeightsNormalized[f];
+            Debug.Log("" + fitnessComponentDefinitions[f].type.ToString() + ": pop/baseline= " + ratio);            
+        }
+        //avgRatio /= numComponents;
+        Debug.Log("avgRatio" + avgRatio.ToString() + " ratioBest: " + avgRatioBest.ToString());
+
         // Loop through all genomes and tally up their scores from each of their evaluations
         for (int a = 0; a < FitnessEvalGroupArray.Length; a++) {  // a = genomes
             float genomeScore = 0f;
-            for(int b = 0; b < FitnessEvalGroupArray[a].Count; b++) {  // b = evalGroups
+            for(int b = 0; b < FitnessEvalGroupArray[a].Count; b++) {  // b = evalGroups (i.e. trials)
                 float evalScore = 0f;
                 for(int c = 0; c < FitnessEvalGroupArray[a][b].fitCompList.Count; c++) {  // c = fitnessComponents
                     if((componentRecordMaximums[c] - componentRecordMinimums[c]) > 0f) {
                         float normalizedScore = (FitnessEvalGroupArray[a][b].fitCompList[c].rawScore - componentRecordMinimums[c]) / (componentRecordMaximums[c] - componentRecordMinimums[c]);
-                        if(FitnessEvalGroupArray[a][b].fitCompList[c].sourceDefinition.biggerIsBetter) {
-                            normalizedScore = 1f - normalizedScore;
+                        if(!FitnessEvalGroupArray[a][b].fitCompList[c].sourceDefinition.biggerIsBetter) {
+                            normalizedScore = 1f - normalizedScore;  // 1=good, 0=bad
                         }
                         evalScore += normalizedScore * componentWeightsNormalized[c];
                     }
                     else {
-                        evalScore += 0f;
+                        evalScore += 0f * componentWeightsNormalized[c]; // score when it's an all-way draw
                     }                    
                 }
                 genomeScore += evalScore;
             }
             genomeScore /= FitnessEvalGroupArray[a].Count;
             
-            // Store final processed score in global array
+            // Store final processed score in global array -- [ 0 < score < 1 ]
             processedFitnessScores[a] = genomeScore;
         }
+
+        string debugTxt = "ProcessRawFitness()";
+        for(int i = 0; i < processedFitnessScores.Length; i++) {
+            debugTxt += "\nAgent# " + i.ToString() + ": " + processedFitnessScores[i].ToString();
+        }
+        Debug.Log(debugTxt);
     }
 
     public void RankProcessedFitness() {
@@ -290,7 +366,7 @@ public class FitnessManager {
                 int swapIdA = rankedIndicesList[j];
                 int swapIdB = rankedIndicesList[j + 1];
 
-                if (swapFitA > swapFitB) {
+                if (swapFitA < swapFitB) {
                     rankedFitnessList[j] = swapFitB;
                     rankedFitnessList[j + 1] = swapFitA;
                     rankedIndicesList[j] = swapIdB;
@@ -306,13 +382,14 @@ public class FitnessManager {
         
         
         // TEMP!
-        AddTopHalfBonus();
+        //AddTopHalfBonus();
     }
 
     public void AddTopHalfBonus() {
+        Debug.Log("AddTopHalfBonus()");
         for(int i = 0; i < rankedFitnessList.Length; i++) {
             //rankedFitnessList[rankedIndicesList[i]] = Mathf.Pow(rankedFitnessList[rankedIndicesList[i]], 4f);
-            if(i*2 < rankedFitnessList.Length) {
+            if(i*2 > rankedFitnessList.Length) {
                 rankedFitnessList[i] = Mathf.Lerp(0f, rankedFitnessList[i], (float)i / (float)rankedFitnessList.Length);
             }
             else {
@@ -328,19 +405,19 @@ public class FitnessManager {
         // calculate total fitness of all agents
         float totalFitness = 0f;
         for(int i = 0; i < rankedFitnessList.Length; i++) {
-            totalFitness += (1f - rankedFitnessList[i]);  // Fitness right now is Lower = Better, so take inverse! Might want to change this...
+            totalFitness += rankedFitnessList[i];
         }
         // generate random lottery value between 0f and totalFitness:
         float lotteryValue = UnityEngine.Random.Range(0f, totalFitness);
         float currentValue = 0f;
         for (int i = 0; i < rankedFitnessList.Length; i++) {
-            if(lotteryValue >= currentValue && lotteryValue < (currentValue + (1f - rankedFitnessList[i]))) {
+            if(lotteryValue >= currentValue && lotteryValue < (currentValue + rankedFitnessList[i])) {
                 // Jackpot!
                 selectedIndex = rankedIndicesList[i];
                 
                 //Debug.Log("Selected: " + selectedIndex.ToString() + "! (" + i.ToString() + ") fit= " + currentValue.ToString() + "--" + (currentValue + (1f - rankedFitnessList[i])).ToString() + " / " + totalFitness.ToString() + ", lotto# " + lotteryValue.ToString() + ", fit= " + (1f - rankedFitnessList[i]).ToString());
             }
-            currentValue += (1f - rankedFitnessList[i]); // add this agent's fitness to current value for next check            
+            currentValue += rankedFitnessList[i]; // add this agent's fitness to current value for next check            
         }
 
         

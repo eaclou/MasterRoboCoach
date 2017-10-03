@@ -89,7 +89,9 @@ public class PlayerPopulation {
 
             AgentGenome baselineGenome = new AgentGenome(j);
             baselineGenome.InitializeBodyGenomeFromTemplate(bodyGenomeTemplate);
-            baselineGenome.InitializeRandomBrainFromCurrentBody(0.0f);
+            float increment = (float)j / (float)(numBaseline - 1);
+            float weightScale = 0f; // how much to scale initial random weights
+            baselineGenome.InitializeRandomBrainFromCurrentBody(increment * (float)j * weightScale);
             baselineGenomePool.Add(baselineGenome);
         }
     }
@@ -153,12 +155,10 @@ public class PlayerPopulation {
          
         switch(challengeType) {
             case Challenge.Type.Test:
-                FitnessComponentDefinition fitTest1 = new FitnessComponentDefinition(FitnessComponentType.WinLoss, FitnessComponentMeasure.Last, 1f, false);
+                FitnessComponentDefinition fitTest1 = new FitnessComponentDefinition(FitnessComponentType.WinLoss, FitnessComponentMeasure.Last, 1f, true);
                 fitnessManager.fitnessComponentDefinitions.Add(fitTest1);
                 FitnessComponentDefinition fitTest2 = new FitnessComponentDefinition(FitnessComponentType.DistanceToTargetSquared, FitnessComponentMeasure.Avg, 1f, false);
                 fitnessManager.fitnessComponentDefinitions.Add(fitTest2);
-                FitnessComponentDefinition fitTest3 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, false);
-                fitnessManager.fitnessComponentDefinitions.Add(fitTest3);
                 break;
             case Challenge.Type.Racing:
                 FitnessComponentDefinition fitCompRacing1 = new FitnessComponentDefinition(FitnessComponentType.ContactHazard, FitnessComponentMeasure.Avg, 1f, false);

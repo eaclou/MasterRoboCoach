@@ -94,8 +94,8 @@ public class TheGraphKing { // Does it need to be MonoBehaviour?
         texFitnessBasic.Resize(texWidth, 1);
         for (int y = 0; y < 1; y++) { // not needed for this due to 1 pixel height			
             for (int x = 0; x < texWidth; x++) {
-                float pixValueRaw = fitnessManager.baselineScoresSmoothedList[x];
-                float pixValueWeighted = fitnessManager.baselineScoresAvgList[x];
+                float pixValueRaw = fitnessManager.baselineScoresSmoothedList[x] / fitnessManager.baselineScoresMaximumRatio;
+                float pixValueWeighted = fitnessManager.baselineScoresAvgList[x] / fitnessManager.baselineScoresMaximumRatio;
                 texFitnessBasic.SetPixel(x, y, new Color(pixValueRaw, pixValueWeighted, 0f));
             }
         }

@@ -471,14 +471,14 @@ public class EvaluationInstance : MonoBehaviour {
                             //if player 0 dead AND player 1 dead:
                             if (currentAgentsArray[1].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
                                 // ...then they died simultaneously -- DRAW
-                                agentGameScoresArray[0][0] = -1f;
-                                agentGameScoresArray[1][0] = -1f;
+                                agentGameScoresArray[0][0] = 0f;
+                                agentGameScoresArray[1][0] = 0f;
                                 gameWonOrLost = true;
                             }
                             else { // player 0 dead and player 1 alive
                                    // Player 1 WINS!
                                 agentGameScoresArray[0][0] = -1f;
-                                agentGameScoresArray[1][0] = 1f;
+                                agentGameScoresArray[1][0] = 1f; // winner
                                 gameWonOrLost = true;
                                 //Debug.Log("Player 1 WINS!");
 
@@ -504,7 +504,7 @@ public class EvaluationInstance : MonoBehaviour {
                             //if player 0 alive but player 1 dead:
                             if (currentAgentsArray[1].rootObject.GetComponent<HealthModuleComponent>().healthModule.health <= 0f) {
                                 // Player 0 WINS!
-                                agentGameScoresArray[0][0] = 1f;
+                                agentGameScoresArray[0][0] = 1f; // winner
                                 agentGameScoresArray[1][0] = -1f;
                                 gameWonOrLost = true;
                                 //Debug.Log("Player 0 WINS!");
@@ -528,20 +528,25 @@ public class EvaluationInstance : MonoBehaviour {
                 }
             }
             if (challengeType == Challenge.Type.Test) {
-                agentGameScoresArray[0][0] = (float)currentTimeStep / (float)maxTimeSteps;  // 0-1
+                if(currentTimeStep > 1f) {
+                    agentGameScoresArray[0][0] = 1f - (((float)currentTimeStep - 1) / (float)maxTimeSteps);  // 0-1
+                }
+                else {
+                    agentGameScoresArray[0][0] = 0f;
+                }
 
                 Vector2 targetPos = new Vector2(currentEnvironment.environmentGameplay.targetColumn.transform.position.x, currentEnvironment.environmentGameplay.targetColumn.transform.position.z);
                 Vector2 agentPos = new Vector2(currentAgentsArray[0].rootObject.transform.position.x + currentAgentsArray[0].rootCOM.x, currentAgentsArray[0].rootObject.transform.position.z + currentAgentsArray[0].rootCOM.z);
                 float distanceToTarget = (targetPos - agentPos).magnitude;
                 if(distanceToTarget < 2f) {
                     // In target!!!
-                    agentGameScoresArray[0][0] -= 2f;
+                    agentGameScoresArray[0][0] += 2f;
                     gameWonOrLost = true;
                 }
 
                 if(currentAgentsArray[0].healthModuleList.Count > 0) {
                     if (currentAgentsArray[0].healthModuleList[0].destroyed) {
-                        agentGameScoresArray[0][0] = 2f;  // higher is worse in this case
+                        agentGameScoresArray[0][0] = 0f;
                         gameWonOrLost = true;
                         //Debug.Log("Agent DIED from collision! " + currentTimeStep.ToString());
                     }
@@ -552,7 +557,8 @@ public class EvaluationInstance : MonoBehaviour {
     public void AverageFitnessComponentsByTimeSteps() {
         for (int i = 0; i < fitnessComponentEvaluationGroup.fitCompList.Count; i++) {
             if(fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.measure == FitnessComponentMeasure.Avg) {
-                fitnessComponentEvaluationGroup.fitCompList[i].rawScore /= currentTimeStep;
+                if(currentTimeStep > 1)
+                    fitnessComponentEvaluationGroup.fitCompList[i].rawScore /= (currentTimeStep - 1);
             }
         }
     }

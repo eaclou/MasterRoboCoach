@@ -458,6 +458,11 @@ public class TrainingManager : MonoBehaviour {
             teamsConfig.playersList[0].fitnessManager.ResetHistoricalData();
             Debug.Log("ResetHISTORICALDATA!");
         }
+        // hacky:
+        if (teamsConfig.environmentPopulation.fitnessManager.historicalComponentRecordMinimums.Length != teamsConfig.environmentPopulation.fitnessManager.fitnessComponentDefinitions.Count) {
+            teamsConfig.environmentPopulation.fitnessManager.ResetHistoricalData();
+            Debug.Log("ResetHISTORICALDATA!");
+        }
         string debugTxt = "";
         for(int i = 0; i < teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMinimums.Length; i++) {
             debugTxt += "" + teamsConfig.playersList[0].fitnessManager.fitnessComponentDefinitions[i].type.ToString() + " MIN: " + teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMinimums[i].ToString() + " MAX: " + teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMaximums[i].ToString() + "\n";
