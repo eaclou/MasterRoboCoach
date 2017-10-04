@@ -60,6 +60,7 @@ public class PlayerPopulation {
         fitnessManager = new FitnessManager();
         SetUpDefaultFitnessComponents(challengeType, fitnessManager);
         fitnessManager.ResetHistoricalData();
+        fitnessManager.ResetCurrentHistoricalDataLists();
         fitnessManager.InitializeForNewGeneration(agentGenomeList.Count);
         
         trainingSettingsManager = new TrainingSettingsManager(0.05f, 0.5f, 0.2f, 0.05f);

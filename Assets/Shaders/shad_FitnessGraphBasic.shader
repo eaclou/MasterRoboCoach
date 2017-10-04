@@ -125,14 +125,16 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 				half4 bgColor = half4(0.21, 0.21, 0.21, 1.0);
 				half4 onColor = half4(0.24, 0.33, 0.26, 1.0);
 				half4 gridColor = half4(0.14, 0.14, 0.14, 1.0);
-				half4 rawColor = half4(1.0, 1.0, 1.0, 1.0);
-				half4 weightedColor = half4(0.5, 0.5, 0.5, 1.0);
+				half4 rChannelColor = half4(1.0, 0.0, 0.0, 1.0);
+				half4 gChannelColor = half4(0.0, 1.0, 0.0, 1.0);
+				half4 bChannelColor = half4(0.0, 0.0, 1.0, 1.0);
 				
 				half4 pixColor = bgColor;
 				
 				
-				float distRaw = abs(finalCoords.y - color.x);
-				float distWeighted = abs(finalCoords.y - color.y);
+				float distR = abs(finalCoords.y - color.r);
+				float distG = abs(finalCoords.y - color.g);
+				float distB = abs(finalCoords.y - color.b);
 				
 				
 				//if(finalCoords.y < color.x) {  // if vertical position is less than fitnessRawScore:
@@ -157,11 +159,14 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 					}
 				}
 				
-				if(distWeighted < lineWidth) {
-					pixColor = weightedColor;
+				if(distR < lineWidth) {
+					pixColor = rChannelColor;
 				}
-				if(distRaw < lineWidth) {
-					pixColor = rawColor;
+				if(distG < lineWidth) {
+					pixColor = gChannelColor;
+				}				
+				if(distB < lineWidth) {
+					pixColor = bChannelColor;
 				}
 				float distZero = abs(finalCoords.y - 0);
 				if(distZero < lineWidth) {

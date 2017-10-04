@@ -634,7 +634,9 @@ public class TrainingMenuUI : MonoBehaviour {
 
     public void ResetHistoricalData() {
         gameManager.trainerRef.teamsConfig.playersList[0].fitnessManager.ResetHistoricalData(); // only works for one player for now
+        gameManager.trainerRef.teamsConfig.playersList[0].fitnessManager.ResetCurrentHistoricalDataLists();
         gameManager.trainerRef.teamsConfig.environmentPopulation.fitnessManager.ResetHistoricalData();
+        gameManager.trainerRef.teamsConfig.environmentPopulation.fitnessManager.ResetCurrentHistoricalDataLists();
     }
 
     public void ClickButtonCycleFocusPop() {        

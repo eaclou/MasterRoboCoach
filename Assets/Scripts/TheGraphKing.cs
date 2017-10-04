@@ -90,13 +90,15 @@ public class TheGraphKing { // Does it need to be MonoBehaviour?
 
     //#region fitness graph methods
     public void BuildTexturesFitnessBasic(FitnessManager fitnessManager) {
-        int texWidth = fitnessManager.baselineScoresAvgList.Count;
+        int texWidth = fitnessManager.alltimeBaselineVersusAvgScoreRatiosList.Count;
         texFitnessBasic.Resize(texWidth, 1);
         for (int y = 0; y < 1; y++) { // not needed for this due to 1 pixel height			
             for (int x = 0; x < texWidth; x++) {
-                float pixValueRaw = fitnessManager.baselineScoresSmoothedList[x] / fitnessManager.baselineScoresMaximumRatio;
-                float pixValueWeighted = fitnessManager.baselineScoresAvgList[x] / fitnessManager.baselineScoresMaximumRatio;
-                texFitnessBasic.SetPixel(x, y, new Color(pixValueRaw, pixValueWeighted, 0f));
+                float pixValueMinRatio = fitnessManager.alltimeBaselineVersusMinScoreRatiosList[x] / fitnessManager.alltimeMaxRatioValue;
+                float pixValueAvgRatio = fitnessManager.alltimeBaselineVersusAvgScoreRatiosList[x] / fitnessManager.alltimeMaxRatioValue;
+                float pixValueMaxRatio = fitnessManager.alltimeBaselineVersusMaxScoreRatiosList[x] / fitnessManager.alltimeMaxRatioValue;
+                
+                texFitnessBasic.SetPixel(x, y, new Color(pixValueMinRatio, pixValueMaxRatio, pixValueAvgRatio));
             }
         }
         texFitnessBasic.Apply();

@@ -456,18 +456,20 @@ public class TrainingManager : MonoBehaviour {
         // hacky:
         if(teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMinimums.Length != teamsConfig.playersList[0].fitnessManager.fitnessComponentDefinitions.Count) {
             teamsConfig.playersList[0].fitnessManager.ResetHistoricalData();
+            teamsConfig.playersList[0].fitnessManager.ResetCurrentHistoricalDataLists();
             Debug.Log("ResetHISTORICALDATA!");
         }
         // hacky:
         if (teamsConfig.environmentPopulation.fitnessManager.historicalComponentRecordMinimums.Length != teamsConfig.environmentPopulation.fitnessManager.fitnessComponentDefinitions.Count) {
             teamsConfig.environmentPopulation.fitnessManager.ResetHistoricalData();
+            teamsConfig.environmentPopulation.fitnessManager.ResetCurrentHistoricalDataLists();
             Debug.Log("ResetHISTORICALDATA!");
         }
-        string debugTxt = "";
-        for(int i = 0; i < teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMinimums.Length; i++) {
-            debugTxt += "" + teamsConfig.playersList[0].fitnessManager.fitnessComponentDefinitions[i].type.ToString() + " MIN: " + teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMinimums[i].ToString() + " MAX: " + teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMaximums[i].ToString() + "\n";
-        }
-        Debug.Log(debugTxt);
+        //string debugTxt = "";
+        //for(int i = 0; i < teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMinimums.Length; i++) {
+        //    debugTxt += "" + teamsConfig.playersList[0].fitnessManager.fitnessComponentDefinitions[i].type.ToString() + " MIN: " + teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMinimums[i].ToString() + " MAX: " + teamsConfig.playersList[0].fitnessManager.historicalComponentRecordMaximums[i].ToString() + "\n";
+        //}
+        //Debug.Log(debugTxt);
 
         // Reset default evals + exhibition
         evaluationManager.ResetForNewGeneration(teamsConfig);

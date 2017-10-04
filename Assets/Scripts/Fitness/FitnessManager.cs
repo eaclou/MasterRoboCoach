@@ -18,19 +18,42 @@ public class FitnessManager {
     [System.NonSerialized]
     public float[] processedFitnessScores;
 
-    [System.NonSerialized]
+    /*[System.NonSerialized]
     public List<float> baselineScoresAvgList;
     [System.NonSerialized]
-    public float baselineScoresMaximumRatio;
+    public float maxRatioValue;
     [System.NonSerialized]
-    public List<float> baselineScoresSmoothedList;
+    public List<float> alternateRatiosAvgList;
     [System.NonSerialized]
-    public float blankGenomeScore; // processed score for a blank brain versus current representatives
+    public List<float> alternateRatiosMaxList;
+    [System.NonSerialized]
+    public List<float> baselineScoresSmoothedList;*/
+    //[System.NonSerialized]
+    //public float blankGenomeScore; // processed score for a blank brain versus current representatives
     //int numComponents = fitnessComponentDefinitions.Count;
     [System.NonSerialized]
     public float[] historicalComponentRecordMinimums; // keeps track of all-time value range of each fitnessComponent
     [System.NonSerialized]
     public float[] historicalComponentRecordMaximums;  // keeps track of all-time value range of each fitnessComponent
+
+
+    // Recorded History of Progress:
+    [System.NonSerialized]
+    public List<float> curBaselineVersusMinScoreRatiosList;
+    [System.NonSerialized]
+    public List<float> curBaselineVersusAvgScoreRatiosList; // the list of each gen's avg score vs. baseline agents avg score, for all previous gens with same fitness/maxTimeStep settings
+    [System.NonSerialized]
+    public List<float> curBaselineVersusMaxScoreRatiosList; // the list of each gen's BEST individual score vs. baseline agents avg score, for all previous gens with same fitness/maxTimeStep settings
+    [System.NonSerialized]
+    public List<float> alltimeBaselineVersusMinScoreRatiosList;
+    [System.NonSerialized]
+    public List<float> alltimeBaselineVersusAvgScoreRatiosList; // the list of each gen's avg score vs. baseline agents avg score, for ALL generations!
+    [System.NonSerialized]
+    public List<float> alltimeBaselineVersusMaxScoreRatiosList; // the list of each gen's BEST individual score vs. baseline agents avg score, for ALL generations!
+    [System.NonSerialized]
+    public float curMaxRatioValue; // the highest ratio value achieved by any of the current generation range score Ratios
+    [System.NonSerialized]
+    public float alltimeMaxRatioValue; // the highest ratio value achieved by any generation
 
 
     //float[] historicalComponentWeightsNormalized = new float[numComponents];
@@ -51,8 +74,25 @@ public class FitnessManager {
 	public FitnessManager() {
         fitnessComponentDefinitions = new List<FitnessComponentDefinition>();
         pendingFitnessComponentDefinitions = new List<FitnessComponentDefinition>();
-        baselineScoresAvgList = new List<float>();
-        baselineScoresSmoothedList = new List<float>();
+        //baselineScoresAvgList = new List<float>();
+        //baselineScoresSmoothedList = new List<float>();
+        //alternateRatiosAvgList = new List<float>();
+        //alternateRatiosMaxList = new List<float>();
+
+        InitializeAlltimeHistoricalDataLists();
+        ResetCurrentHistoricalDataLists();
+        ResetHistoricalData();
+    }
+
+    public void InitializeAlltimeHistoricalDataLists() {
+        alltimeBaselineVersusMinScoreRatiosList = new List<float>();
+        alltimeBaselineVersusAvgScoreRatiosList = new List<float>();
+        alltimeBaselineVersusMaxScoreRatiosList = new List<float>();
+    }
+    public void ResetCurrentHistoricalDataLists() {
+        curBaselineVersusMinScoreRatiosList = new List<float>();
+        curBaselineVersusAvgScoreRatiosList = new List<float>();
+        curBaselineVersusMaxScoreRatiosList = new List<float>();
     }
 
     public void ResetHistoricalData() {
@@ -99,8 +139,13 @@ public class FitnessManager {
 
         SetPendingFitnessListFromMaster(); // master fitness list exists, make the pending definitions list a copy of it
 
-        baselineScoresAvgList = new List<float>();  // initialize!
-        baselineScoresSmoothedList = new List<float>();
+        InitializeAlltimeHistoricalDataLists();
+        
+
+        //baselineScoresAvgList = new List<float>();  // initialize!
+        //baselineScoresSmoothedList = new List<float>();
+        //alternateRatiosAvgList = new List<float>();
+        //alternateRatiosMaxList = new List<float>();
 
         // get evaluation groups ready:
         if (FitnessEvalGroupArray == null) {
@@ -123,6 +168,7 @@ public class FitnessManager {
             }
         }
 
+        ResetCurrentHistoricalDataLists();
         ResetHistoricalData();
     }
 
@@ -177,7 +223,7 @@ public class FitnessManager {
 
 
         // Debug:
-        float totalScore = 0f;
+        /*float totalScore = 0f;
         for (int i = 0; i < popSize; i++) {
             totalScore += processedFitnessScores[i];
         }
@@ -194,19 +240,21 @@ public class FitnessManager {
             baselineScoresSmoothedList.Add(scoreRatio); // start the list at first value
         }
 
-        if (scoreRatio > baselineScoresMaximumRatio) {
-            baselineScoresMaximumRatio = scoreRatio;
-            Debug.Log("new max ratio: " + baselineScoresMaximumRatio.ToString());
+        if (scoreRatio > alltimeMaxRatioValue) {
+            //maxRatioValue = scoreRatio;
+            Debug.Log("new max ratio: " + alltimeMaxRatioValue.ToString());
         }
-        baselineScoresAvgList.Add(scoreRatio);
+        alltimeBaselineVersusAvgScoreRatiosList.Add(scoreRatio);
         
-        string txt = "FitnessRatios: \n";
-        int numLines = Mathf.RoundToInt(Mathf.Min(20, baselineScoresAvgList.Count));
-        for(int i = 0; i < numLines; i++) {
-            txt += baselineScoresAvgList[baselineScoresAvgList.Count - i - 1].ToString() + "\n";
-        }
-        Debug.Log(txt);
-        RankProcessedFitness();
+        //string txt = "FitnessRatios: \n";
+        //int numLines = Mathf.RoundToInt(Mathf.Min(20, baselineScoresAvgList.Count));
+        //for(int i = 0; i < numLines; i++) {
+        //    txt += baselineScoresAvgList[baselineScoresAvgList.Count - i - 1].ToString() + "\n";
+        //}
+        //Debug.Log(txt);
+        */
+
+        RankProcessedFitness(popSize);
     }
 
     public void ProcessRawFitness(int popSize) {
@@ -223,48 +271,59 @@ public class FitnessManager {
 
         // Process!  -- Makes a lot of assumptions!!!
         int numComponents = fitnessComponentDefinitions.Count;
-        float[] componentRecordMinimums = new float[numComponents];
-        float[] componentRecordMaximums = new float[numComponents];
-        float[] componentWeightsNormalized = new float[numComponents];
+        float[][] componentRecordMinimums = new float[numComponents][];
+        float[][] componentRecordMaximums = new float[numComponents][];
+        float[] componentWeightsNormalized = new float[numComponents];  // Rescales fitnessComponent Weights to add up to One (1).
+        //float[][] componentPerTrialWeightsNormalized = new float[numComponents][];  // Rescales fitnessComponent Weights to add up to One (1) -- For each fitComp within a trial.
+        //
+        float[][] componentAverageBaselineScores = new float[numComponents][];
+        float[][] componentAveragePopulationScores = new float[numComponents][];
+        // Need the Individual version of: componentAveragePopulationScores[f][n];
+        float[][] componentWorstIndividualScores = new float[numComponents][];
+        float[][] componentBestIndividualScores = new float[numComponents][];
+        // Initialize arrays:
+        for (int a = 0; a < numComponents; a++) {
+            componentRecordMinimums[a] = new float[FitnessEvalGroupArray[a].Count]; // questionable?
+            componentRecordMaximums[a] = new float[FitnessEvalGroupArray[a].Count];
+            componentAverageBaselineScores[a] = new float[FitnessEvalGroupArray[a].Count];
+            componentAveragePopulationScores[a] = new float[FitnessEvalGroupArray[a].Count];
+            componentWorstIndividualScores[a] = new float[FitnessEvalGroupArray[a].Count];
+            componentBestIndividualScores[a] = new float[FitnessEvalGroupArray[a].Count];
 
-        float[] componentAverageBaselineScore = new float[numComponents];
-        float[] componentAveragePopulationScore = new float[numComponents];
-
-        // Loop through all scores and find the total range of values for this generation in order to normalize them
+            for (int d = 0; d < FitnessEvalGroupArray[a].Count; d++) {
+                componentRecordMinimums[a][d] = float.PositiveInfinity;
+                componentRecordMaximums[a][d] = float.NegativeInfinity;
+            }
+        }
+        //=================================================================================================
+        // Loop through all fitness scores and keep track of min/max values range for each trial/component
+        // GET RECORD MIN / MAX for each fitComp & Trial
+        // POPULATE BASELINE & AVGPOP DATA!!!
         for (int i = 0; i < numComponents; i++) {  // for each fitness component
-            componentRecordMinimums[i] = float.PositiveInfinity;
-            componentRecordMaximums[i] = float.NegativeInfinity;
+            //componentRecordMinimums[i] = float.PositiveInfinity;
+            //componentRecordMaximums[i] = float.NegativeInfinity;
             for (int j = 0; j < FitnessEvalGroupArray.Length; j++) { // loop through each genome
-                //string txt = "ProcessRawFitness()";
-                
-                for(int k = 0; k < FitnessEvalGroupArray[j].Count; k++) { // for each EvalGroup of this genome
+                                                                     //string txt = "ProcessRawFitness()";
+
+                for (int k = 0; k < FitnessEvalGroupArray[j].Count; k++) { // for each EvalGroup of this genome
                     float score = FitnessEvalGroupArray[j][k].fitCompList[i].rawScore;
                     // Won't work if evalTimes are different? -- among other things...
-                    componentRecordMinimums[i] = Mathf.Min(score, componentRecordMinimums[i]);
-                    componentRecordMaximums[i] = Mathf.Max(score, componentRecordMaximums[i]);
-                    //txt += "\nMin: " + componentRecordMinimums[i].ToString() + ",  Max: " + componentRecordMaximums[i].ToString() + ", score: " + score.ToString();
-
-                    if(j < popSize) {
-                        componentAveragePopulationScore[i] += score;
+                    componentRecordMinimums[i][k] = Mathf.Min(score, componentRecordMinimums[i][k]);
+                    componentRecordMaximums[i][k] = Mathf.Max(score, componentRecordMaximums[i][k]);
+                    
+                    if (j < popSize) {
+                        componentAveragePopulationScores[i][k] += score;
                     }
                     else {
-                        componentAverageBaselineScore[i] += score;
+                        componentAverageBaselineScores[i][k] += score;
                     }
                 }
-                //Debug.Log(txt);
             }
-
-            componentAveragePopulationScore[i] /= popSize;  // divide by number of Agents in population
-            componentAverageBaselineScore[i] /= (FitnessEvalGroupArray.Length - popSize);  // divide by number of random baseline Agents
-
-            // Assume ResetHistoricalData() has been called:
-            //Debug.Log(historicalComponentRecordMinimums.ToString());
-            historicalComponentRecordMinimums[i] = Mathf.Min(historicalComponentRecordMinimums[i], componentRecordMinimums[i]);
-            historicalComponentRecordMaximums[i] = Mathf.Max(historicalComponentRecordMaximums[i], componentRecordMaximums[i]);
         }
-        // Loop through components and get normalized weights:
-        float totalFitCompWeight = 0f; 
-        for(int f = 0; f < numComponents; f++) {
+
+        // Loop through components and get NORMALIZED WEIGHTS:
+        float totalFitCompWeight = 0f;
+        for (int f = 0; f < numComponents; f++) {
             totalFitCompWeight += fitnessComponentDefinitions[f].weight;
         }
         // store normalized component weights:
@@ -274,83 +333,106 @@ public class FitnessManager {
             //Debug.Log("component[" + f.ToString() + "] min: " + componentRecordMinimums[f].ToString() + ", max: " + componentRecordMaximums[f].ToString());
         }
 
-        // FitnessRATIOS
-        float avgRatio = 0f;
-        float avgRatioBest = 0f;  // the top scores vs baseline avg
-        for (int f = 0; f < numComponents; f++) {
-            float ratio;
-            float ratioBest;            
-            
-            float numerator;
-            float denominator;
-            float numeratorBest;
-            float denominatorBest;
-            if (fitnessComponentDefinitions[f].biggerIsBetter) { // swap if smaller values are better
-                numerator = componentAveragePopulationScore[f];
-                numeratorBest = componentRecordMaximums[f];
-                denominator = componentAverageBaselineScore[f];
-                denominatorBest = componentAverageBaselineScore[f];
-            }
-            else {
-                numerator = componentAverageBaselineScore[f];
-                numeratorBest = componentAverageBaselineScore[f];
-                denominator = componentAveragePopulationScore[f];
-                denominatorBest = componentRecordMinimums[f];
-            }
+        float avgPopFinalScore = 0f;
+        float baselineFinalScore = 0f;
+        float avgPopFinalRatio = 0f;
+        for(int i = 0; i < numComponents; i++) {
+            float avgPopComponentScore = 0f;
+            float baselineComponentScore = 0f;
+            float avgPopComponentRatio = 0f;
 
-            if (denominator != 0f) {
-                ratio = (numerator / denominator);
-            }
-            else {
-                ratio = ((numerator + 1.1f) / (denominator + 1.1f));
-            }
-            if (denominatorBest != 0f) {
-                ratioBest = (numeratorBest / denominatorBest);
-            }
-            else {
-                ratioBest = ((numeratorBest + 1.1f) / (denominatorBest + 1.1f));
-            }
+            // For each Trial:
+            for (int k = 0; k < FitnessEvalGroupArray[0].Count; k++) {
+                float rawAvgPopScore;
+                float normalizedAvgPopScore;
+                float rawBaselineScore;
+                float normalizedBaselineScore;
+                if ((componentRecordMaximums[i][k] - componentRecordMinimums[i][k]) != 0) {
+                    rawAvgPopScore = componentAveragePopulationScores[i][k] / popSize;
+                    normalizedAvgPopScore = (rawAvgPopScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
+                    if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {
+                        normalizedAvgPopScore = 1f - normalizedAvgPopScore;  // 1=good, 0=bad
+                    }
+                    // divide by num Agents in group
+                    rawBaselineScore = componentAverageBaselineScores[i][k] / (FitnessEvalGroupArray.Length - popSize);
+                    normalizedBaselineScore = (rawBaselineScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
+                    if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {
+                        normalizedBaselineScore = 1f - normalizedBaselineScore;  // 1=good, 0=bad
+                    }
+                }
+                else {  // all agents are tied in score
+                    normalizedAvgPopScore = 0f;
+                    normalizedBaselineScore = 0f;
+                }
 
-            avgRatio += ratio * componentWeightsNormalized[f];
-            avgRatioBest += ratioBest * componentWeightsNormalized[f];
-            Debug.Log("" + fitnessComponentDefinitions[f].type.ToString() + ": pop/baseline= " + ratio);            
+                //float trialRatio;
+                if (normalizedBaselineScore == 0) {
+                    avgPopComponentRatio += (normalizedAvgPopScore + 1.01f) / (normalizedBaselineScore + 1.01f);
+                }
+                else {
+                    avgPopComponentRatio += (normalizedAvgPopScore + 1.01f) / (normalizedBaselineScore + 1.01f);
+                }
+                
+                
+                Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " Trial: " + k.ToString() + ", normalizedAvgPopScore " + normalizedAvgPopScore.ToString() + " normalizedBaselineScore " + normalizedBaselineScore.ToString());
+
+                // Divide by number of Agents in each group:
+                avgPopComponentScore += normalizedAvgPopScore;
+                baselineComponentScore += normalizedBaselineScore;
+            }
+            Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " avgPopComponentScore " + ((avgPopComponentScore / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString() + " baselineComponentScore " + ((baselineComponentScore / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString());
+            // divide by #Trials and multiply by normalized fitComp weight:
+            avgPopFinalScore += (avgPopComponentScore / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i];
+            baselineFinalScore += (baselineComponentScore / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i];
+            avgPopFinalRatio += (avgPopComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i];
         }
-        //avgRatio /= numComponents;
-        Debug.Log("avgRatio" + avgRatio.ToString() + " ratioBest: " + avgRatioBest.ToString());
+        
+        float testRatio = (avgPopFinalScore + 1.01f) / (baselineFinalScore + 1.01f);
+        Debug.Log("avgPopFinalScore " + avgPopFinalScore.ToString() + " baselineFinalScore " + baselineFinalScore.ToString() + " ratio= " + testRatio.ToString() + " altRatio avgPopFinalRatio: " + avgPopFinalRatio.ToString());
+        
+        
+        if (avgPopFinalRatio > alltimeMaxRatioValue) {
+            alltimeMaxRatioValue = avgPopFinalRatio;
+        }
+        //if (avgRatioBest > alltimeMaxRatioValue) {
+        //alltimeMaxRatioValue = avgRatioBest;
+        //}
 
+        //alltimeBaselineVersusMinScoreRatiosList.Add(avgPopFinalRatio);
+        alltimeBaselineVersusAvgScoreRatiosList.Add(avgPopFinalRatio);
+        //alltimeBaselineVersusMaxScoreRatiosList.Add(avgPopFinalRatio);
+
+       // Debug.Log("ratioWorst: " + avgRatioWorst.ToString() + ", ratioAvg: " + avgRatio.ToString() + " ratioBest: " + avgRatioBest.ToString());
+
+        //=================================================================================================
+        // FINAL PROCESSED SINGLE FLOAT SCORE::::
         // Loop through all genomes and tally up their scores from each of their evaluations
         for (int a = 0; a < FitnessEvalGroupArray.Length; a++) {  // a = genomes
             float genomeScore = 0f;
-            for(int b = 0; b < FitnessEvalGroupArray[a].Count; b++) {  // b = evalGroups (i.e. trials)
+            for (int b = 0; b < FitnessEvalGroupArray[a].Count; b++) {  // b = evalGroups (i.e. trials)
                 float evalScore = 0f;
-                for(int c = 0; c < FitnessEvalGroupArray[a][b].fitCompList.Count; c++) {  // c = fitnessComponents
-                    if((componentRecordMaximums[c] - componentRecordMinimums[c]) > 0f) {
-                        float normalizedScore = (FitnessEvalGroupArray[a][b].fitCompList[c].rawScore - componentRecordMinimums[c]) / (componentRecordMaximums[c] - componentRecordMinimums[c]);
-                        if(!FitnessEvalGroupArray[a][b].fitCompList[c].sourceDefinition.biggerIsBetter) {
+                for (int c = 0; c < FitnessEvalGroupArray[a][b].fitCompList.Count; c++) {  // c = fitnessComponents
+                    if ((componentRecordMaximums[c][b] - componentRecordMinimums[c][b]) > 0f) {
+                        float normalizedScore = (FitnessEvalGroupArray[a][b].fitCompList[c].rawScore - componentRecordMinimums[c][b]) / (componentRecordMaximums[c][b] - componentRecordMinimums[c][b]);
+                        if (!FitnessEvalGroupArray[a][b].fitCompList[c].sourceDefinition.biggerIsBetter) {
                             normalizedScore = 1f - normalizedScore;  // 1=good, 0=bad
                         }
                         evalScore += normalizedScore * componentWeightsNormalized[c];
                     }
                     else {
                         evalScore += 0f * componentWeightsNormalized[c]; // score when it's an all-way draw
-                    }                    
+                    }
                 }
                 genomeScore += evalScore;
             }
             genomeScore /= FitnessEvalGroupArray[a].Count;
-            
+
             // Store final processed score in global array -- [ 0 < score < 1 ]
             processedFitnessScores[a] = genomeScore;
         }
-
-        string debugTxt = "ProcessRawFitness()";
-        for(int i = 0; i < processedFitnessScores.Length; i++) {
-            debugTxt += "\nAgent# " + i.ToString() + ": " + processedFitnessScores[i].ToString();
-        }
-        Debug.Log(debugTxt);
     }
 
-    public void RankProcessedFitness() {
+    public void RankProcessedFitness(int popSize) {
         rankedIndicesList = new int[processedFitnessScores.Length];
         rankedFitnessList = new float[processedFitnessScores.Length];
         
@@ -379,8 +461,134 @@ public class FitnessManager {
             fitnessRankText += "[" + rankedIndicesList[i].ToString() + "]: " + rankedFitnessList[i].ToString() + "\n";
         }
         Debug.Log(fitnessRankText);
+
+
+
+        // Best & Worst Individuals:
+        int numComponents = fitnessComponentDefinitions.Count;
+        float[][] componentRecordMinimums = new float[numComponents][];
+        float[][] componentRecordMaximums = new float[numComponents][];
+        float[][] componentAverageBaselineScores = new float[numComponents][];
+        float[] componentWeightsNormalized = new float[numComponents];  // Rescales fitnessComponent Weights to add up to One (1).
         
+        // Initialize arrays:
+        for (int a = 0; a < numComponents; a++) {
+            componentRecordMinimums[a] = new float[FitnessEvalGroupArray[a].Count]; // questionable?
+            componentRecordMaximums[a] = new float[FitnessEvalGroupArray[a].Count];
+            componentAverageBaselineScores[a] = new float[FitnessEvalGroupArray[a].Count];
+            for (int d = 0; d < FitnessEvalGroupArray[a].Count; d++) {
+                componentRecordMinimums[a][d] = float.PositiveInfinity;
+                componentRecordMaximums[a][d] = float.NegativeInfinity;
+            }
+        }
         
+        //=================================================================================================
+        // Loop through all fitness scores and keep track of min/max values range for each trial/component
+        // GET RECORD MIN / MAX for each fitComp & Trial
+        for (int i = 0; i < numComponents; i++) {  // for each fitness component
+            for (int j = 0; j < FitnessEvalGroupArray.Length; j++) { // loop through each genome
+                for (int k = 0; k < FitnessEvalGroupArray[j].Count; k++) { // for each EvalGroup of this genome
+                    float score = FitnessEvalGroupArray[j][k].fitCompList[i].rawScore;
+                    // Won't work if evalTimes are different? -- among other things...
+                    componentRecordMinimums[i][k] = Mathf.Min(score, componentRecordMinimums[i][k]);
+                    componentRecordMaximums[i][k] = Mathf.Max(score, componentRecordMaximums[i][k]);
+
+                    if (j < popSize) {
+                        //componentAveragePopulationScores[i][k] += score;
+                    }
+                    else {
+                        componentAverageBaselineScores[i][k] += score;
+                    }
+                }
+            }
+        }
+        // Loop through components and get NORMALIZED WEIGHTS:
+        float totalFitCompWeight = 0f;
+        for (int f = 0; f < numComponents; f++) {
+            totalFitCompWeight += fitnessComponentDefinitions[f].weight;
+        }
+        // store normalized component weights:
+        for (int f = 0; f < numComponents; f++) {
+            componentWeightsNormalized[f] = Mathf.Clamp01(fitnessComponentDefinitions[f].weight / totalFitCompWeight);
+            //temp
+            //Debug.Log("component[" + f.ToString() + "] min: " + componentRecordMinimums[f].ToString() + ", max: " + componentRecordMaximums[f].ToString());
+        }
+
+        float bestIndividualFinalRatio = 0f;
+        float worstIndividualFinalRatio = 0f;
+        int bestIndividualIndex = rankedIndicesList[0];
+        int worstIndividualIndex = rankedIndicesList[rankedIndicesList.Length - 1];
+
+
+        for (int i = 0; i < numComponents; i++) {
+            
+            float bestIndividualComponentRatio = 0f;
+            float worstIndividualComponentRatio = 0f;
+
+            // For each Trial:
+            for (int k = 0; k < FitnessEvalGroupArray[0].Count; k++) {
+                float rawBestIndividualScore = 0f;
+                float normalizedBestIndividualScore;
+                float rawWorstIndividualScore = 0f;
+                float normalizedWorstIndividualScore;
+                float rawBaselineScore;
+                float normalizedBaselineScore;
+                if ((componentRecordMaximums[i][k] - componentRecordMinimums[i][k]) != 0) {
+                    rawBestIndividualScore = FitnessEvalGroupArray[bestIndividualIndex][k].fitCompList[i].rawScore;
+                    normalizedBestIndividualScore = (rawBestIndividualScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
+                    if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {
+                        normalizedBestIndividualScore = 1f - normalizedBestIndividualScore;  // 1=good, 0=bad
+                    }
+                    rawWorstIndividualScore = FitnessEvalGroupArray[worstIndividualIndex][k].fitCompList[i].rawScore;
+                    normalizedWorstIndividualScore = (rawWorstIndividualScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
+                    if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {
+                        normalizedWorstIndividualScore = 1f - normalizedWorstIndividualScore;  // 1=good, 0=bad
+                    }
+                    // divide by num Agents in group
+                    rawBaselineScore = componentAverageBaselineScores[i][k] / (FitnessEvalGroupArray.Length - popSize);
+                    normalizedBaselineScore = (rawBaselineScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
+                    if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {
+                        normalizedBaselineScore = 1f - normalizedBaselineScore;  // 1=good, 0=bad
+                    }
+                }
+                else {  // all agents are tied in score
+                    normalizedBestIndividualScore = 0f;
+                    normalizedWorstIndividualScore = 0f;
+                    normalizedBaselineScore = 0f;
+                }
+
+                //float trialRatio;
+                if (normalizedBaselineScore == 0) {
+                    bestIndividualComponentRatio += (normalizedBestIndividualScore + 1.01f) / (normalizedBaselineScore + 1.01f);
+                    worstIndividualComponentRatio += (normalizedWorstIndividualScore + 1.01f) / (normalizedBaselineScore + 1.01f);
+                }
+                else {
+                    bestIndividualComponentRatio += (normalizedBestIndividualScore + 1.01f) / (normalizedBaselineScore + 1.01f);
+                    worstIndividualComponentRatio += (normalizedWorstIndividualScore + 1.01f) / (normalizedBaselineScore + 1.01f);
+                }
+
+
+                Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " Trial: " + k.ToString() + ", rawBestIndividualScore " + rawBestIndividualScore.ToString() + " rawWorstIndividualScore " + rawWorstIndividualScore.ToString() + ", normalizedBestIndividualScore " + normalizedBestIndividualScore.ToString() + " normalizedWorstIndividualScore " + normalizedWorstIndividualScore.ToString() + " normalizedBaselineScore " + normalizedBaselineScore.ToString());
+
+                // Divide by number of Agents in each group:
+                //avgPopComponentScore += normalizedAvgPopScore;
+                //baselineComponentScore += normalizedBaselineScore;
+            }
+            Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " bestIndividualFinalRatio " + ((bestIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString() + " worstIndividualComponentRatio " + ((worstIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString());
+            // divide by #Trials and multiply by normalized fitComp weight:
+            bestIndividualFinalRatio += (bestIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i];
+            worstIndividualFinalRatio += (worstIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i];
+        }
+
+        alltimeBaselineVersusMinScoreRatiosList.Add(worstIndividualFinalRatio);
+        //alltimeBaselineVersusAvgScoreRatiosList.Add(avgPopFinalRatio);
+        alltimeBaselineVersusMaxScoreRatiosList.Add(bestIndividualFinalRatio);
+        if (bestIndividualFinalRatio > alltimeMaxRatioValue) {
+            alltimeMaxRatioValue = bestIndividualFinalRatio;
+        }
+        //if (avgRatioBest > alltimeMaxRatioValue) {
+        //alltimeMaxRatioValue = avgRatioBest;
+        //}
         // TEMP!
         //AddTopHalfBonus();
     }
