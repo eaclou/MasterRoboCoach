@@ -146,8 +146,9 @@ public class TrainingMenuUI : MonoBehaviour {
     }
 
     public void UpdateGraphData() {
-        imageFitnessGraph.GetComponent<Image>().material.SetTexture("_FitnessTex", gameManager.trainerRef.teamsConfig.playersList[0].graphKing.texFitnessBasic);
-        Debug.Log("UpdateGraphData()!! " + gameManager.trainerRef.teamsConfig.playersList[0].graphKing.texFitnessBasic.width.ToString());
+        imageFitnessGraph.GetComponent<Image>().material.SetTexture("_FitnessTex", gameManager.trainerRef.teamsConfig.playersList[0].graphKing.texFitnessAlltime);
+        imageFitnessGraph.GetComponent<Image>().material.SetTexture("_FitnessTexCurrent", gameManager.trainerRef.teamsConfig.playersList[0].graphKing.texFitnessCurrent);
+        Debug.Log("UpdateGraphData()!! " + gameManager.trainerRef.teamsConfig.playersList[0].graphKing.texFitnessAlltime.width.ToString());
     }
     public void InitializeUIFromGameState() {
         UpdateDebugLeftPanelUI();

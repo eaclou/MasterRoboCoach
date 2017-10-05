@@ -63,7 +63,7 @@ public class PlayerPopulation {
         fitnessManager.ResetCurrentHistoricalDataLists();
         fitnessManager.InitializeForNewGeneration(agentGenomeList.Count);
         
-        trainingSettingsManager = new TrainingSettingsManager(0.05f, 0.5f, 0.2f, 0.05f);
+        trainingSettingsManager = new TrainingSettingsManager(0.05f, 0.5f, 0.2f, 0.005f);
     }
     public void InitializeLoadedPopulation() {
         // Assumes template has been set from defaults!

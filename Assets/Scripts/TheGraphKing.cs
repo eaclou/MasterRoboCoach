@@ -11,8 +11,9 @@ public class TheGraphKing { // Does it need to be MonoBehaviour?
 
     // Fitness graph Panel
     //     Textures and data that is passed to shaders/materials
-    public Texture2D texFitnessBasic;
-    public Texture2D texFitnessAgentsLastGen;
+    public Texture2D texFitnessAlltime;
+    public Texture2D texFitnessCurrent;
+    //public Texture2D texFitnessAgentsLastGen;
     //public Texture2D texFitnessComponents;
 
     //public Texture2D texHistoryAvgGenomes;
@@ -39,10 +40,10 @@ public class TheGraphKing { // Does it need to be MonoBehaviour?
     // Current Agent Data Graphs Panel
 
     public TheGraphKing() {
-        texFitnessBasic = new Texture2D(1, 1);
-        texFitnessBasic.wrapMode = TextureWrapMode.Clamp;
-        texFitnessAgentsLastGen = new Texture2D(1, 1);
-        texFitnessAgentsLastGen.wrapMode = TextureWrapMode.Clamp;
+        texFitnessAlltime = new Texture2D(1, 1);
+        texFitnessAlltime.wrapMode = TextureWrapMode.Clamp;
+        texFitnessCurrent = new Texture2D(1, 1);
+        texFitnessCurrent.wrapMode = TextureWrapMode.Clamp;
         //texFitnessComponents = new Texture2D(1, 1);
         //texFitnessComponents.wrapMode = TextureWrapMode.Clamp;
 
@@ -90,24 +91,60 @@ public class TheGraphKing { // Does it need to be MonoBehaviour?
 
     //#region fitness graph methods
     public void BuildTexturesFitnessBasic(FitnessManager fitnessManager) {
-        int texWidth = fitnessManager.alltimeBaselineVersusAvgScoreRatiosList.Count;
-        texFitnessBasic.Resize(texWidth, 1);
+        int texWidthAlltime = fitnessManager.alltimeBaselineVersusAvgScoreRatiosList.Count;
+        texFitnessAlltime.Resize(texWidthAlltime, 1);
+        int texWidthCurrent = fitnessManager.curBaselineVersusAvgScoreRatiosList.Count;
+        texFitnessCurrent.Resize(texWidthCurrent, 1);
         for (int y = 0; y < 1; y++) { // not needed for this due to 1 pixel height			
-            for (int x = 0; x < texWidth; x++) {
-                float pixValueMinRatio = fitnessManager.alltimeBaselineVersusMinScoreRatiosList[x] / fitnessManager.alltimeMaxRatioValue;
-                float pixValueAvgRatio = fitnessManager.alltimeBaselineVersusAvgScoreRatiosList[x] / fitnessManager.alltimeMaxRatioValue;
-                float pixValueMaxRatio = fitnessManager.alltimeBaselineVersusMaxScoreRatiosList[x] / fitnessManager.alltimeMaxRatioValue;
-                
-                texFitnessBasic.SetPixel(x, y, new Color(pixValueMinRatio, pixValueMaxRatio, pixValueAvgRatio));
+            for (int x = 0; x < texWidthAlltime; x++) {                
+                float pixValueMinRatio = fitnessManager.alltimeBaselineVersusMinScoreRatiosList[x];
+                float pixValueAvgRatio = fitnessManager.alltimeBaselineVersusAvgScoreRatiosList[x];
+                float pixValueMaxRatio = fitnessManager.alltimeBaselineVersusMaxScoreRatiosList[x];
+
+                float valueRange = fitnessManager.alltimeMaxRatioValue - fitnessManager.alltimeMinRatioValue;
+                if (valueRange == 0f) {
+                    pixValueMinRatio = 1f;
+                    pixValueAvgRatio = 1f;
+                    pixValueMaxRatio = 1f;
+                }
+                else {
+                    pixValueMinRatio = (pixValueMinRatio - fitnessManager.alltimeMinRatioValue) / valueRange;
+                    pixValueAvgRatio = (pixValueAvgRatio - fitnessManager.alltimeMinRatioValue) / valueRange;
+                    pixValueMaxRatio = (pixValueMaxRatio - fitnessManager.alltimeMinRatioValue) / valueRange;
+                }
+
+                texFitnessAlltime.SetPixel(x, y, new Color(pixValueMinRatio, pixValueMaxRatio, pixValueAvgRatio));
+            }
+
+            // CURRENT!!!::::
+            for (int x = 0; x < texWidthCurrent; x++) {
+                float pixValueMinRatio = fitnessManager.curBaselineVersusAvgScoreRatiosList[x];
+                float pixValueAvgRatio = fitnessManager.curBaselineVersusAvgScoreRatiosList[x];
+                float pixValueMaxRatio = fitnessManager.curBaselineVersusAvgScoreRatiosList[x];
+
+                float valueRange = fitnessManager.curMaxRatioValue - fitnessManager.curMinRatioValue;
+                if (valueRange == 0f) {
+                    pixValueMinRatio = 1f;
+                    pixValueAvgRatio = 1f;
+                    pixValueMaxRatio = 1f;
+                }
+                else {
+                    pixValueMinRatio = (pixValueMinRatio - fitnessManager.curMinRatioValue) / valueRange;
+                    pixValueAvgRatio = (pixValueAvgRatio - fitnessManager.curMinRatioValue) / valueRange;
+                    pixValueMaxRatio = (pixValueMaxRatio - fitnessManager.curMinRatioValue) / valueRange;
+                }
+
+                texFitnessCurrent.SetPixel(x, y, new Color(pixValueMinRatio, pixValueMaxRatio, pixValueAvgRatio));
             }
         }
-        texFitnessBasic.Apply();
+        texFitnessAlltime.Apply();
+        texFitnessCurrent.Apply();
 
         //string fitValues = "Raw: ";
         //for (int x = 0; x < texWidth; x++) {
         //    fitValues += dataManager.generationDataList[x].avgAgentScoreRaw.ToString() + ", ";
         //}        
-        Debug.Log ("TheGraphKing BuildTexturesFitnessBasic Length: " + texFitnessBasic.width.ToString());
+        Debug.Log ("TheGraphKing BuildTexturesFitnessBasic Length: " + texFitnessAlltime.width.ToString() + ", cur: " + texFitnessCurrent.width.ToString());
     }
 
     public void BuildTexturesFitnessAgentsLastGen() {
