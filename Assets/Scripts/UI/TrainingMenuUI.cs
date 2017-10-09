@@ -82,7 +82,9 @@ public class TrainingMenuUI : MonoBehaviour {
         AgentModules,
         AgentFitness,
         TrainingSettings,
-        LastGenFitness
+        LastGenFitness,
+        AgentBrainGenome,
+        AgentBrain
     }
     public DebugLeftCurrentPage debugLeftCurrentPage = DebugLeftCurrentPage.AgentModules;
 
@@ -517,6 +519,77 @@ public class TrainingMenuUI : MonoBehaviour {
         }
         return txt;
     }
+    private string GetTextAgentBrainGenome() {
+        string txt = "";
+        int focusPop = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+        
+        if (focusPop > 0) {
+            AgentGenome currentAgentGenome = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
+            //Agent currentAgent = gameManager.trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
+            // AGENT:
+
+            // Index:
+            txt += "Player: " + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
+            txt += ", Genome: " + currentAgentGenome.index.ToString() + "\n";
+            txt += "Genome BodyNeurons: " + currentAgentGenome.brainGenome.bodyNeuronList.Count.ToString() + "\n";
+            txt += "Genome HiddenNeurons: " + currentAgentGenome.brainGenome.hiddenNeuronList.Count.ToString() + "\n";
+            txt += "Genome Links: " + currentAgentGenome.brainGenome.linkList.Count.ToString() + "\n";
+
+            // Brain List:
+            txt += "\nBodyNeurons:\n";
+            for (int i = 0; i < currentAgentGenome.brainGenome.bodyNeuronList.Count; i++) {
+                txt += "Neuron[" + i.ToString() + "] (" + currentAgentGenome.brainGenome.bodyNeuronList[i].neuronType.ToString() + ") NID Module#: " + currentAgentGenome.brainGenome.bodyNeuronList[i].nid.moduleID.ToString() + ", NID Neuron#: " + currentAgentGenome.brainGenome.bodyNeuronList[i].nid.neuronID.ToString() + "\n";
+            }
+            txt += "\nHiddenNeurons:\n";
+            for (int i = 0; i < currentAgentGenome.brainGenome.hiddenNeuronList.Count; i++) {
+                txt += "Neuron[" + i.ToString() + "] (" + currentAgentGenome.brainGenome.hiddenNeuronList[i].neuronType.ToString() + ") NID Module#: " + currentAgentGenome.brainGenome.hiddenNeuronList[i].nid.moduleID.ToString() + ", NID Neuron#: " + currentAgentGenome.brainGenome.hiddenNeuronList[i].nid.neuronID.ToString() + "\n";
+            }
+            txt += "\nLinks:\n";
+            for (int i = 0; i < currentAgentGenome.brainGenome.linkList.Count; i++) {
+                txt += "Link[" + i.ToString() + "] (" + currentAgentGenome.brainGenome.linkList[i].weight.ToString() + ") FROM NID: [" + currentAgentGenome.brainGenome.linkList[i].fromModuleID.ToString() + ", " + currentAgentGenome.brainGenome.linkList[i].fromNeuronID.ToString() + "] --> TO NID: [" + currentAgentGenome.brainGenome.linkList[i].toModuleID.ToString() + ", " + currentAgentGenome.brainGenome.linkList[i].toNeuronID.ToString() + "]\n";
+            }
+        }
+        
+
+        return txt;
+
+    }
+    private string GetTextAgentBrain() {
+        string txt = "";
+        int focusPop = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex;
+
+        if (focusPop > 0) {
+            AgentGenome currentAgentGenome = gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].agentGenomesList[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
+            Agent currentAgent = gameManager.trainerRef.evaluationManager.exhibitionInstance.currentAgentsArray[gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex - 1];
+            // AGENT:
+
+            // Index:
+            txt += "Player: " + gameManager.trainerRef.evaluationManager.exhibitionTicketList[gameManager.trainerRef.evaluationManager.exhibitionTicketCurrentIndex].focusPopIndex.ToString();
+            txt += ", Genome: " + currentAgentGenome.index.ToString() + "\n";
+            txt += "Genome BodyNeurons: " + currentAgentGenome.brainGenome.bodyNeuronList.Count.ToString() + "\n";
+            txt += "Genome HiddenNeurons: " + currentAgentGenome.brainGenome.hiddenNeuronList.Count.ToString() + "\n";
+            txt += "Genome Links: " + currentAgentGenome.brainGenome.linkList.Count.ToString() + "\n";
+            txt += "Agent: \n";
+            txt += "Neurons: " + currentAgent.brain.neuronList.Count.ToString() + "\n";
+            txt += "Axons: " + currentAgent.brain.axonList.Count.ToString() + "\n";
+            //txt += "Genome Links: " + currentAgentGenome.brainGenome.linkList.Count.ToString() + "\n";
+
+            // Brain List:
+            txt += "\nNeurons:\n";
+            for (int i = 0; i < currentAgent.brain.neuronList.Count; i++) {
+                txt += "Neuron[" + i.ToString() + "] (" + currentAgent.brain.neuronList[i].neuronType.ToString() + ") prevVal: " + currentAgent.brain.neuronList[i].previousValue.ToString() + " || curVal: " + currentAgent.brain.neuronList[i].currentValue[0].ToString() + " || inputTotal: " + currentAgent.brain.neuronList[i].inputTotal.ToString() + "\n";
+            }
+            txt += "\nAxons:\n";
+            for (int i = 0; i < currentAgent.brain.axonList.Count; i++) {
+                txt += "Axon[" + i.ToString() + "] (" + currentAgent.brain.axonList[i].weight.ToString() + ") from: " + currentAgent.brain.axonList[i].fromID.ToString() + " to: " + currentAgent.brain.axonList[i].toID.ToString() + "\n";
+            }
+        }
+        
+
+
+        return txt;
+
+    }
     private void SetDebugLeftText() {
         
         switch(debugLeftCurrentPage) {
@@ -531,6 +604,12 @@ public class TrainingMenuUI : MonoBehaviour {
                 break;
             case DebugLeftCurrentPage.LastGenFitness:
                 textDebugLeft.text = GetTextLastGenFitness();
+                break;
+            case DebugLeftCurrentPage.AgentBrainGenome:
+                textDebugLeft.text = GetTextAgentBrainGenome();
+                break;
+            case DebugLeftCurrentPage.AgentBrain:
+                textDebugLeft.text = GetTextAgentBrain();
                 break;
             default:
                 break;

@@ -432,7 +432,7 @@ public class EvaluationInstance : MonoBehaviour {
                     break;
                 case FitnessComponentType.Custom:
                     FitCompCustom fitCompCustom = (FitCompCustom)fitnessComponentEvaluationGroup.fitCompList[i] as FitCompCustom;
-                    fitCompCustom.custom = currentAgentsArray[populationIndex].rootObject.GetComponent<Rigidbody>().angularVelocity.sqrMagnitude + currentAgentsArray[populationIndex].gravitySensorList[0].dotY[0];
+                    fitCompCustom.custom = currentAgentsArray[populationIndex].segmentList[7].transform.TransformPoint(currentAgentsArray[populationIndex].rootCOM).y - this.transform.position.y - Vector3.Dot(currentAgentsArray[populationIndex].segmentList[7].transform.up, Physics.gravity.normalized) * 1f; ;
                     break;
                 default:
                     Debug.LogError("ERROR!!! Fitness Type found!!! " + fitnessComponentEvaluationGroup.fitCompList[i].sourceDefinition.type.ToString());

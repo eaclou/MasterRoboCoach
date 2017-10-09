@@ -35,6 +35,7 @@ public class BasicJoint : AgentModuleBase {
     public bool useX;
     public bool useY;
     public bool useZ;
+    public bool useMotors;
     public bool angleSensors;
     public bool velocitySensors;
     public bool positionSensors;
@@ -57,19 +58,19 @@ public class BasicJoint : AgentModuleBase {
         useX = genome.useX;
         useY = genome.useY;
         useZ = genome.useZ;
+        useMotors = genome.useMotors;
         angleSensors = genome.angleSensors;
         velocitySensors = genome.velocitySensors;
         positionSensors = genome.positionSensors;
         quaternionSensors = genome.quaternionSensors;
         usePistonY = genome.usePistonY;
         isVisible = agent.isVisible;
-
         
 
         throttleX = new float[1];
         throttleY = new float[1];
         throttleZ = new float[1];
-        if (useX) {            
+        if (useX) {          
             if (angleSensors) {
                 //Debug.Log("Init Joint AngleX! " + inno.ToString());
                 angleX = new float[1];

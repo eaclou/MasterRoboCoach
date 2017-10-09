@@ -44,11 +44,6 @@ public class GravitySensor : AgentModuleBase {
         if (useAltitude) {
             altitude = new float[1];
         }
-        
-
-        
-
-        
 
         parentObject = agent.segmentList[parentID];
     }

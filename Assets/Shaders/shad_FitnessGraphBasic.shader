@@ -97,10 +97,9 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 			    // TEMPORARY!!!!!
 				//fixed tempZoomX = 0.5;  // Replace with _ZoomFactorX !!
 				//fixed tempZoomY = 0.2;  // Replace with _ZoomFactorY !!!
-				
-				
-				float lineWidth = 0.005; // * _ZoomFactorY;
-				float lineFadeWidth = lineWidth * 4;
+								
+				float lineWidth = 0.002; // * _ZoomFactorY;
+				float lineFadeWidth = lineWidth * 12;
 				float gridLineWidthX = 0.001 * _ZoomFactorX;	
 				float gridLineWidthY = 0.001 * _ZoomFactorY;	
 				float gridDivisions = 10;	
@@ -121,11 +120,12 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 				//latestScore = (latestScore * _ZoomFactorY) + (latestScore - (_ZoomFactorY * 0.5));
 				// color.x is the Raw Fitness VALUE (0-1), baked into red channel
 				// color.y is the weighted Fitness VALUE (0-1), baked into green channel
-				
+
+							
 				
 				//half4 color = tex2D(_FitnessTex, finalCoords.x) * IN.color;
 				//clip (color.a - 0.01);
-				half4 bgColor = half4(0.21, 0.21, 0.21, 1.0);
+				half4 bgColor = half4(0.21, 0.21, 0.21, 1.0) * 1.1;
 				half4 onColor = half4(0.24, 0.33, 0.26, 1.0);
 				half4 centerLineColor = half4(0.5, 0.5, 0.5, 1.0);
 				half4 gridColor = half4(0.14, 0.14, 0.14, 1.0);
@@ -133,16 +133,17 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 				half4 gChannelColor = half4(0.65, 1.0, 0.65, 1.0);
 				half4 bChannelColor = half4(0.65, 0.65, 1.0, 1.0);
 				
-				half4 pixColor = bgColor;
+				
 
 				if(finalCoords.y < initialScore) {
-					pixColor += half4(0.1, 0, 0, 1);
+					bgColor += half4(0.1, 0, 0, 1);
 				}
 				else {
-					pixColor += half4(0, 0.1, 0, 1);
+					bgColor += half4(0, 0.1, 0, 1);
 				}
-				
-				float maxMultiplierVal = 0.1;
+				half4 pixColor = bgColor;
+
+				float maxMultiplierVal = 0.25;
 				float sampleSizeMultiplier = ((sin(_Time.y * 8 + finalCoords.x * 2) + cos(_Time.y * 3 + finalCoords.x * 5)) * maxMultiplierVal) + 1.0;
 
 				float2 totalScore = 0.0;
@@ -183,8 +184,8 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 				//}
 				
 				// Create GRIDLINES:
-				for(int i = 0; i < gridDivisions; i++) {
-					float linePos = i * gridLineSpacing;
+				for(int j = 0; j < gridDivisions; j++) {
+					float linePos = j * gridLineSpacing;
 					float gridDistX = abs(finalCoords.x - linePos);
 					if(gridDistX < (gridLineWidthX + lineFadeWidth)) {
 						float smoothDist = smoothstep(0.0, lineFadeWidth, gridDistX - gridLineWidthX);
@@ -203,15 +204,22 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 				
 				if(distR < (lineWidth + lineFadeWidth)) {
 					float smoothDist = smoothstep(0.0, lineFadeWidth, distR - lineWidth);
-					pixColor = lerp(rChannelColor, pixColor, smoothDist);
+					pixColor += lerp(rChannelColor, pixColor, smoothDist) * 0.4;
 				}
 				if(distG < (lineWidth + lineFadeWidth)) {
 					float smoothDist = smoothstep(0.0, lineFadeWidth, distG - lineWidth);
-					pixColor = lerp(gChannelColor, pixColor, smoothDist);
+					pixColor += lerp(gChannelColor, pixColor, smoothDist) * 0.4;
 				}				
-				if(distB < (lineWidth + lineFadeWidth)) {
-					float smoothDist = smoothstep(0.0, lineFadeWidth, distB - lineWidth);
-					pixColor = lerp(bChannelColor, pixColor, smoothDist);
+				if(distB < (lineWidth + lineFadeWidth) * 4.0) {
+					float glowDist = smoothstep(0.0, lineFadeWidth * 4.0, distB - lineWidth * 2.0);
+					pixColor = lerp(half4(1, 1, 4, 1) * 0.25, pixColor, glowDist);
+					//pixColor += lerp(bChannelColor, half4(0, 0, 0, 1), smoothDist);
+					if(distB < (lineWidth + lineFadeWidth * 1) * 0.5) {
+						float smoothDist = smoothstep(0.0, lineFadeWidth * 1, distB - lineWidth * 0.5);
+						//pixColor = lerp(bChannelColor, pixColor, smoothDist);
+						pixColor += lerp(half4(1, 1, 1, 1), half4(0, 0, 0, 1), smoothDist);
+					}
+					
 				}
 				/*float distZero = abs(finalCoords.y - 0);
 				if(distZero < lineWidth) {
@@ -223,13 +231,19 @@ Shader "Custom/shad_UIFitnessGraphBasic"
 				}	*/
 
 				
+				float distToSideScreenEdge = min((1.0 - finalCoords.x), finalCoords.x);
+				if(distToSideScreenEdge < 0.3) {
+					pixColor = lerp(bgColor, pixColor, smoothstep(0.0, 1.0, distToSideScreenEdge / 0.3));
+				}
 							
 				//float distLastScore = abs(finalCoords.y - latestScore);
 				//if(distLastScore < lineWidth) {
 				//	pixColor = half4(0.1, 0.1, 0.8, 1.0);
 				//}
-				
-				//return float4(0.5, 0.5, 0.5, 1.0);
+
+				float naiveBW = (pixColor.r + pixColor.g + pixColor.b) / 3.0;
+				pixColor = lerp(pixColor, float4(naiveBW, naiveBW, naiveBW, 1.0), 0.8);
+				//return float4(naiveBW, naiveBW, naiveBW, 1.0);
 				return pixColor;
 			}
 		ENDCG

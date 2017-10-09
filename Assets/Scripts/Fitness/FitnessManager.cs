@@ -115,7 +115,7 @@ public class FitnessManager {
    
     public void InitializeForNewGeneration(int populationSize) {
         
-        //Debug.Log("InitializeForNewGeneration: " + populationSize.ToString());
+        Debug.Log("InitializeForNewGeneration: " + populationSize.ToString());
         if (FitnessEvalGroupArray == null) {
             FitnessEvalGroupArray = new List<FitnessComponentEvaluationGroup>[populationSize];
             for (int i = 0; i < populationSize; i++) { // for each genome:                
@@ -146,13 +146,13 @@ public class FitnessManager {
         SetPendingFitnessListFromMaster(); // master fitness list exists, make the pending definitions list a copy of it
 
         InitializeAlltimeHistoricalDataLists();
-        
+
 
         //baselineScoresAvgList = new List<float>();  // initialize!
         //baselineScoresSmoothedList = new List<float>();
         //alternateRatiosAvgList = new List<float>();
         //alternateRatiosMaxList = new List<float>();
-
+        Debug.Log("InitializeLoadedData: " + populationSize.ToString());
         // get evaluation groups ready:
         if (FitnessEvalGroupArray == null) {
             FitnessEvalGroupArray = new List<FitnessComponentEvaluationGroup>[populationSize];
@@ -208,7 +208,7 @@ public class FitnessManager {
         for(int i = 0; i < evalGroup.fitCompList.Count; i++) {
             groupCopy.fitCompList.Add(evalGroup.fitCompList[i]);  // ... but they share the actual FitComp objects as ref
         }
-        //Debug.Log("FitnessEvalGroupArray? " + FitnessEvalGroupArray[0].ToString());
+        Debug.Log("AddNewFitCompEvalGroup FitnessEvalGroupArray? " + FitnessEvalGroupArray[genomeIndex].Count.ToString());
         FitnessEvalGroupArray[genomeIndex].Add(groupCopy);
     }
 
@@ -533,11 +533,18 @@ public class FitnessManager {
                 float rawBaselineScore;
                 float normalizedBaselineScore;
                 if ((componentRecordMaximums[i][k] - componentRecordMinimums[i][k]) != 0) {
+                    Debug.Log("FitnessEvalGroupArray length: " + FitnessEvalGroupArray.Length.ToString() + ", index: " + bestIndividualIndex.ToString());
+                    Debug.Log("FitnessEvalGroupArray [bestIndividualIndex] count: " + FitnessEvalGroupArray[bestIndividualIndex].Count.ToString() + ", index: " + bestIndividualIndex.ToString());
+                    Debug.Log("FitnessEvalGroupArray [bestIndividualIndex][k].fitCompList count: " + FitnessEvalGroupArray[bestIndividualIndex][k].fitCompList.Count.ToString());
                     rawBestIndividualScore = FitnessEvalGroupArray[bestIndividualIndex][k].fitCompList[i].rawScore;
                     normalizedBestIndividualScore = (rawBestIndividualScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
                     if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {
                         normalizedBestIndividualScore = 1f - normalizedBestIndividualScore;  // 1=good, 0=bad
                     }
+                    Debug.Log("FitnessEvalGroupArray length: " + FitnessEvalGroupArray.Length.ToString() + ", index: " + worstIndividualIndex.ToString());
+                    Debug.Log("FitnessEvalGroupArray [worstIndividualIndex] count: " + FitnessEvalGroupArray[worstIndividualIndex].Count.ToString() + ", index: " + worstIndividualIndex.ToString());
+                    Debug.Log("FitnessEvalGroupArray [worstIndividualIndex][k].fitCompList count: " + FitnessEvalGroupArray[worstIndividualIndex][k].fitCompList.Count.ToString());
+
                     rawWorstIndividualScore = FitnessEvalGroupArray[worstIndividualIndex][k].fitCompList[i].rawScore;
                     normalizedWorstIndividualScore = (rawWorstIndividualScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
                     if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {

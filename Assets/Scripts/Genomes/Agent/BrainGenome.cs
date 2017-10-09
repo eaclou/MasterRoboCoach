@@ -37,6 +37,9 @@ public class BrainGenome {
     }
 
     public void InitializeBodyNeurons(BodyGenome bodyGenome) {
+        for (int i = 0; i < bodyGenome.atmosphereSensorList.Count; i++) {
+            bodyGenome.atmosphereSensorList[i].InitializeBrainGenome(bodyNeuronList);
+        }
         for (int i = 0; i < bodyGenome.basicWheelList.Count; i++) {
             bodyGenome.basicWheelList[i].InitializeBrainGenome(bodyNeuronList); // Creates Neurons based on this Module and adds them to provided List
         }
@@ -46,6 +49,9 @@ public class BrainGenome {
         for (int i = 0; i < bodyGenome.contactSensorList.Count; i++) {
             bodyGenome.contactSensorList[i].InitializeBrainGenome(bodyNeuronList);
         }
+        for (int i = 0; i < bodyGenome.gravitySensorList.Count; i++) {
+            bodyGenome.gravitySensorList[i].InitializeBrainGenome(bodyNeuronList);
+        }
         for (int i = 0; i < bodyGenome.healthModuleList.Count; i++) {
             bodyGenome.healthModuleList[i].InitializeBrainGenome(bodyNeuronList);
         }
@@ -54,6 +60,9 @@ public class BrainGenome {
         }
         for (int i = 0; i < bodyGenome.raycastSensorList.Count; i++) {
             bodyGenome.raycastSensorList[i].InitializeBrainGenome(bodyNeuronList);
+        }
+        for (int i = 0; i < bodyGenome.shieldList.Count; i++) {
+            bodyGenome.shieldList[i].InitializeBrainGenome(bodyNeuronList);
         }
         for (int i = 0; i < bodyGenome.targetSensorList.Count; i++) {
             bodyGenome.targetSensorList[i].InitializeBrainGenome(bodyNeuronList);
