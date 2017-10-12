@@ -50,6 +50,7 @@
 				//UNITY_FOG_COORDS(1)
 				float3 nml : NORMAL0;
 				float4 vertex : SV_POSITION;
+				float3 hue : TEXCOORD2;
 			};
 			
 			v2f vert (appdata v, uint vID : SV_VertexID )
@@ -63,6 +64,7 @@
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPosition, 1.0f));
 				o.id = vID;
 				o.nml = float3(0,0,0);
+				o.hue = float3(0,0,0);
 				//o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				//UNITY_TRANSFER_FOG(o,o.vertex);
@@ -79,30 +81,39 @@
 					Triangle triData = appendTrianglesBuffer[p[0].id];				
 				#endif
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertA, 1));
-				pIn.uv = float2(0, 0);
 				pIn.nml = triData.normA;
+				float3 viewDir = WorldSpaceViewDir(float4(triData.vertA, 1));
+				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertA, 1));
+				pIn.uv = float2(0, 0);				
 				//UNITY_TRANSFER_FOG(pIn, pIn.pos);
+				float angle = (dot(normalize(viewDir), normalize(pIn.nml)));
+				pIn.hue = dot(pIn.nml, float3(0.45,1,-0.1)); //float3(angle*angle,angle*angle,angle*angle);
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertB, 1));
-				pIn.uv = float2(0, 1);
 				pIn.nml = triData.normB;
+				viewDir = WorldSpaceViewDir(float4(triData.vertB, 1));
+				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertB, 1));
+				pIn.uv = float2(0, 1);				
 				//UNITY_TRANSFER_FOG(pIn, pIn.pos);
+				angle = (dot(normalize(viewDir), normalize(pIn.nml)));
+				pIn.hue = dot(pIn.nml, float3(0.45,1,-0.1)); //float3(angle*angle,angle*angle,angle*angle);
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertC, 1));
-				pIn.uv = float2(1, 0);
 				pIn.nml = triData.normC;
+				viewDir = WorldSpaceViewDir(float4(triData.vertC, 1));
+				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertC, 1));
+				pIn.uv = float2(1, 0);				
 				//UNITY_TRANSFER_FOG(pIn, pIn.pos);
+				angle = (dot(normalize(viewDir), normalize(pIn.nml)));
+				pIn.hue = dot(pIn.nml, float3(0.45,1,-0.1)); //float3(angle*angle,angle*angle,angle*angle);
 				triStream.Append(pIn);
 
-				triStream.RestartStrip();
+				//triStream.RestartStrip();
 			}
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				return float4(i.nml,1);
+				return float4(i.hue,1);
 
 				// sample the texture
 				//fixed4 col = tex2D(_MainTex, i.uv);
