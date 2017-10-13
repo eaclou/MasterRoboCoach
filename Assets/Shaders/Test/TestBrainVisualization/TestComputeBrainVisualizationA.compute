@@ -1,4 +1,6 @@
-﻿struct NeuronInitData {
+﻿#include "Assets/Shaders/Inc/NoiseShared.cginc"
+
+struct NeuronInitData {
     float radius;
     float type;  // in/out/hidden
     float age;
@@ -114,8 +116,8 @@ void CSSimNeuronAttract (uint3 id : SV_DispatchThreadID)
 	// Move Neurons & axons:
 	//start Neuron:
 	neuronSimDataCBuffer[axonInitDataCBuffer[axonID].fromID].pos += vectorN2N * neuronAttractForce * abs(axonInitDataCBuffer[axonID].weight) * minDistMask / axonCount;
-	axonSimDataCBuffer[axonID].p0 = neuronSimDataCBuffer[axonInitDataCBuffer[axonID].fromID].pos;
-	//end Neuron:
+	axonSimDataCBuffer[axonID].p0 = neuronSimDataCBuffer[axonInitDataCBuffer[axonID].fromID].pos;	
+	//end Neuron:	
 	neuronSimDataCBuffer[axonInitDataCBuffer[axonID].toID].pos -= vectorN2N * neuronAttractForce * abs(axonInitDataCBuffer[axonID].weight) * minDistMask / axonCount;
 	axonSimDataCBuffer[axonID].p3 = neuronSimDataCBuffer[axonInitDataCBuffer[axonID].toID].pos;
 
@@ -380,6 +382,8 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float3 normalBottomRight = right0 * xNext + up0 * yNext;
 	float3 normalTopLeft = right1 * xStart + up1 * yStart;
 	float3 normalTopRight = right1 * xNext + up1 * yNext;
+
+	float4 testNoise = Value3D(normalBottomLeft , 1.0);
 
 	float3 bottomLeft = right0 * xStart * radius0 + up0 * yStart * radius0 + ringOrigin0;
 	float3 bottomRight = right0 * xNext * radius0 + up0 * yNext * radius0 + ringOrigin0;

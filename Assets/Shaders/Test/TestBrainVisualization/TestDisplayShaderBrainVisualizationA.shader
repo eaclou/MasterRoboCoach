@@ -1,4 +1,4 @@
-﻿Shader "Unlit/TestDisplayShaderBrainBasic"
+﻿Shader "Unlit/TestDisplayShaderBrainVisualizationA"
 {
 	Properties
 	{

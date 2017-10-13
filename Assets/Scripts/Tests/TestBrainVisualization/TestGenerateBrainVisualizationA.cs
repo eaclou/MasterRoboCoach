@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TestGenerateBrainGPU : MonoBehaviour {
+public class TestGenerateBrainVisualizationA : MonoBehaviour {
 
     public List<Neuron> tempNeuronList;
     public List<Axon> tempAxonList;
