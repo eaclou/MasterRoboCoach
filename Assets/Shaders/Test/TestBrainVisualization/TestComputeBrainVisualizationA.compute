@@ -53,6 +53,8 @@ float axonStraightenForce = .02;
 float neuronRepelForce = 2.0;
 float axonRepelForce = 0.2;
 
+float time = 0.0;
+
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSInitializeAxonSimData
 
@@ -235,19 +237,20 @@ void CSSimAxonRepel (uint3 id : SV_DispatchThreadID)
 
 #pragma kernel CSGenerateNeuronTriangles
 
-#define neuron_resolution_height 16
-#define neuron_resolution_ring 16
+#define neuron_resolution_height 32
+#define neuron_resolution_ring 32
 
 [numthreads(1,neuron_resolution_height,neuron_resolution_ring)]
 void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 {
 	int neuronID = id.x;
+	float idx = (float)id.x;
 	float idy = (float)id.y;  // along curve
 	float idz = (float)id.z;  // around curve (rings)	
 	float tInc = 1.0 / (float)neuron_resolution_height;
 	float radius = min(max(neuronInitDataCBuffer[neuronID].radius * abs(neuronFeedDataCBuffer[neuronID].curValue), minNeuronRadius), maxNeuronRadius) * 3;
 	float3 origin = neuronSimDataCBuffer[neuronID].pos;
-
+	
 	// Longitude:
 	float xStart = cos((idz / (float)neuron_resolution_ring) * 2.0 * 3.14159);
 	float xNext = cos(((idz + 1.0) / (float)neuron_resolution_ring) * 2.0 * 3.14159);
@@ -265,10 +268,26 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	float3 normalTopLeft = float3(xStart * axisDistNext, yNext, zStart * axisDistNext);
 	float3 normalTopRight = float3(xNext * axisDistNext, yNext, zNext * axisDistNext);
 
-	float3 bottomLeft = origin + normalBottomLeft * radius; 
-	float3 bottomRight = origin + float3(xNext * axisDistStart * radius, yStart * radius, zNext * axisDistStart * radius);
-	float3 topLeft = origin + float3(xStart * axisDistNext, yNext, zStart * axisDistNext) * radius;
-	float3 topRight = origin + float3(xNext * axisDistNext, yNext, zNext * axisDistNext) * radius;
+	float extrudeNoiseFreq = 1.5;
+	float extrudeNoiseAmp = 0.25;
+	float3 extrudeNoiseOffset = float3(0.14, 0.73, 0.52) * time * 0.6;
+	float radius00 = radius;
+	float radius01 = radius;
+	float radius10 = radius;
+	float radius11 = radius;
+	float noiseExtrude00 = (Value3D(normalBottomLeft + idx + extrudeNoiseOffset, extrudeNoiseFreq).x + 0.25) * radius00;
+	radius00 += noiseExtrude00 * extrudeNoiseAmp;
+	float noiseExtrude01 = (Value3D(normalBottomRight + idx + extrudeNoiseOffset, extrudeNoiseFreq).x + 0.25) * radius01;   // fmod so noise loops properly from 0.0 --> 1.0 --> 0.0
+	radius01 += noiseExtrude01 * extrudeNoiseAmp;	
+	float noiseExtrude10 = (Value3D(normalTopLeft + idx + extrudeNoiseOffset, extrudeNoiseFreq).x + 0.25) * radius10;
+	radius10 += noiseExtrude10 * extrudeNoiseAmp;
+	float noiseExtrude11 = (Value3D(normalTopRight + idx + extrudeNoiseOffset, extrudeNoiseFreq).x + 0.25) * radius11;
+	radius11 += noiseExtrude11 * extrudeNoiseAmp;
+
+	float3 bottomLeft = origin + normalBottomLeft * radius00; 
+	float3 bottomRight = origin + normalBottomRight * radius01;
+	float3 topLeft = origin + normalTopLeft * radius10;
+	float3 topRight = origin + normalTopRight * radius11;
 
 	float3 colorIn = float3(0.25, 0.4, 0.9);
 	float3 colorOut = float3(0.8, 0.7, 0.3);
@@ -313,8 +332,8 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 
 #pragma kernel CSGenerateAxonTriangles
 
-#define resolution_height 32
-#define resolution_ring 8
+#define resolution_height 48
+#define resolution_ring 12
 
 // CUBIC:
 float3 GetPoint (float3 p0, float3 p1, float3 p2, float3 p3, float t) {
@@ -357,18 +376,46 @@ float GetAxonRadius(int axonID, float t) {
 [numthreads(1,resolution_height,resolution_ring)]
 void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 {
+	float idx = (float)id.x;
 	float idy = (float)id.y;  // along curve
 	float idz = (float)id.z;  // around curve (rings)	
 	float tInc = 1.0 / (float)resolution_height;
-	float radius0 = GetAxonRadius(id.x, idy * tInc);
-	float radius1 = GetAxonRadius(id.x, (idy + 1.0) * tInc);
+
+	float extrudeNoiseFreq = 0.25;
+
+	float radius00 = GetAxonRadius(id.x, idy * tInc);
+	float radius01 = radius00;	
+	float noiseExtrude00 = (Value3D(float3(idx, idy, idz), extrudeNoiseFreq).x + 0.5) * radius00;
+	radius00 += noiseExtrude00 * 1.5;
+	float noiseExtrude01 = (Value3D(float3(idx, idy, fmod(idz + 1.0, resolution_ring)), extrudeNoiseFreq).x + 0.5) * radius01;   // fmod so noise loops properly from 0.0 --> 1.0 --> 0.0
+	radius01 += noiseExtrude01 * 1.5;
+	float radius10 = GetAxonRadius(id.x, (idy + 1.0) * tInc);
+	float radius11 = radius10;
+	float noiseExtrude10 = (Value3D(float3(idx, idy + 1.0, idz), extrudeNoiseFreq).x + 0.5) * radius10;
+	radius10 += noiseExtrude10 * 1.5;
+	float noiseExtrude11 = (Value3D(float3(idx, idy + 1.0, fmod(idz + 1.0, resolution_ring)), extrudeNoiseFreq).x + 0.5) * radius11;
+	radius11 += noiseExtrude11 * 1.5;
+
+	float t0 = idy * tInc;
+	float t1 = (idy + 1.0) * tInc;
+	float distToSideScreenEdge0 = (0.5 - min((1.0 - t0), t0)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
+	float flareMask0 = saturate(distToSideScreenEdge0 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
+	float distToSideScreenEdge1 = (0.5 - min((1.0 - t1), t1)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
+	float flareMask1 = saturate(distToSideScreenEdge1 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
+
+	float noiseFreq = 0.15;
+	float noiseAmp = 1;
+	float3 noiseOffset = float3(0.5, 0.25, 0.9) * time * 20.0;
+	//float4 noiseTest0 = Value3D(ringOrigin0, noisefreq)
 
 	float3 ringOrigin0 = GetPoint(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * idy);
+	ringOrigin0 += Value3D(ringOrigin0 + noiseOffset, noiseFreq).yzw * noiseAmp * (1.0 - distToSideScreenEdge0 * 2.0);
 	float3 forward0 = normalize(GetFirstDerivative(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * idy));
 	float3 right0 = normalize(cross(forward0, float3(0.0, 1.0, 0.0)));
 	float3 up0 = normalize(cross(right0, forward0));
 
 	float3 ringOrigin1 = GetPoint(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * (idy + 1.0));
+	ringOrigin1 += Value3D(ringOrigin1 + noiseOffset, noiseFreq).yzw * noiseAmp * (1.0 - distToSideScreenEdge1 * 2.0);
 	float3 forward1 = normalize(GetFirstDerivative(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * (idy + 1.0)));
 	float3 right1 = normalize(cross(forward1, float3(0.0, 1.0, 0.0)));
 	float3 up1 = normalize(cross(right1, forward1));
@@ -382,13 +429,11 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float3 normalBottomRight = right0 * xNext + up0 * yNext;
 	float3 normalTopLeft = right1 * xStart + up1 * yStart;
 	float3 normalTopRight = right1 * xNext + up1 * yNext;
-
-	float4 testNoise = Value3D(normalBottomLeft , 1.0);
-
-	float3 bottomLeft = right0 * xStart * radius0 + up0 * yStart * radius0 + ringOrigin0;
-	float3 bottomRight = right0 * xNext * radius0 + up0 * yNext * radius0 + ringOrigin0;
-	float3 topLeft = right1 * xStart * radius1 + up1 * yStart * radius1 + ringOrigin1;
-	float3 topRight = right1 * xNext * radius1 + up1 * yNext * radius1 + ringOrigin1;
+	
+	float3 bottomLeft = right0 * xStart * radius00 + up0 * yStart * radius00 + ringOrigin0;
+	float3 bottomRight = right0 * xNext * radius01 + up0 * yNext * radius01 + ringOrigin0;
+	float3 topLeft = right1 * xStart * radius10 + up1 * yStart * radius10 + ringOrigin1;
+	float3 topRight = right1 * xNext * radius11 + up1 * yNext * radius11 + ringOrigin1;
 
 	//float3 colorIn = float3(0.25, 0.4, 0.9);
 	//float3 colorOut = float3(0.8, 0.7, 0.3);
@@ -403,14 +448,7 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float3 color1 = lerp(colorIn, colorOut, inOut1);
 	float3 colBottom = lerp(color0, color1, idy * tInc) * abs(axonInitDataCBuffer[id.x].weight);
 	float3 colTop = lerp(color0, color1, (idy + 1.0) * tInc) * abs(axonInitDataCBuffer[id.x].weight);
-
-	float t0 = idy * tInc;
-	float t1 = (idy + 1.0) * tInc;
-	float distToSideScreenEdge0 = (0.5 - min((1.0 - t0), t0)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
-	float flareMask0 = saturate(distToSideScreenEdge0 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
-	float distToSideScreenEdge1 = (0.5 - min((1.0 - t1), t1)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
-	float flareMask1 = saturate(distToSideScreenEdge1 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
-	
+		
 	float pulseDistance0 = abs(t0 - axonSimDataCBuffer[id.x].pulsePos);
 	float pulseMultiplier0 = (1.0 - smoothstep(0, 0.25, pulseDistance0)) + 1.0;
 	float pulseDistance1 = abs(t1 - axonSimDataCBuffer[id.x].pulsePos);
@@ -423,6 +461,12 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 
 	colBottom = lerp(colBottom * pulseMultiplier0 * 1.0, nearestNeuronColor0, flareMask0);
 	colTop = lerp(colTop * pulseMultiplier1 * 1.0, nearestNeuronColor1, flareMask1);
+
+	//float noisefreq = 0.1;
+	//float4 noiseTest0 = Value3D(ringOrigin0, noisefreq) * 0.5 + 0.5;
+	//float4 noiseTest1 = Value3D(ringOrigin1, noisefreq) * 0.5 + 0.5;
+	//colBottom = noiseTest0.yzw;
+	//colTop = noiseTest1.yzw;
 		
 	Triangle triTop;
 	triTop.vertA = bottomLeft;

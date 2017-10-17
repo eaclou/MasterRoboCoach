@@ -61,8 +61,8 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
 
     int numNeurons = 12; // refBrain.neuronList.Count;
     int numAxons = 64; // refBrain.axonList.Count;
-    int maxTrisPerNeuron = 512;
-    int maxTrisPerAxon = 512;
+    int maxTrisPerNeuron = 1024;
+    int maxTrisPerAxon = 2048;
 
     public float minAxonRadius = 0.02f;
     public float maxAxonRadius = 0.28f;
@@ -253,6 +253,8 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetFloat("axonStraightenForce", axonStraightenForce);
         shaderComputeBrain.SetFloat("neuronRepelForce", neuronRepelForce);
         shaderComputeBrain.SetFloat("axonRepelForce", axonRepelForce);
+
+        shaderComputeBrain.SetFloat("time", Time.fixedTime);
 
         int simNeuronAttractKernelID = shaderComputeBrain.FindKernel("CSSimNeuronAttract");        
         shaderComputeBrain.SetBuffer(simNeuronAttractKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);

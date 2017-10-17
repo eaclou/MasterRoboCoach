@@ -129,7 +129,7 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				//return float4(i.col * i.angleDot,1);
+				//return float4(i.col,1);
 
 				// sample the texture
 				i.angleDot = saturate(i.angleDot);

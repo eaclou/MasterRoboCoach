@@ -1,5 +1,8 @@
-const int hashMask = 255;
-const int hash[512] = {
+static const int hashMask = 255;
+static const int hashSize = 256;  // bitwise & 255  is same as modulo % 256 -- minor difference
+// static keywork was needed here for the initial values to actually be set - otherwise it was initialzied to all zeros.....
+// look into other ways to handle this -- i.e CGINCLUDE -- CGEND wrappers
+static const int hash[512] = {
 	151,160,137, 91, 90, 15,131, 13,201, 95, 96, 53,194,233,  7,225,
 	140, 36,103, 30, 69,142,  8, 99, 37,240, 21, 10, 23,190,  6,148,
 	247,120,234, 75,  0, 26,197, 62, 94,252,219,203,117, 35, 11, 32,
@@ -51,11 +54,14 @@ float Dot(float3 g, float x, float y, float z) {
 
 float2 Value1D(float p, float frequency) {
 	p *= frequency;  
-	int i0 = floor(p);  // discard the digits after the decimal place
-	float t = p - i0;  // get only the digits after the decimal, the position between the i0 value and the next whole integer, used for interpolating
+	float fi0 = floor(p);  // discard the digits after the decimal place
+	float t = p - fi0;  // get only the digits after the decimal, the position between the i0 value and the next whole integer, used for interpolating
 	float dt = SmoothDerivative(t);
 	t = Smooth(t);  // remap the 0-1 t value to a function with slope=0 at end points, to keep function continuous
-	i0 &= hashMask;  // make sure i0 integer value falls within the bounds of the hash table, i.e. always between 0-255 in this case
+	//i0 &= hashMask;  // make sure i0 integer value falls within the bounds of the hash table, i.e. always between 0-255 in this case
+	// Hacky workaround for bitwise/modulo issues in shader code:
+	fi0 = fmod(fi0, 256.0);
+	int i0 = round(fi0);
 	int i1 = i0 + 1;  // get value of next whole integer
 
 	int h0 = hash [i0];  // hash the floor integer i0 into its noise value
@@ -67,18 +73,23 @@ float2 Value1D(float p, float frequency) {
 	float2 sample;
 	sample.x = a + b * t;  // blend between the noise values at i0 and i1, based on the smoothed 0-1 curve t
 	sample.y = b * dt;
-	sample.y *= frequency;
-	return sample * (2.0 / hashMask) - 1.0;
+	//sample.y *= frequency;
+	return sample * (2.0 / 255.0) - 1.0;
 }
 
 float3 Value2D(float2 p, float frequency) {
 	p *= frequency;
-	int ix0 = floor(p.x);  // get floor integer value in X
-	int iy0 = floor(p.y); // get floor integer value in Y
-	float tx = p.x - ix0;  // get interpolation position in X;  just the fractional part of point.x 
-	float ty = p.y - iy0; // get interpolation position in Y;   ''          ''         ''   point.y
-	ix0 &= hashMask; // get X floor int position in range of hash table, 0-255
-	iy0 &= hashMask; // get Y floor int position in range of hash table, 0-255
+	float fix0 = floor(p.x);  // get floor integer value in X
+	float fiy0 = floor(p.y); // get floor integer value in Y
+	float tx = p.x - fix0;  // get interpolation position in X;  just the fractional part of point.x 
+	float ty = p.y - fiy0; // get interpolation position in Y;   ''          ''         ''   point.y
+	//ix0 &= hashMask; // get X floor int position in range of hash table, 0-255
+	//iy0 &= hashMask; // get Y floor int position in range of hash table, 0-255
+	// Hacky workaround for bitwise/modulo issues in shader code:
+	fix0 = fmod(fix0, 256.0);
+	fiy0 = fmod(fiy0, 256.0);
+	int ix0 = round(fix0);
+	int iy0 = round(fiy0);
 	int ix1 = ix0 + 1;  // get X position of next whole integer, floor int + one;
 	int iy1 = iy0 + 1;  // get Y position of next whole integer, floor int + one;
 
@@ -107,22 +118,26 @@ float3 Value2D(float2 p, float frequency) {
 	sample.x = a + b * tx + (c + d * tx) * ty;
 	sample.y = (b + d * ty) * dtx;
 	sample.z = (c + d * tx) * dty;
-	sample.y *= frequency;  // derivatives
-	sample.z *= frequency;  // derivatives
-	return sample * (2.0 / hashMask) - 1.0;
+	//sample.y *= frequency;  // derivatives
+	//sample.z *= frequency;  // derivatives
+	return sample * (2.0 / 255.0) - 1.0;
 }
 
 float4 Value3D (float3 p, float frequency) {
 	p *= frequency;
-	int ix0 = floor(p.x);
-	int iy0 = floor(p.y);
-	int iz0 = floor(p.z);
-	float tx = p.x - ix0;
-	float ty = p.y - iy0;
-	float tz = p.z - iz0;
-	ix0 &= hashMask;
-	iy0 &= hashMask;
-	iz0 &= hashMask;
+	float fix0 = floor(p.x);
+	float fiy0 = floor(p.y);
+	float fiz0 = floor(p.z);
+	float tx = p.x - fix0;
+	float ty = p.y - fiy0;
+	float tz = p.z - fiz0;
+	// Hacky workaround for bitwise/modulo issues in shader code:
+	fix0 = fmod(fix0, 256.0);
+	fiy0 = fmod(fiy0, 256.0); 
+	fiz0 = fmod(fiz0, 256.0);
+	int ix0 = round(fix0);
+	int iy0 = round(fiy0);
+	int iz0 = round(fiz0);
 	int ix1 = ix0 + 1;
 	int iy1 = iy0 + 1;
 	int iz1 = iz0 + 1;
@@ -149,22 +164,26 @@ float4 Value3D (float3 p, float frequency) {
 	ty = Smooth(ty);
 	tz = Smooth(tz);
 
-	float a = h000;
-	float b = h100 - h000;
-	float c = h010 - h000;
-	float d = h001 - h000;
-	float e = h110 - h010 - h100 + h000;
-	float f = h101 - h001 - h100 + h000;
-	float g = h011 - h001 - h010 + h000;
-	float h = h111 - h011 - h101 + h001 - h110 + h010 + h100 - h000;
+	float a = (float)h000;
+	float b = (float)h100 - (float)h000;
+	float c = (float)h010 - (float)h000;
+	float d = (float)h001 - (float)h000;
+	float e = (float)h110 - (float)h010 - (float)h100 + (float)h000;
+	float f = (float)h101 - (float)h001 - (float)h100 + (float)h000;
+	float g = (float)h011 - (float)h001 - (float)h010 + (float)h000;
+	float h = (float)h111 - (float)h011 - (float)h101 + (float)h001 - (float)h110 + (float)h010 + (float)h100 - (float)h000;
 
 	float4 sample;
 	sample.x = a + b * tx + (c + e * tx) * ty + (d + f * tx + (g + h * tx) * ty) * tz;
 	sample.y = (b + e * ty + (f + h * ty) * tz) * dtx;
 	sample.z = (c + e * tx + (g + h * tx) * tz) * dty;
 	sample.w = (d + f * tx + (g + h * tx) * ty) * dtz;
-	sample.y *= frequency;
-	sample.z *= frequency;
-	sample.w *= frequency;
-	return sample * (2.0 / hashMask) - 1.0;
+	//sample.y *= frequency;
+	//sample.z *= frequency;
+	//sample.w *= frequency;
+
+	return sample * (2.0 / 255.0) - 1.0;
+	//int test = floor(p.x);
+	//test = ((test % hashMask) + hashMask) % hashMask;
+	//return float4(1, sample.yzw) / 1.0;
 }
