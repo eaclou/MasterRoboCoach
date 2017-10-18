@@ -1,28 +1,5 @@
 ﻿#include "Assets/Shaders/Inc/NoiseShared.cginc"
-
-struct NeuronInitData {
-    float radius;
-    float type;  // in/out/hidden
-    float age;
-};
-struct NeuronFeedData {
-    float curValue;  // [-1,1]  // set by CPU continually
-};
-struct NeuronSimData {
-    float3 pos;
-};
-struct AxonInitData {  // set once at start
-    float weight;
-    int fromID;
-    int toID;
-};
-struct AxonSimData {
-    float3 p0;
-    float3 p1;
-    float3 p2;
-    float3 p3;
-    float pulsePos;
-};
+#include "Assets/Shaders/Inc/CoreBrainDataShared.cginc"
 
 struct Triangle {
 	float3 vertA;
@@ -44,24 +21,8 @@ struct Triangle {
 	float3 colorC;
 };
 
-StructuredBuffer<NeuronInitData> neuronInitDataCBuffer;
-StructuredBuffer<NeuronFeedData> neuronFeedDataCBuffer;
-RWStructuredBuffer<NeuronSimData> neuronSimDataCBuffer;
-StructuredBuffer<AxonInitData> axonInitDataCBuffer;
-RWStructuredBuffer<AxonSimData> axonSimDataCBuffer;
 AppendStructuredBuffer<Triangle> appendTrianglesCBuffer;
 
-float minAxonRadius = 0.05;
-float maxAxonRadius = 0.5;
-float minNeuronRadius = 0.05;
-float maxNeuronRadius = 0.5;
-
-float neuronAttractForce = 0.004;
-float axonStraightenForce = .02;
-float neuronRepelForce = 2.0;
-float axonRepelForce = 0.2;
-
-float time = 0.0;
 
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSInitializeAxonSimData
@@ -279,7 +240,7 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	float3 normalTopRight = float3(xNext * axisDistNext, yNext, zNext * axisDistNext);
 
 	float extrudeNoiseFreq = 1.5;
-	float extrudeNoiseAmp = 0.25;
+	float extrudeNoiseAmp = 0.0;
 	float3 extrudeNoiseOffset = float3(0.14, 0.73, 0.52) * time * 0.6;
 	float radius00 = radius;
 	float radius01 = radius;
@@ -355,43 +316,7 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 #define resolution_height 48
 #define resolution_ring 12
 
-// CUBIC:
-float3 GetPoint (float3 p0, float3 p1, float3 p2, float3 p3, float t) {
-	t = saturate(t);
-	float oneMinusT = 1.0 - t;
-	return oneMinusT * oneMinusT * oneMinusT * p0 +	3.0 * oneMinusT * oneMinusT * t * p1 + 3.0 * oneMinusT * t * t * p2 +	t * t * t * p3;
-}
-// CUBIC
-float3 GetFirstDerivative (float3 p0, float3 p1, float3 p2, float3 p3, float t) {
-	t = saturate(t);
-	float oneMinusT = 1.0 - t;
-	return 3.0 * oneMinusT * oneMinusT * (p1 - p0) + 6.0 * oneMinusT * t * (p2 - p1) + 3.0 * t * t * (p3 - p2);
-}
 
-float GetAxonRadius(int axonID, float t) {
-	float weight = axonInitDataCBuffer[axonID].weight;
-	float baseRadius = abs(weight) * (maxAxonRadius - minAxonRadius) + minAxonRadius;
-
-	float neuron0 = abs(neuronFeedDataCBuffer[axonInitDataCBuffer[axonID].fromID].curValue) * neuronInitDataCBuffer[axonInitDataCBuffer[axonID].fromID].radius;
-	float neuron1 = abs(neuronFeedDataCBuffer[axonInitDataCBuffer[axonID].toID].curValue) * neuronInitDataCBuffer[axonInitDataCBuffer[axonID].toID].radius;
-
-	float distToSideScreenEdge = (0.5 - min((1.0 - t), t));           // 0.5 at edge, 0.0 at middle of spline
-	float flareMask = saturate(distToSideScreenEdge - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
-	//if(distToSideScreenEdge < 0.3) {
-	//	pixColor = lerp(bgColor, pixColor, smoothstep(0.0, 1.0, distToSideScreenEdge / 0.3));
-	//}
-	//float flareMask = min(clamp(1.0 - t, 0, 0.15), clamp(t, 0, 0.15));
-
-	float pulseDistance = abs(t - axonSimDataCBuffer[axonID].pulsePos);
-	float pulseMultiplier = ((1.0 - smoothstep(0, 0.2, pulseDistance)) + 1.0) * 2.0;
-
-	float radius0 = neuron0 * baseRadius * pulseMultiplier;
-	radius0 = lerp(radius0, neuron0 * 0.5, flareMask);
-	float radius1 = neuron1 * baseRadius * pulseMultiplier;
-	radius1 = lerp(radius1, neuron1 * 0.5, flareMask);
-
-	return lerp(radius0, radius1, t);
-}
 
 [numthreads(1,resolution_height,resolution_ring)]
 void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
@@ -419,14 +344,13 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float t0 = idy * tInc;
 	float t1 = (idy + 1.0) * tInc;
 	float distToSideScreenEdge0 = (0.5 - min((1.0 - t0), t0)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
-	float flareMask0 = saturate(distToSideScreenEdge0 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
+	//float flareMask0 = saturate(distToSideScreenEdge0 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
 	float distToSideScreenEdge1 = (0.5 - min((1.0 - t1), t1)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
-	float flareMask1 = saturate(distToSideScreenEdge1 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
+	//float flareMask1 = saturate(distToSideScreenEdge1 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
 
 	float noiseFreq = 0.14;
 	float noiseAmp = 0.5;
 	float3 noiseOffset = float3(0.5, 0.25, 0.9) * time * 10.0;
-	//float4 noiseTest0 = Value3D(ringOrigin0, noisefreq)
 	
 	float3 ringOrigin0 = GetPoint(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * idy);
 	ringOrigin0 += Value3D(ringOrigin0 + noiseOffset, noiseFreq).yzw * noiseAmp * (1.0 - distToSideScreenEdge0 * 2.0);
@@ -464,12 +388,7 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float3 bottomRight = right0 * xNext * radius01 + up0 * yNext * radius01 + ringOrigin0;
 	float3 topLeft = right1 * xStart * radius10 + up1 * yStart * radius10 + ringOrigin1;
 	float3 topRight = right1 * xNext * radius11 + up1 * yNext * radius11 + ringOrigin1;
-
-	//float3 colorIn = float3(0.25, 0.4, 0.9);
-	//float3 colorOut = float3(0.8, 0.7, 0.3);
-	//float inOut = neuronInitDataCBuffer[neuronID].type;
-	//float3 faceColor = lerp(colorIn, colorOut, inOut) * abs(neuronFeedDataCBuffer[neuronID].curValue) * 4.0;
-
+	
 	float3 colorIn = float3(0.25, 0.4, 0.9) * 0.01;
 	float3 colorOut = float3(0.8, 0.7, 0.3) * 0.01;
 	float inOut0 = neuronInitDataCBuffer[axonInitDataCBuffer[id.x].fromID].type;
@@ -489,15 +408,9 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float nearestNeuronCurValue1 = lerp(neuronFeedDataCBuffer[axonInitDataCBuffer[id.x].fromID].curValue, neuronFeedDataCBuffer[axonInitDataCBuffer[id.x].toID].curValue, round((idy + 1.0) * tInc));
 	float3 nearestNeuronColor1 = lerp(color0, color1, round((idy + 1.0) * tInc)) * abs(nearestNeuronCurValue1) * 2.0;
 
-	colBottom = lerp(colBottom * pulseMultiplier0 * 1.0, nearestNeuronColor0, flareMask0 * 0.1);
-	colTop = lerp(colTop * pulseMultiplier1 * 1.0, nearestNeuronColor1, flareMask1 * 0.1);
-
-	//float noisefreq = 0.1;
-	//float4 noiseTest0 = Value3D(ringOrigin0, noisefreq) * 0.5 + 0.5;
-	//float4 noiseTest1 = Value3D(ringOrigin1, noisefreq) * 0.5 + 0.5;
-	//colBottom = noiseTest0.yzw;
-	//colTop = noiseTest1.yzw;
-		
+	colBottom = lerp(colBottom * pulseMultiplier0 * 1.0, nearestNeuronColor0, 0);
+	colTop = lerp(colTop * pulseMultiplier1 * 1.0, nearestNeuronColor1, 0);
+			
 	Triangle triTop;
 	triTop.vertA = bottomLeft;
 	triTop.normA = normalBottomLeft;

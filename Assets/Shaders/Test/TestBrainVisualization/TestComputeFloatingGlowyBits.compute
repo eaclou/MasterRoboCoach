@@ -1,0 +1,28 @@
+﻿
+RWStructuredBuffer<float3> floatingGlowyBitsCBuffer;
+
+float minRadius = 0.05;
+float maxRadius = 12;
+float time = 0.0;
+
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSInitializePositions
+
+float rand(float2 co){   // OUTPUT is in [0,1] RANGE!!!
+	return frac(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
+}
+
+[numthreads(64,1,1)]
+void CSInitializePositions (uint3 id : SV_DispatchThreadID)
+{
+	// Set up initial positions / settings for Axons, based on neuron and other data
+	//id.x == particleID
+
+	float randX = rand(float2(id.x, id.x)) * 2.0 - 1.0;
+	float randY = rand(float2(randX, randX)) * 2.0 - 1.0;
+	float randZ = rand(float2(randY, randY)) * 2.0 - 1.0;
+	float randRad = lerp(minRadius, maxRadius,rand(float2(randZ, randZ)));
+	float3 randomPosition = float3(randX, randY, randZ) * randRad;
+
+	floatingGlowyBitsCBuffer[id.x] = randomPosition;	
+}
