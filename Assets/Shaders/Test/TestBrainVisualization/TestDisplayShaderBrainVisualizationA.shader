@@ -3,6 +3,7 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
+		_BumpMap("Normal Map", 2D) = "bump" {}
 	}
 	SubShader
 	{
@@ -29,16 +30,26 @@
 			
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
+			// normal map texture from shader properties
+            sampler2D _BumpMap;
 
 			struct Triangle {
 				float3 vertA;
 				float3 normA;
+				float3 tanA;
+				float3 uvwA;
 				float3 colorA;
+
 				float3 vertB;
 				float3 normB;
-				float3 colorB;
+				float3 tanB;
+				float3 uvwB;
+				float3 colorB;	
+
 				float3 vertC;
 				float3 normC;
+				float3 tanC;
+				float3 uvwC;
 				float3 colorC;
 			};
 
@@ -56,17 +67,23 @@
 			{
 				float2 uv : TEXCOORD0;
 				uint id : TEXCOORD1;
-				UNITY_FOG_COORDS(3)
+				//UNITY_FOG_COORDS(3)
 				float3 nml : NORMAL0;
+				float3 tan : TANGENT;
 				float3 col : COLOR0;
 				float4 vertex : SV_POSITION;
+				float4 worldPos : TEXCOORD4;
 				float angleDot : TEXCOORD2;
+
+				// these three vectors will hold a 3x3 rotation matrix
+                // that transforms from tangent to world space
+                half3 tspace0 : TEXCOORD5; // tangent.x, bitangent.x, normal.x
+                half3 tspace1 : TEXCOORD6; // tangent.y, bitangent.y, normal.y
+                half3 tspace2 : TEXCOORD7; // tangent.z, bitangent.z, normal.z
 			};
 			
 			v2f vert (appdata v, uint vID : SV_VertexID )
 			{
-				
-
 				
 				float3 worldPosition = float3(0, 0, 0);
 
@@ -74,11 +91,17 @@
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPosition, 1.0f));
 				o.id = vID;
 				o.nml = float3(0,0,0);
+				o.tan = float3(0,0,0);
 				o.col = float3(0,0,0);
 				o.angleDot = 0;
-				//o.vertex = UnityObjectToClipPos(v.vertex);
+				o.worldPos = float4(0, 0, 0, 1);
+				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				UNITY_TRANSFER_FOG(o,o.vertex);
+				o.tspace0 = half3(0,0,0);
+                o.tspace1 = half3(0,0,0);
+                o.tspace2 = half3(0,0,0);
+
+				//UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;
 			}
 
@@ -94,34 +117,74 @@
 
 				float3 fakeLightDir = float3(0.45,1,-0.1);
 
+				// How can I compress these 3 identical chunks into one function so I only have to change it once?
+				// Try changing the Triangle struct to be arranged per-vertex, inside sub-structs called verts ?? would this break the code?
+				// 
+
 				pIn.nml = triData.normA;
-				float3 viewDir = WorldSpaceViewDir(float4(triData.vertA, 1));
-				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertA, 1));
-				pIn.uv = float2(0, 0);				
+				pIn.tan = triData.tanA;
+				half3 wNormal = UnityObjectToWorldNormal(pIn.nml);
+                half3 wTangent = UnityObjectToWorldDir(pIn.tan);
+                // compute bitangent from cross product of normal and tangent
+                half tangentSign = 1; //tangent.w * unity_WorldTransformParams.w;
+                half3 wBitangent = cross(wNormal, wTangent) * tangentSign;
+                // output the tangent space matrix
+                pIn.tspace0 = half3(wTangent.x, wBitangent.x, wNormal.x);
+                pIn.tspace1 = half3(wTangent.y, wBitangent.y, wNormal.y);
+                pIn.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z);
+				////////
+				float3 viewDir = normalize(WorldSpaceViewDir(float4(triData.vertA, 1)));
+				pIn.worldPos = float4(triData.vertA, 1);
+				pIn.vertex = mul(UNITY_MATRIX_VP, pIn.worldPos);
+				pIn.uv = TRANSFORM_TEX(triData.uvwA.xy, _MainTex);				
 				float angle = (dot(normalize(viewDir), normalize(pIn.nml)));
 				pIn.angleDot = angle; //float3(angle*angle,angle*angle,angle*angle);
 				pIn.col = triData.colorA;
-				UNITY_TRANSFER_FOG(pIn, pIn.vertex);
+				//UNITY_TRANSFER_FOG(pIn, pIn.vertex); // think this function might need vertex to already be in 'clip'
 				triStream.Append(pIn);
 
 				pIn.nml = triData.normB;
-				viewDir = WorldSpaceViewDir(float4(triData.vertB, 1));
-				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertB, 1));
-				pIn.uv = float2(0, 1);
+				pIn.tan = triData.tanB;
+				wNormal = UnityObjectToWorldNormal(pIn.nml);
+                wTangent = UnityObjectToWorldDir(pIn.tan);
+                // compute bitangent from cross product of normal and tangent
+                tangentSign = 1; //tangent.w * unity_WorldTransformParams.w;
+                wBitangent = cross(wNormal, wTangent) * tangentSign;
+                // output the tangent space matrix
+                pIn.tspace0 = half3(wTangent.x, wBitangent.x, wNormal.x);
+                pIn.tspace1 = half3(wTangent.y, wBitangent.y, wNormal.y);
+                pIn.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z);
+				/////////////
+				viewDir = normalize(WorldSpaceViewDir(float4(triData.vertB, 1)));
+				pIn.worldPos = float4(triData.vertB, 1);
+				pIn.vertex = mul(UNITY_MATRIX_VP, pIn.worldPos);
+				pIn.uv = TRANSFORM_TEX(triData.uvwB.xy, _MainTex);
 				angle = (dot(normalize(viewDir), normalize(pIn.nml)));
 				pIn.angleDot = angle; //float3(angle*angle,angle*angle,angle*angle);
 				pIn.col = triData.colorB;								
-				UNITY_TRANSFER_FOG(pIn, pIn.vertex);
+				//UNITY_TRANSFER_FOG(pIn, pIn.vertex);
 				triStream.Append(pIn);
 
 				pIn.nml = triData.normC;
-				viewDir = WorldSpaceViewDir(float4(triData.vertC, 1));
-				pIn.vertex = mul(UNITY_MATRIX_VP, float4(triData.vertC, 1));
-				pIn.uv = float2(1, 0);
+				pIn.tan = triData.tanC;
+				wNormal = UnityObjectToWorldNormal(pIn.nml);
+                wTangent = UnityObjectToWorldDir(pIn.tan);
+                // compute bitangent from cross product of normal and tangent
+                tangentSign = 1; //tangent.w * unity_WorldTransformParams.w;
+                wBitangent = cross(wNormal, wTangent) * tangentSign;
+                // output the tangent space matrix
+                pIn.tspace0 = half3(wTangent.x, wBitangent.x, wNormal.x);
+                pIn.tspace1 = half3(wTangent.y, wBitangent.y, wNormal.y);
+                pIn.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z);
+				/////////////
+				viewDir = normalize(WorldSpaceViewDir(float4(triData.vertC, 1)));				
+				pIn.worldPos = float4(triData.vertC, 1);
+				pIn.vertex = mul(UNITY_MATRIX_VP, pIn.worldPos);
+				pIn.uv = TRANSFORM_TEX(triData.uvwC.xy, _MainTex);
 				angle = (dot(normalize(viewDir), normalize(pIn.nml)));
 				pIn.angleDot = angle; //float3(angle*angle,angle*angle,angle*angle);
 				pIn.col = triData.colorC;		
-				UNITY_TRANSFER_FOG(pIn, pIn.vertex);
+				//UNITY_TRANSFER_FOG(pIn, pIn.vertex);
 				triStream.Append(pIn);
 
 				//triStream.RestartStrip();
@@ -129,14 +192,42 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				//return float4(i.col,1);
+				//return float4(i.tan,1);
+				float normalStrength = 0.7;
+				half3 tnormal = lerp(float4(normalize(float3(0.0, 0.0, 1.0)), 1.0), UnpackNormal(tex2D(_BumpMap, i.uv)), normalStrength);
+
+				float4 texColor = tex2D(_MainTex, i.uv);
+								
+				half3 worldNormal;
+                worldNormal.x = dot(i.tspace0, tnormal);
+                worldNormal.y = dot(i.tspace1, tnormal);
+                worldNormal.z = dot(i.tspace2, tnormal);
+				//return float4(tnormal, 1.0); //tex2D(_BumpMap, i.uv); 
+
+
+				//return float4(tex2D(_MainTex, i.uv));
+				//return UnpackNormal(tex2D(_MainTex, i.uv));
+
+				float3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
+				float3 fakeLightDir = float3(0, 1.0, 0);
+				float angleDot = saturate(dot(viewDir, normalize(worldNormal)));
+				float lightDot = saturate(dot(fakeLightDir, normalize(worldNormal)));		
+				//float3 c = reflect(-viewDir, normalize(worldNormal)); //triData.colorB;
+				// sample the default reflection cubemap, using the reflection vector
+                //half4 skyData = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, c);
+                // decode cubemap data into actual color
+                //half3 skyColor = DecodeHDR (skyData, unity_SpecCube0_HDR);
+				
+				//return float4(skyData.xyz, 1); //===============================================================================================================
 
 				// sample the texture
-				i.angleDot = saturate(i.angleDot);
-				i.angleDot = i.angleDot * 0.6 + 0.4;
-				fixed4 col = float4(i.col * i.angleDot + float3(0.2, 0.2, 0.2),1); //tex2D(_MainTex, i.uv);
+				//i.angleDot = saturate(i.angleDot);
+				//i.angleDot = i.angleDot * 1;
+				
+				fixed4 col = float4(i.col,1); //tex2D(_MainTex, i.uv);
+				col = lerp(float4(lightDot,lightDot,lightDot,1), col * angleDot * angleDot, 1);
 				// apply fog
-				UNITY_APPLY_FOG(i.fogCoord, col);
+				//UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;
 			}
 			ENDCG

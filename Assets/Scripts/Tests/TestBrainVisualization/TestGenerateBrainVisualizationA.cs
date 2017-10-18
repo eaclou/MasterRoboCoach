@@ -8,7 +8,13 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     public List<Axon> tempAxonList;
 
     public ComputeShader shaderComputeBrain;
-    public Shader shaderDisplayBrain;
+    public ComputeShader shaderComputeFloatingGlowyBits;
+    //public Shader shaderDisplayBrain;
+    public Material displayMaterial;
+    public Material floatingGlowyBitsMaterial;
+
+    private ComputeBuffer quadVerticesCBuffer;  // holds information for a 2-triangle Quad mesh (6 vertices)
+    private ComputeBuffer floatingGlowyBitsCBuffer;  // holds information for placement and attributes of each instance of quadVertices to draw
 
     private ComputeBuffer neuronInitDataCBuffer;  // sets initial positions for each neuron
     private ComputeBuffer neuronFeedDataCBuffer;  // current value -- separate so CPU only has to push the bare-minimum data to GPU every n frames
@@ -21,7 +27,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     private ComputeBuffer argsCBuffer;
     private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
 
-    private Material displayMaterial;
+    //private Material displayMaterial;
 
     public struct NeuronInitData {
         //public Vector3 pos;  // can maybe remove this and just set NeuronSimData.pos once at start of program?
@@ -50,17 +56,25 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     public struct Triangle {
         public Vector3 vertA;
         public Vector3 normA;
+        public Vector3 tanA;
+        public Vector3 uvwA;
         public Vector3 colorA;
+
         public Vector3 vertB;
         public Vector3 normB;
+        public Vector3 tanB;
+        public Vector3 uvwB;
         public Vector3 colorB;
+
         public Vector3 vertC;
         public Vector3 normC;
+        public Vector3 tanC;
+        public Vector3 uvwC;
         public Vector3 colorC;
     }
 
-    int numNeurons = 12; // refBrain.neuronList.Count;
-    int numAxons = 64; // refBrain.axonList.Count;
+    int numNeurons = 4; // refBrain.neuronList.Count;
+    int numAxons = 8; // refBrain.axonList.Count;
     int maxTrisPerNeuron = 1024;
     int maxTrisPerAxon = 2048;
 
@@ -155,8 +169,31 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         if (appendTrianglesCBuffer != null)
             appendTrianglesCBuffer.Release();
         Debug.Log("Max Tris: " + (numNeurons * maxTrisPerNeuron + tempAxonList.Count * maxTrisPerAxon).ToString());
-        appendTrianglesCBuffer = new ComputeBuffer(numNeurons * maxTrisPerNeuron + tempAxonList.Count * maxTrisPerAxon, sizeof(float) * 27, ComputeBufferType.Append); // vector3 position * 3 verts
+        appendTrianglesCBuffer = new ComputeBuffer(numNeurons * maxTrisPerNeuron + tempAxonList.Count * maxTrisPerAxon, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
         appendTrianglesCBuffer.SetCounterValue(0);
+
+
+        //  FREE-FLOATING CAMERA-FACING QUADS:::::::::::
+        //Create quad buffer
+        quadVerticesCBuffer = new ComputeBuffer(6, sizeof(float) * 3);
+        quadVerticesCBuffer.SetData(new[] {
+            new Vector3(-0.5f, 0.5f),
+            new Vector3(0.5f, 0.5f),
+            new Vector3(0.5f, -0.5f),
+            new Vector3(0.5f, -0.5f),
+            new Vector3(-0.5f, -0.5f),
+            new Vector3(-0.5f, 0.5f)
+        });
+        int numFloatingGlowyBits = 64;
+        Vector3[] initialGlowyBitsPositions = new Vector3[numFloatingGlowyBits];  // At first, populate this on CPU.... later, do so within a compute shader!!
+        for(int i = 0; i < numFloatingGlowyBits; i++) {
+            initialGlowyBitsPositions[i] = UnityEngine.Random.insideUnitSphere * 2f;
+        }
+        floatingGlowyBitsCBuffer = new ComputeBuffer(numFloatingGlowyBits, sizeof(float) * 3);
+        floatingGlowyBitsCBuffer.SetData(initialGlowyBitsPositions);
+        floatingGlowyBitsMaterial.SetPass(0);
+        floatingGlowyBitsMaterial.SetBuffer("quadVerticesCBuffer", quadVerticesCBuffer);
+        floatingGlowyBitsMaterial.SetBuffer("floatingGlowyBitsCBuffer", floatingGlowyBitsCBuffer);
 
 
         // Hook Buffers Up to Shaders!!!
@@ -206,7 +243,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
                 
-        displayMaterial = new Material(shaderDisplayBrain);
+        //displayMaterial = new Material(shaderDisplayBrain);
         displayMaterial.SetPass(0);
         displayMaterial.SetBuffer("appendTrianglesBuffer", appendTrianglesCBuffer);   // link computeBuffer to both computeShader and displayShader so they share the same one!!
 
@@ -277,14 +314,13 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(simAxonRepelKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
         shaderComputeBrain.SetBuffer(simAxonRepelKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
         shaderComputeBrain.Dispatch(simAxonRepelKernelID, numAxons, numAxons, 1); // Simulate!! move neuron and axons around
-        //shaderComputeBrain.Dispatch(simulateKernelID, tempAxonList.Count, 1, 1); // Simulate!! move neuron and axons around
 
         // Re-Generate TRIANGLES!
         // SET UP GEO BUFFER and REFS:::::
         if (appendTrianglesCBuffer != null)
             appendTrianglesCBuffer.Release();
         //Debug.Log("Max Tris: " + (numNeurons * maxTrisPerNeuron + numAxons * maxTrisPerAxon).ToString());
-        appendTrianglesCBuffer = new ComputeBuffer(numNeurons * maxTrisPerNeuron + numAxons * maxTrisPerAxon, sizeof(float) * 27, ComputeBufferType.Append); // vector3 position * 3 verts
+        appendTrianglesCBuffer = new ComputeBuffer(numNeurons * maxTrisPerNeuron + numAxons * maxTrisPerAxon, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
         appendTrianglesCBuffer.SetCounterValue(0);
 
         int neuronTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateNeuronTriangles");
@@ -302,15 +338,10 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
-
-        displayMaterial = new Material(shaderDisplayBrain);
+        
         displayMaterial.SetPass(0);
         displayMaterial.SetBuffer("appendTrianglesBuffer", appendTrianglesCBuffer);
-
-        //displayMaterial.SetPass(0);
-        //displayMaterial.SetBuffer("appendTrianglesBuffer", appendTrianglesCBuffer);
-        //int neuronTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateNeuronTriangles");
-        //int axonTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateAxonTriangles");
+        
         shaderComputeBrain.Dispatch(neuronTrianglesKernelID, tempNeuronList.Count, 1, 1); // create all triangles from Neurons
         shaderComputeBrain.Dispatch(axonTrianglesKernelID, tempAxonList.Count, 1, 1); // create all geometry for Axons
 
@@ -320,13 +351,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         ComputeBuffer.CopyCount(appendTrianglesCBuffer, argsCBuffer, 0);
         argsCBuffer.GetData(args);
         //Debug.Log("triangle count " + args[0]);
-
-        /*NeuronFeedData[] neuronValuesArray = new NeuronFeedData[refBrain.neuronList.Count];
-        for (int i = 0; i < neuronValuesArray.Length; i++) {
-            neuronValuesArray[i].curValue = refBrain.neuronList[i].currentValue[0];
-        }
-        neuronFeedDataCBuffer.SetData(neuronValuesArray);*/
-
+        
     }
 
     private void CreateDummyBrain() {
@@ -359,156 +384,17 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         }
 
         numAxons = tempAxonList.Count;
-
-
-        /*Neuron neuron1 = new Neuron();
-        neuron1.neuronType = NeuronGenome.NeuronType.In;
-        neuron1.currentValue = new float[1];
-        neuron1.currentValue[0] = 1f;
-        tempNeuronList.Add(neuron1);
-        Neuron neuron2 = new Neuron();
-        neuron2.neuronType = NeuronGenome.NeuronType.In;
-        neuron2.currentValue = new float[1];
-        neuron2.currentValue[0] = -1f;
-        tempNeuronList.Add(neuron2);
-        Neuron neuron3 = new Neuron();
-        neuron3.neuronType = NeuronGenome.NeuronType.In;
-        neuron3.currentValue = new float[1];
-        neuron3.currentValue[0] = 0.1f;
-        tempNeuronList.Add(neuron3);
-        Neuron neuron4 = new Neuron();
-        neuron4.neuronType = NeuronGenome.NeuronType.Out;
-        neuron4.currentValue = new float[1];
-        neuron4.currentValue[0] = -0.45f;
-        tempNeuronList.Add(neuron4);
-        Neuron neuron5 = new Neuron();
-        neuron5.neuronType = NeuronGenome.NeuronType.Out;
-        neuron5.currentValue = new float[1];
-        neuron5.currentValue[0] = 1.5f;
-        tempNeuronList.Add(neuron5);
-        Neuron neuron6 = new Neuron();
-        neuron6.neuronType = NeuronGenome.NeuronType.Out;
-        neuron6.currentValue = new float[1];
-        neuron6.currentValue[0] = -0.22f;
-        tempNeuronList.Add(neuron6);
-        Debug.Log("tempNeuronList " + tempNeuronList.Count.ToString());
-
-        tempAxonList = new List<Axon>();
-        Axon axon1 = new Axon(0, 3, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon1);
-        Axon axon2 = new Axon(0, 4, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon2);
-        Axon axon3 = new Axon(0, 5, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon3);
-        Axon axon4 = new Axon(1, 3, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon4);
-        Axon axon5 = new Axon(1, 4, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon5);
-        Axon axon6 = new Axon(1, 5, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon6);
-        Axon axon7 = new Axon(2, 3, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon7);
-        Axon axon8 = new Axon(2, 4, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon8);
-        Axon axon9 = new Axon(2, 5, UnityEngine.Random.Range(-1f, 1f));
-        tempAxonList.Add(axon9);
-        */
-        //Brain brain = new Brain();
-
-    }
-
-    // CUBIC:
-    /*public Vector3 GetPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
-        t = Mathf.Clamp01(t);
-        float oneMinusT = 1f - t;
-        return oneMinusT * oneMinusT * oneMinusT * p0 + 3f * oneMinusT * oneMinusT * t * p1 + 3f * oneMinusT * t * t * p2 +
-                t * t * t * p3;
-    }
-    // CUBIC
-    public Vector3 GetFirstDerivative(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
-        t = Mathf.Clamp01(t);
-        float oneMinusT = 1f - t;
-        return 3f * oneMinusT * oneMinusT * (p1 - p0) + 6f * oneMinusT * t * (p2 - p1) + 3f * t * t * (p3 - p2);
-    }*/
-
-    void UpdateBuffers() {
-        Debug.Log("UpdateBuffers!");
-
-        //int numSources = 16;
-        //int numTrianglesPerSourceMax = 8 * 16 * 2;
-
-        // SOURCE DATA:::::
-        /*if (schematicsCBuffer != null)
-            schematicsCBuffer.Release();
-        schematicsCBuffer = new ComputeBuffer(numSources, sizeof(float) * 13);
-
-        Schematic[] sourceDataArray = new Schematic[numSources]; // for now only one seed data
-        for(int x = 0; x < sourceDataArray.Length; x++) {
-            Schematic schematic = new Schematic();            
-            schematic.radius = 0.12f;
-            schematic.p0 = UnityEngine.Random.insideUnitSphere;
-            schematic.p0.x += x * 1f;
-            schematic.p1 = UnityEngine.Random.insideUnitSphere;
-            schematic.p1.x += x * 1f;
-            schematic.p1.z += 1f;
-            schematic.p2 = UnityEngine.Random.insideUnitSphere;
-            schematic.p2.x += x * 1f;
-            schematic.p2.z += 2f;
-            schematic.p3 = UnityEngine.Random.insideUnitSphere;
-            schematic.p3.x += x * 1f;
-            schematic.p3.z += 3f;
-            sourceDataArray[x] = schematic;
-            //sourceDataArray[i].pos = new Vector3(UnityEngine.Random.value * i * 0.15f, i * UnityEngine.Random.value * 0.25f, i * 0.15f + UnityEngine.Random.value * 0.25f);
-        }
-        schematicsCBuffer.SetData(sourceDataArray);  // set sourceDataBuffer to have one point centered at 1,1,1
-                                                     
-
-
-        Vector3 testDir = GetFirstDerivative(new Vector3(2f, 1f, 1f), new Vector3(2f, 2f, 2f), new Vector3(2f, 3f, 3f), new Vector3(2f, 4f, 4f), 0.0f).normalized;
-        //float3 ringDir = normalize(GetFirstDerivative(schematicsBuffer[id.x].p0, schematicsBuffer[id.x].p1, schematicsBuffer[id.x].p2, schematicsBuffer[id.x].p3, tInc * idy));
-        Vector3 tangent = Vector3.Cross(testDir, new Vector3(0.0f, 1.0f, 0.0f)).normalized; // x
-        Vector3 bitangent = Vector3.Cross(tangent, testDir).normalized; // y;
-        Debug.Log("B0 dir: " + testDir.ToString() + ", tan: " + tangent.ToString() + ", bi-tan: " + bitangent.ToString());
-        
-        // SET UP GEO BUFFER and REFS:::::
-        if (appendTrianglesCBuffer != null)
-            appendTrianglesCBuffer.Release();
-        appendTrianglesCBuffer = new ComputeBuffer(numSources * numTrianglesPerSourceMax, sizeof(float) * 6 * 3, ComputeBufferType.Append); // vector3 position * 3 verts
-        appendTrianglesCBuffer.SetCounterValue(0);
-
-        int kernelID = shaderComputeBrain.FindKernel("CSMain");
-        shaderComputeBrain.SetBuffer(kernelID, "schematicsBuffer", schematicsCBuffer);
-        shaderComputeBrain.SetBuffer(kernelID, "appendTrianglesBuffer", appendTrianglesCBuffer);// link computeBuffer to both computeShader and displayShader so they share the same one!!
-        displayMaterial = new Material(shaderDisplayBrain);
-        displayMaterial.SetPass(0);
-        displayMaterial.SetBuffer("appendTrianglesBuffer", appendTrianglesCBuffer);   // link computeBuffer to both computeShader and displayShader so they share the same one!!
-        shaderComputeBrain.Dispatch(kernelID, numSources, 1, 1); // Generate geometry data!
-
-        
-
-        // Either figure out how many triangles there are in advance, or use appendBuffer
-
-        args[0] = 0; // set later by counter;// 3;  // 3 vertices to start
-        args[1] = 1;  // 1 instance/copy
-        argsCBuffer.SetData(args);
-        ComputeBuffer.CopyCount(appendTrianglesCBuffer, argsCBuffer, 0);        
-        argsCBuffer.GetData(args);
-        Debug.Log("triangle count " + args[0]);
-
-        //Triangle[] readoutTrianglesArray = new Triangle[args[0]];
-        //trianglesCBuffer.GetData(readoutTrianglesArray);
-        //for (int i = 0; i < readoutTrianglesArray.Length; i++) {
-        //    Debug.Log("triangle " + i.ToString() + ": " + readoutTrianglesArray[i].vertA.ToString() + readoutTrianglesArray[i].vertB.ToString() + readoutTrianglesArray[i].vertC.ToString());
-        //}
-        */
     }
 
     private void OnRenderObject() {
-        //int kernelID = shaderComputeGenerateCylinder.FindKernel("CSMain");
-        //shaderComputeGenerateCylinder.Dispatch(kernelID, 512, 1, 1); // Stress-test for animation
+        
         displayMaterial.SetPass(0);
         Graphics.DrawProceduralIndirect(MeshTopology.Points, argsCBuffer, 0);
         //Graphics.DrawProceduralIndirect(MeshTopology.Triangles, argsCBuffer, 0);
+
+        floatingGlowyBitsMaterial.SetPass(0);
+        //floatingGlowyBitsMaterial.SetBuffer("floatingGlowyBitsCBuffer", floatingGlowyBitsCBuffer);
+        Graphics.DrawProcedural(MeshTopology.Triangles, 6, floatingGlowyBitsCBuffer.count);
     }
 
     // Update is called once per frame
@@ -532,5 +418,10 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
             argsCBuffer.Release();
         if (appendTrianglesCBuffer != null)
             appendTrianglesCBuffer.Release();
+        if (floatingGlowyBitsCBuffer != null)
+            floatingGlowyBitsCBuffer.Release();
+        if (quadVerticesCBuffer != null)
+            quadVerticesCBuffer.Release();
+        
     }
 }

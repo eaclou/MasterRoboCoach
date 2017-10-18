@@ -27,12 +27,20 @@ struct AxonSimData {
 struct Triangle {
 	float3 vertA;
 	float3 normA;
+	float3 tanA;
+	float3 uvwA;
 	float3 colorA;
+
 	float3 vertB;
 	float3 normB;
-	float3 colorB;
+	float3 tanB;
+	float3 uvwB;
+	float3 colorB;	
+
 	float3 vertC;
 	float3 normC;
+	float3 tanC;
+	float3 uvwC;
 	float3 colorC;
 };
 
@@ -237,8 +245,8 @@ void CSSimAxonRepel (uint3 id : SV_DispatchThreadID)
 
 #pragma kernel CSGenerateNeuronTriangles
 
-#define neuron_resolution_height 32
-#define neuron_resolution_ring 32
+#define neuron_resolution_height 16
+#define neuron_resolution_ring 16
 
 [numthreads(1,neuron_resolution_height,neuron_resolution_ring)]
 void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
@@ -251,17 +259,19 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	float radius = min(max(neuronInitDataCBuffer[neuronID].radius * abs(neuronFeedDataCBuffer[neuronID].curValue), minNeuronRadius), maxNeuronRadius) * 3;
 	float3 origin = neuronSimDataCBuffer[neuronID].pos;
 	
+	const float PI = 3.141592;
 	// Longitude:
 	float xStart = cos((idz / (float)neuron_resolution_ring) * 2.0 * 3.14159);
 	float xNext = cos(((idz + 1.0) / (float)neuron_resolution_ring) * 2.0 * 3.14159);
 	float zStart = sin((idz / (float)neuron_resolution_ring) * 2.0 * 3.14159);
 	float zNext = sin(((idz + 1.0) / (float)neuron_resolution_ring) * 2.0 * 3.14159);
 	// vertical pos:
-	float yStart = sin((idy / (float)neuron_resolution_height) * 2.0 * 3.14159);
-	float yNext = sin(((idy + 1.0) / (float)neuron_resolution_height) * 2.0 * 3.14159);
+	// REFACTOR::::	  // idy/height should be remapped from [0,1] to: [-pi/2, pi/2] in order to start at south pole and go to north pole
+	float yStart = sin((idy / (float)neuron_resolution_height) * PI - (PI / 2.0));
+	float yNext = sin(((idy + 1.0) / (float)neuron_resolution_height) * PI - (PI / 2.0));
 	// radius modifier due to nearness to poles:
-	float axisDistStart = cos((idy / (float)neuron_resolution_height) * 2.0 * 3.14159);
-	float axisDistNext = cos(((idy + 1.0) / (float)neuron_resolution_height) * 2.0 * 3.14159);
+	float axisDistStart = cos((idy / (float)neuron_resolution_height) * PI - (PI / 2.0));
+	float axisDistNext = cos(((idy + 1.0) / (float)neuron_resolution_height) * PI - (PI / 2.0));
 
 	float3 normalBottomLeft = float3(xStart * axisDistStart, yStart, zStart * axisDistStart);
 	float3 normalBottomRight = float3(xNext * axisDistStart, yStart, zNext * axisDistStart);
@@ -289,38 +299,48 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	float3 topLeft = origin + normalTopLeft * radius10;
 	float3 topRight = origin + normalTopRight * radius11;
 
-	float3 colorIn = float3(0.25, 0.4, 0.9);
-	float3 colorOut = float3(0.8, 0.7, 0.3);
+	float3 colorIn = float3(0.25, 0.4, 0.9) * 1;
+	float3 colorOut = float3(0.8, 0.7, 0.3) * 1;
 	float inOut = neuronInitDataCBuffer[neuronID].type;
 	float3 faceColor = lerp(colorIn, colorOut, inOut) * abs(neuronFeedDataCBuffer[neuronID].curValue) * 5.0;
 		
 	Triangle triTop;
 	triTop.vertA = bottomLeft;
 	triTop.normA = normalBottomLeft;
+	triTop.tanA = cross(float3(0,1,0), triTop.normA);
+	triTop.uvwA = float3(idz / (float)neuron_resolution_ring, idy / (float)neuron_resolution_height, yStart);
 	triTop.colorA = faceColor;
 	triTop.vertB = topLeft;
 	triTop.normB = normalTopLeft;
+	triTop.tanB = cross(float3(0,1,0), triTop.normB);
+	triTop.uvwB = float3(idz / (float)neuron_resolution_ring, (idy + 1.0) / (float)neuron_resolution_height, yStart);
 	triTop.colorB = faceColor;
 	triTop.vertC = topRight;
 	triTop.normC = normalTopRight;
+	triTop.tanC = cross(float3(0,1,0), triTop.normC);
+	triTop.uvwC = float3((idz + 1.0) / (float)neuron_resolution_ring, (idy + 1.0) / (float)neuron_resolution_height, yStart);
 	triTop.colorC = faceColor;
 	appendTrianglesCBuffer.Append(triTop);
+
+
 
 	Triangle triBottom;
 	triBottom.vertA = bottomRight;
 	triBottom.normA = normalBottomRight;
+	triBottom.tanA = cross(float3(0,1,0), triBottom.normA);
+	triBottom.uvwA = float3((idz + 1.0) / (float)neuron_resolution_ring, idy / (float)neuron_resolution_height, yStart);
 	triBottom.colorA = faceColor;
 	triBottom.vertB = bottomLeft;
 	triBottom.normB = normalBottomLeft;
+	triBottom.tanB = cross(float3(0,1,0), triBottom.normB);
+	triBottom.uvwB = float3(idz / (float)neuron_resolution_ring, idy / (float)neuron_resolution_height, yStart);
 	triBottom.colorB = faceColor;
 	triBottom.vertC = topRight;
 	triBottom.normC = normalTopRight;
+	triBottom.tanC = cross(float3(0,1,0), triBottom.normC);
+	triBottom.uvwC = float3((idz + 1.0) / (float)neuron_resolution_ring, (idy + 1.0) / (float)neuron_resolution_height, yStart);
 	triBottom.colorC = faceColor;
 	appendTrianglesCBuffer.Append(triBottom);
-
-
-
-
 }
 
 
@@ -381,7 +401,7 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float idz = (float)id.z;  // around curve (rings)	
 	float tInc = 1.0 / (float)resolution_height;
 
-	float extrudeNoiseFreq = 0.25;
+	float extrudeNoiseFreq = 0.33;
 
 	float radius00 = GetAxonRadius(id.x, idy * tInc);
 	float radius01 = radius00;	
@@ -403,11 +423,11 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float distToSideScreenEdge1 = (0.5 - min((1.0 - t1), t1)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
 	float flareMask1 = saturate(distToSideScreenEdge1 - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
 
-	float noiseFreq = 0.15;
-	float noiseAmp = 1;
-	float3 noiseOffset = float3(0.5, 0.25, 0.9) * time * 20.0;
+	float noiseFreq = 0.14;
+	float noiseAmp = 0.5;
+	float3 noiseOffset = float3(0.5, 0.25, 0.9) * time * 10.0;
 	//float4 noiseTest0 = Value3D(ringOrigin0, noisefreq)
-
+	
 	float3 ringOrigin0 = GetPoint(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * idy);
 	ringOrigin0 += Value3D(ringOrigin0 + noiseOffset, noiseFreq).yzw * noiseAmp * (1.0 - distToSideScreenEdge0 * 2.0);
 	float3 forward0 = normalize(GetFirstDerivative(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * idy));
@@ -419,6 +439,16 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float3 forward1 = normalize(GetFirstDerivative(axonSimDataCBuffer[id.x].p0, axonSimDataCBuffer[id.x].p1, axonSimDataCBuffer[id.x].p2, axonSimDataCBuffer[id.x].p3, tInc * (idy + 1.0)));
 	float3 right1 = normalize(cross(forward1, float3(0.0, 1.0, 0.0)));
 	float3 up1 = normalize(cross(right1, forward1));
+
+	// Spiral Offset!!!:::::
+	float spiralFreq = 30.0;
+	float spiralAmp = 0.5;
+	float spiralRight0 = cos(t0 * spiralFreq) * spiralAmp;
+	float spiralUp0 = sin(t0 * spiralFreq) * spiralAmp;
+	ringOrigin0 += right0 * spiralRight0 + up0 * spiralUp0;
+	float spiralRight1 = cos(t1 * spiralFreq) * spiralAmp;
+	float spiralUp1 = sin(t1 * spiralFreq) * spiralAmp;
+	ringOrigin1 += right1 * spiralRight1 + up1 * spiralUp1;
 		
 	float xStart = cos((idz / (float)resolution_ring) * 2.0 * 3.14159);
 	float xNext = cos(((idz + 1.0) / (float)resolution_ring) * 2.0 * 3.14159);
@@ -440,8 +470,8 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	//float inOut = neuronInitDataCBuffer[neuronID].type;
 	//float3 faceColor = lerp(colorIn, colorOut, inOut) * abs(neuronFeedDataCBuffer[neuronID].curValue) * 4.0;
 
-	float3 colorIn = float3(0.25, 0.4, 0.9);
-	float3 colorOut = float3(0.8, 0.7, 0.3);
+	float3 colorIn = float3(0.25, 0.4, 0.9) * 0.01;
+	float3 colorOut = float3(0.8, 0.7, 0.3) * 0.01;
 	float inOut0 = neuronInitDataCBuffer[axonInitDataCBuffer[id.x].fromID].type;
 	float inOut1 = neuronInitDataCBuffer[axonInitDataCBuffer[id.x].toID].type;
 	float3 color0 = lerp(colorIn, colorOut, inOut0);
@@ -450,17 +480,17 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	float3 colTop = lerp(color0, color1, (idy + 1.0) * tInc) * abs(axonInitDataCBuffer[id.x].weight);
 		
 	float pulseDistance0 = abs(t0 - axonSimDataCBuffer[id.x].pulsePos);
-	float pulseMultiplier0 = (1.0 - smoothstep(0, 0.25, pulseDistance0)) + 1.0;
+	float pulseMultiplier0 = ((1.0 - smoothstep(0, 0.45, pulseDistance0)) + 0.0) * 50;
 	float pulseDistance1 = abs(t1 - axonSimDataCBuffer[id.x].pulsePos);
-	float pulseMultiplier1 = (1.0 - smoothstep(0, 0.25, pulseDistance1)) + 1.0;
+	float pulseMultiplier1 = ((1.0 - smoothstep(0, 0.45, pulseDistance1)) + 0.0) * 50;
 		
 	float nearestNeuronCurValue0 = lerp(neuronFeedDataCBuffer[axonInitDataCBuffer[id.x].fromID].curValue, neuronFeedDataCBuffer[axonInitDataCBuffer[id.x].toID].curValue, round(idy * tInc));
 	float3 nearestNeuronColor0 = lerp(color0, color1, round(idy * tInc)) * abs(nearestNeuronCurValue0) * 2.0;
 	float nearestNeuronCurValue1 = lerp(neuronFeedDataCBuffer[axonInitDataCBuffer[id.x].fromID].curValue, neuronFeedDataCBuffer[axonInitDataCBuffer[id.x].toID].curValue, round((idy + 1.0) * tInc));
 	float3 nearestNeuronColor1 = lerp(color0, color1, round((idy + 1.0) * tInc)) * abs(nearestNeuronCurValue1) * 2.0;
 
-	colBottom = lerp(colBottom * pulseMultiplier0 * 1.0, nearestNeuronColor0, flareMask0);
-	colTop = lerp(colTop * pulseMultiplier1 * 1.0, nearestNeuronColor1, flareMask1);
+	colBottom = lerp(colBottom * pulseMultiplier0 * 1.0, nearestNeuronColor0, flareMask0 * 0.1);
+	colTop = lerp(colTop * pulseMultiplier1 * 1.0, nearestNeuronColor1, flareMask1 * 0.1);
 
 	//float noisefreq = 0.1;
 	//float4 noiseTest0 = Value3D(ringOrigin0, noisefreq) * 0.5 + 0.5;
@@ -471,24 +501,36 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	Triangle triTop;
 	triTop.vertA = bottomLeft;
 	triTop.normA = normalBottomLeft;
+	triTop.tanA = cross(forward0, triTop.normA);
+	triTop.uvwA = float3(idz / (float)resolution_ring, idy / (float)resolution_height, 0.0);
 	triTop.colorA = colBottom;
 	triTop.vertB = topLeft;
 	triTop.normB = normalTopLeft;
+	triTop.tanB = cross(forward1, triTop.normB);
+	triTop.uvwB = float3(idz / (float)resolution_ring, (idy + 1.0) / (float)resolution_height, 0.0);
 	triTop.colorB = colTop;
 	triTop.vertC = topRight;
 	triTop.normC = normalTopRight;
+	triTop.tanC = cross(forward1, triTop.normC);
+	triTop.uvwC = float3((idz + 1.0) / (float)resolution_ring, (idy + 1.0) / (float)resolution_height, 0.0);
 	triTop.colorC = colTop;
 	appendTrianglesCBuffer.Append(triTop);
 
 	Triangle triBottom;
 	triBottom.vertA = bottomRight;
 	triBottom.normA = normalBottomRight;
+	triBottom.tanA = cross(forward0, triBottom.normA);
+	triBottom.uvwA = float3((idz + 1.0) / (float)resolution_ring, idy / (float)resolution_height, 0.0);
 	triBottom.colorA = colBottom;
 	triBottom.vertB = bottomLeft;
 	triBottom.normB = normalBottomLeft;
+	triBottom.tanB = cross(forward0, triBottom.normB);
+	triBottom.uvwB = float3(idz / (float)resolution_ring, idy / (float)resolution_height, 0.0);
 	triBottom.colorB = colBottom;
 	triBottom.vertC = topRight;
 	triBottom.normC = normalTopRight;
+	triBottom.tanC = cross(forward1, triBottom.normC);
+	triBottom.uvwC = float3((idz + 1.0) / (float)resolution_ring, (idy + 1.0) / (float)resolution_height, 0.0);
 	triBottom.colorC = colTop;
 	appendTrianglesCBuffer.Append(triBottom);
 
