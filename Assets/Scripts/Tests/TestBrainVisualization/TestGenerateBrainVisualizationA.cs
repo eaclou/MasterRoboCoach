@@ -61,14 +61,18 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     public struct ExtraBallsAxonsData {
         public int axonID;
         public float t;  // how far along the spline
-        public float alpha;  // angle of rotation around the axis
+        public float angle;  // angle of rotation around the axis
+        public float baseScale;
     }
     public struct ExtraBallsNeuronsData {
         public int neuronID;
         public Vector3 direction;  // where on the neuron???
+        public float baseScale;
     }
-    public struct ExtraBall {
-        public Vector3 worldPos;
+    public struct BallData {
+        public Vector3 worldPos;        
+        public float value;
+        public float scale;
         // per-particle size / rotation etc.???
     }
     public struct Triangle {
@@ -91,8 +95,8 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         public Vector3 colorC;
     }
 
-    int numNeurons = 4; // refBrain.neuronList.Count;
-    int numAxons = 8; // refBrain.axonList.Count;
+    int numNeurons = 16; // refBrain.neuronList.Count;
+    int numAxons = 32; // refBrain.axonList.Count;
     int maxTrisPerNeuron = 1024;
     int maxTrisPerAxon = 2048;
 
@@ -218,25 +222,25 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeFloatingGlowyBits.Dispatch(initGlowyBitsKernelID, numFloatingGlowyBits / 64, 1, 1); // initialize axon positions and attributes
 
         //  EXTRA BALLS NORMAL-MAPPED CAMERA-FACING QUADS:::::::::::
-        int numAxonBalls = 32;
-        int numNeuronBalls = 32;
+        int numAxonBalls = 8192;
+        int numNeuronBalls = 128;
         if (extraBallsCBuffer != null)
             extraBallsCBuffer.Release();
-        extraBallsCBuffer = new ComputeBuffer(numAxonBalls + numNeuronBalls, sizeof(float) * 3);
+        extraBallsCBuffer = new ComputeBuffer(numAxonBalls + numNeuronBalls, sizeof(float) * 5);
         extraBallsMaterial.SetPass(0);
         extraBallsMaterial.SetBuffer("quadVerticesCBuffer", quadVerticesCBuffer);
         extraBallsMaterial.SetBuffer("extraBallsCBuffer", extraBallsCBuffer);
 
         if (axonBallCBuffer != null)
             axonBallCBuffer.Release();
-        axonBallCBuffer = new ComputeBuffer(numAxonBalls, sizeof(float) * 2 + sizeof(int) * 1);
+        axonBallCBuffer = new ComputeBuffer(numAxonBalls, sizeof(float) * 3 + sizeof(int) * 1);
         if (neuronBallCBuffer != null)
             neuronBallCBuffer.Release();
-        neuronBallCBuffer = new ComputeBuffer(numNeuronBalls, sizeof(float) * 3 + sizeof(int) * 1);
+        neuronBallCBuffer = new ComputeBuffer(numNeuronBalls, sizeof(float) * 4 + sizeof(int) * 1);
 
         int initAxonBallsKernelID = shaderComputeExtraBalls.FindKernel("CSInitializeAxonBallData");
-        shaderComputeExtraBalls.SetFloat("minRadius", 2f);
-        shaderComputeExtraBalls.SetFloat("maxRadius", 4f);
+        //shaderComputeExtraBalls.SetFloat("minRadius", 2f);
+        //shaderComputeExtraBalls.SetFloat("maxRadius", 4f);
         shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
@@ -248,8 +252,8 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeExtraBalls.Dispatch(initAxonBallsKernelID, numAxonBalls, 1, 1); // initialize axon positions and attributes
 
         int initNeuronBallsKernelID = shaderComputeExtraBalls.FindKernel("CSInitializeNeuronBallData");
-        shaderComputeExtraBalls.SetFloat("minRadius", 2f);
-        shaderComputeExtraBalls.SetFloat("maxRadius", 4f);
+        //shaderComputeExtraBalls.SetFloat("minRadius", 2f);
+        //shaderComputeExtraBalls.SetFloat("maxRadius", 4f);
         shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
@@ -408,9 +412,19 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.Dispatch(simAxonRepelKernelID, numAxons, numAxons, 1); // Simulate!! move neuron and axons around
 
         // EXTRA BALLS UPDATE!!!::::::
+        shaderComputeExtraBalls.SetFloat("minAxonRadius", minAxonRadius);
+        shaderComputeExtraBalls.SetFloat("maxAxonRadius", maxAxonRadius);
+        shaderComputeExtraBalls.SetFloat("minNeuronRadius", minNeuronRadius);
+        shaderComputeExtraBalls.SetFloat("maxNeuronRadius", maxNeuronRadius);
+        shaderComputeExtraBalls.SetFloat("neuronAttractForce", neuronAttractForce);
+        shaderComputeExtraBalls.SetFloat("axonStraightenForce", axonStraightenForce);
+        shaderComputeExtraBalls.SetFloat("neuronRepelForce", neuronRepelForce);
+        shaderComputeExtraBalls.SetFloat("axonRepelForce", axonRepelForce);
+        //shaderComputeExtraBalls.SetFloat("minRadius", 1f);
+        //shaderComputeExtraBalls.SetFloat("maxRadius", 2f);
+        shaderComputeExtraBalls.SetFloat("time", Time.fixedTime);
+
         int positionAxonBallsKernelID = shaderComputeExtraBalls.FindKernel("CSUpdateAxonBallPositions");
-        shaderComputeExtraBalls.SetFloat("minRadius", 1f);
-        shaderComputeExtraBalls.SetFloat("maxRadius", 2f);
         shaderComputeExtraBalls.SetBuffer(positionAxonBallsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(positionAxonBallsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(positionAxonBallsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
@@ -421,8 +435,6 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeExtraBalls.SetBuffer(positionAxonBallsKernelID, "extraBallsCBuffer", extraBallsCBuffer);
         shaderComputeExtraBalls.Dispatch(positionAxonBallsKernelID, axonBallCBuffer.count, 1, 1); // initialize axon positions and attributes
         int positionNeuronBallsKernelID = shaderComputeExtraBalls.FindKernel("CSUpdateNeuronBallPositions");
-        shaderComputeExtraBalls.SetFloat("minRadius", 1f);
-        shaderComputeExtraBalls.SetFloat("maxRadius", 2f);
         shaderComputeExtraBalls.SetBuffer(positionNeuronBallsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(positionNeuronBallsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(positionNeuronBallsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);

@@ -10,12 +10,15 @@
 	{
 		//Tags { "RenderType"="Opaque" }
 		//LOD 100
-		Tags{ "RenderType" = "Transparant" }
+		//Tags{ "RenderType" = "Transparant" }
 		//ZTest Off
-		ZWrite Off
-		Cull Off
+		//ZWrite Off
+		//Cull Off
 		//Blend SrcAlpha One
-		Blend SrcAlpha OneMinusSrcAlpha
+		//Blend SrcAlpha OneMinusSrcAlpha
+
+		Tags { "Queue"="AlphaTest" "RenderType"="TransparentCutout" "IgnoreProjector"="True" }
+		AlphaToMask On
 
 		Pass
 		{
@@ -25,11 +28,18 @@
 			#pragma target 5.0
 			#include "UnityCG.cginc"
 
+			struct BallData {
+				float3 worldPos;
+				float value;
+				float scale;
+			};
+
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			float4 _Tint;
 			float4 _Size;
-			StructuredBuffer<float3> extraBallsCBuffer;
+
+			StructuredBuffer<BallData> extraBallsCBuffer;
 			StructuredBuffer<float3> quadVerticesCBuffer;
 
 			struct v2f
@@ -50,7 +60,9 @@
 
 				//Only transform world pos by view matrix
 				//To Create a billboarding effect
-				float3 worldPosition = extraBallsCBuffer[inst];
+				BallData data;
+				data = extraBallsCBuffer[inst];
+				float3 worldPosition = data.worldPos;
 				float3 quadPoint = quadVerticesCBuffer[id];				
 
 				float random1 = rand(float2(inst, inst));
@@ -59,7 +71,7 @@
 				// Scaling!!!  _Size.zw is min/max aspect ratio, _Size.xy is min/max overall size				
 				float randomAspect = lerp(_Size.z, _Size.w, random1);
 				float randomScale = lerp(_Size.x, _Size.y, random2);
-				float2 scale = float2(randomAspect * randomScale, (1.0 / randomAspect) * randomScale);
+				float2 scale = data.scale * float2(randomAspect * randomScale, (1.0 / randomAspect) * randomScale);
 				
 				quadPoint *= float3(scale, 1.0);
 
@@ -97,15 +109,17 @@
 
 				//return float4(normal, alpha);
 				//o.renderPos = mul(UNITY_MATRIX_P, mul(UNITY_MATRIX_V, float4(worldPosition, 1.0f)) + float4(rotatedPoint, 0.0f));				
-				float3 worldPosition = mul(UNITY_MATRIX_P, mul(UNITY_MATRIX_V, i.worldPivotPos) + i.worldLocalVertexPos);
-				float3 viewDir = normalize(UnityWorldSpaceViewDir(worldPosition));
+				float3 worldPosition = i.worldPivotPos;
+				float3 worldViewDir = UnityWorldSpaceViewDir(worldPosition);
+				float3 viewDir = normalize(mul(UNITY_MATRIX_VP, worldViewDir));
 
 				float3 fakeLightDir = float3(0, 1.0, 0);
-				float angleDot = dot(viewDir, normalize(worldNormal));
+				float angleDot = dot(float3(0,0,1), worldNormal);
 				float lightDot = saturate(dot(fakeLightDir, normalize(worldNormal)));
 				
-				float3 colValue = float3(angleDot, angleDot, angleDot);
-
+				float3 colValue = float3(angleDot, angleDot, angleDot) * _Tint.rgb;
+								
+				//clip(alpha - alphaCutoffValue);
 				return float4(colValue, alpha);
 				//return float4(colValue * (worldNormal.x * 0.5 + 0.5), colValue * (worldNormal.y * 0.5 + 0.5), colValue * (worldNormal.z * 0.5 + 0.5), alpha);
 				

@@ -192,7 +192,7 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				//return float4(i.tan,1);
+				//return float4(0,0,0,1);
 				float normalStrength = 0.7;
 				half3 tnormal = lerp(float4(normalize(float3(0.0, 0.0, 1.0)), 1.0), UnpackNormal(tex2D(_BumpMap, i.uv)), normalStrength);
 
@@ -224,8 +224,8 @@
 				//i.angleDot = saturate(i.angleDot);
 				//i.angleDot = i.angleDot * 1;
 				
-				fixed4 col = float4(i.col,1); //tex2D(_MainTex, i.uv);
-				col = lerp(float4(lightDot,lightDot,lightDot,1), col * angleDot * angleDot, 1);
+				fixed4 col = float4(0.6, .95, .7,1); //tex2D(_MainTex, i.uv);
+				col = lerp(float4(lightDot,lightDot,lightDot,1), col * angleDot, 1);
 				// apply fog
 				//UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;
