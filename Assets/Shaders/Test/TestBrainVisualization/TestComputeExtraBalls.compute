@@ -47,12 +47,12 @@ void CSInitializeAxonBallData (uint3 id : SV_DispatchThreadID, uint3 grpID : SV_
 	int axonID = round(randomID);
 	axonBall.axonID = axonID;
 
-	float rand1 = rand(float2(randomID * 0.00137, (float)grpID.x * 0.658));
-	float rand2 = rand(float2(rand1, rand1));
+	float rand1 = rand(float2(grpID.x * 64 + id.x, randomID));
+	float rand2 = rand(float2(rand1, grpID.x * 64 + id.x));
 	float rand3 = rand(float2(rand1, rand2));
 	axonBall.t = rand1;
 	axonBall.angle = rand2 * 10.0 * 3.141592;  // spread around more than 2pi
-	axonBall.baseScale = lerp(0.5, 2, rand(float2(rand2, rand2)));
+	axonBall.baseScale = lerp(1, 1.4, rand(float2(rand2, rand2)));
 	
 	axonBallCBuffer[id.x] = axonBall;
 }
@@ -63,7 +63,7 @@ void CSInitializeAxonBallData (uint3 id : SV_DispatchThreadID, uint3 grpID : SV_
 
 #pragma kernel CSInitializeNeuronBallData    // Generate and Populate neuronBallAttachCBuffer semi-randomly, distributing among & on neurons
 [numthreads(1,1,1)]
-void CSInitializeNeuronBallData (uint3 id : SV_DispatchThreadID)
+void CSInitializeNeuronBallData (uint3 id : SV_DispatchThreadID, uint3 grpID : SV_GroupThreadID)
 {
 	// Set up initial settings for NeuronBalls, based on neuron data:
 
@@ -75,7 +75,7 @@ void CSInitializeNeuronBallData (uint3 id : SV_DispatchThreadID)
 	NeuronBallAttachData neuronBall;
 
 	// Generate randomID (which Neuron this should attach to)
-	float randomID = rand(float2(id.x, id.x)) * (neuronCount - 1.0);
+	float randomID = rand(float2(id.x, grpID.x)) * (neuronCount - 1.0);
 	int neuronID = round(randomID);
 	neuronBall.neuronID = neuronID;
 
@@ -84,7 +84,7 @@ void CSInitializeNeuronBallData (uint3 id : SV_DispatchThreadID)
 	float rand3 = rand(float2(rand2, rand2)) * 2 - 1;
 	
 	neuronBall.direction = normalize(float3(rand1, rand2, rand3));
-	neuronBall.baseScale = lerp(0.2, 1.4, rand(float2(rand1, rand3)));
+	neuronBall.baseScale = lerp(0.5, 0.9, rand(float2(rand1, rand3)));
 	
 	neuronBallCBuffer[id.x] = neuronBall;
 }
@@ -102,11 +102,11 @@ void CSUpdateAxonBallPositions (uint3 id : SV_DispatchThreadID)
 	
 	CurveSample sample = GetAxonSample(axonID, axonBallCBuffer[ballID].t, axonBallCBuffer[id.x].angle);
 	float radius = GetAxonRadius(axonID, axonBallCBuffer[ballID].t, axonBallCBuffer[id.x].angle);
-	float scale = axonBallCBuffer[ballID].baseScale; // * clamp(radius, 0.5, 2);
+	float scale = axonBallCBuffer[ballID].baseScale * radius; // * clamp(radius, 0.5, 2);
 	
 	BallData ballData;
-	ballData.scale = scale * 2.0;
-	ballData.worldPos = sample.origin + sample.normal * (radius + scale * 0.25);
+	ballData.scale = scale;
+	ballData.worldPos = sample.origin + sample.normal * (radius + scale * 0.4);
 	float startOrEnd = round(axonBallCBuffer[ballID].t);
 	//float inValue
 	float pulseDistance = abs(axonSimDataCBuffer[axonID].pulsePos - axonBallCBuffer[ballID].t);
@@ -145,7 +145,7 @@ void CSUpdateNeuronBallPositions (uint3 id : SV_DispatchThreadID)
 
 	BallData ballData;
 	ballData.scale = scale;	
-	ballData.worldPos = origin + dir * (radius + scale * 0.25);
+	ballData.worldPos = origin + dir * (radius + scale * 0.4);
 	ballData.value = abs(neuronFeedDataCBuffer[neuronID].curValue);
 	ballData.inOut = neuronInitDataCBuffer[neuronID].type;
 	extraBallsCBuffer[ballID] = ballData;	

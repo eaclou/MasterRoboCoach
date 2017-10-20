@@ -20,14 +20,17 @@ struct Triangle {
 	float3 colorC;
 };
 
-AppendStructuredBuffer<Triangle> appendTrianglesCBuffer;
+AppendStructuredBuffer<Triangle> appendTrianglesCoreCBuffer;
+AppendStructuredBuffer<Triangle> appendTrianglesCablesCBuffer;
 
 static const float3 inNeuronsBaseColor = float3(0.3, 0.4, 0.5);
 static const float3 outNeuronsBaseColor = float3(0.5, 0.5, 0.3);
 static const float3 positiveValuesBaseColor = float3(0.5, 1, 0.5);
 static const float3 negativeValuesBaseColor = float3(1, 0.5, 0.5);
 
-static const float3 uvScale = float3(1, 12, 0);
+static const float3 cableBaseColor = float3(1, 0.3, 0.3);
+
+static const float3 uvScale = float3(1, 12, 0); // for Axons
 
 
 // Each #kernel tells which function to compile; you can have many kernels
@@ -63,6 +66,36 @@ void CSInitializeAxonSimData (uint3 id : SV_DispatchThreadID)
 	axonData.p3 = endPos;
 
 	axonSimDataCBuffer[id.x] = axonData;	
+}
+
+
+
+#pragma kernel CSInitializeCableSimData
+
+[numthreads(1,1,1)]
+void CSInitializeCableSimData (uint3 id : SV_DispatchThreadID)
+{
+	// Set up initial positions / settings for Axons, based on neuron and other data
+
+	//id.x == cableID; // ( == neuronID == SocketID)
+
+	CableSimData cableData;
+	
+	float rand1 = rand(float2(id.x, id.x)) * 2.0 - 1.0;
+	float rand2 = rand(float2(id.x, rand1)) * 2.0 - 1.0;
+	float rand3 = rand(float2(rand1, rand2)) * 2.0 - 1.0;
+	float3 startDir = float3(rand1, rand2, rand3);
+	float3 endDir = float3(rand3, rand1, rand2);
+
+	float3 startPos = socketInitDataCBuffer[id.x].pos + startDir;  // grab positions from corresponding NeuronID positions
+	float3 endPos = neuronSimDataCBuffer[id.x].pos + endDir;
+
+	cableData.p0 = startPos;
+	cableData.p1 = lerp(startPos, endPos, 1.0/3.0);
+	cableData.p2 = lerp(startPos, endPos, 2.0/3.0);
+	cableData.p3 = endPos;
+
+	cableSimDataCBuffer[id.x] = cableData;	
 }
 
 
@@ -341,7 +374,7 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	triTop.tanC = cross(float3(0,1,0), triTop.normC);
 	triTop.uvwC = float3((idz + 1.0) / (float)neuron_resolution_ring, (idy + 1.0) / (float)neuron_resolution_height, yStart);
 	triTop.colorC = faceColor;
-	appendTrianglesCBuffer.Append(triTop);
+	appendTrianglesCoreCBuffer.Append(triTop);
 
 
 
@@ -361,7 +394,7 @@ void CSGenerateNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	triBottom.tanC = cross(float3(0,1,0), triBottom.normC);
 	triBottom.uvwC = float3((idz + 1.0) / (float)neuron_resolution_ring, (idy + 1.0) / (float)neuron_resolution_height, yStart);
 	triBottom.colorC = faceColor;
-	appendTrianglesCBuffer.Append(triBottom);
+	appendTrianglesCoreCBuffer.Append(triBottom);
 }
 
 
@@ -440,7 +473,7 @@ void CSGenerateSubNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	triTop.tanC = cross(float3(0,1,0), triTop.normC);
 	triTop.uvwC = float3((idz + 1.0) / (float)subneuron_resolution_ring, (idy + 1.0) / (float)subneuron_resolution_height, yStart);
 	triTop.colorC = faceColor;
-	appendTrianglesCBuffer.Append(triTop);
+	appendTrianglesCoreCBuffer.Append(triTop);
 
 
 	Triangle triBottom;
@@ -459,7 +492,7 @@ void CSGenerateSubNeuronTriangles (uint3 id : SV_DispatchThreadID)
 	triBottom.tanC = cross(float3(0,1,0), triBottom.normC);
 	triBottom.uvwC = float3((idz + 1.0) / (float)subneuron_resolution_ring, (idy + 1.0) / (float)subneuron_resolution_height, yStart);
 	triBottom.colorC = faceColor;
-	appendTrianglesCBuffer.Append(triBottom);
+	appendTrianglesCoreCBuffer.Append(triBottom);
 }
 
 
@@ -558,7 +591,7 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	triTop.tanC = cross(sample1.forward, triTop.normC);
 	triTop.uvwC = float3((idz + 1.0) / (float)resolution_ring, (idy + 1.0) / (float)resolution_height, 0.0) * uvScale;
 	triTop.colorC = colTop;
-	appendTrianglesCBuffer.Append(triTop);
+	appendTrianglesCoreCBuffer.Append(triTop);
 
 	Triangle triBottom;
 	triBottom.vertA = bottomRight;
@@ -576,6 +609,91 @@ void CSGenerateAxonTriangles (uint3 id : SV_DispatchThreadID)
 	triBottom.tanC = cross(sample0.forward, triBottom.normC);
 	triBottom.uvwC = float3((idz + 1.0) / (float)resolution_ring, (idy + 1.0) / (float)resolution_height, 0.0) * uvScale;
 	triBottom.colorC = colTop;
-	appendTrianglesCBuffer.Append(triBottom);
+	appendTrianglesCoreCBuffer.Append(triBottom);
 
 }
+
+
+
+
+
+
+#pragma kernel CSGenerateCablesTriangles
+
+#define cable_resolution_height 48
+#define cable_resolution_ring 12
+
+
+
+[numthreads(1,cable_resolution_height,cable_resolution_ring)]
+void CSGenerateCablesTriangles (uint3 id : SV_DispatchThreadID)
+{
+	float idx = (float)id.x;
+	float idy = (float)id.y;  // along curve
+	float idz = (float)id.z;  // around curve (rings)	
+	float tInc = 1.0 / (float)cable_resolution_height;
+
+	float t0 = idy * tInc;
+	float t1 = (idy + 1.0) * tInc;
+	float angle0 = idz / (float)cable_resolution_ring;
+	float angle1 = (idz + 1.0) / (float)cable_resolution_ring;
+
+	CurveSample sample0; 
+	sample0 = GetCableCurveSample(id.x, t0, angle0);
+	CurveSample sample1; 
+	sample1 = GetCableCurveSample(id.x, t1, angle1);
+			
+	float xStart = cos((angle0) * 2.0 * 3.14159);
+	float xNext = cos((angle1) * 2.0 * 3.14159);
+	float yStart = sin((angle0) * 2.0 * 3.14159);
+	float yNext = sin((angle1) * 2.0 * 3.14159);
+
+	float3 normalBottomLeft = sample0.right * xStart + sample0.up * yStart;
+	float3 normalBottomRight = sample0.right * xNext + sample0.up * yNext;
+	float3 normalTopLeft = sample1.right * xStart + sample1.up * yStart;
+	float3 normalTopRight = sample1.right * xNext + sample1.up * yNext;
+	
+	float3 bottomLeft = normalBottomLeft * GetCableRadius(id.x, t0, frac(angle0)) + sample0.origin;
+	float3 bottomRight = normalBottomRight * GetCableRadius(id.x, t0, frac(angle1)) + sample0.origin;
+	float3 topLeft = normalTopLeft * GetCableRadius(id.x, t1, frac(angle0)) + sample1.origin;
+	float3 topRight = normalTopRight * GetCableRadius(id.x, t1, frac(angle1)) + sample1.origin;
+			
+	
+	Triangle triTop;
+	triTop.vertA = bottomLeft;
+	triTop.normA = normalBottomLeft;
+	triTop.tanA = cross(sample0.forward, triTop.normA);
+	triTop.uvwA = float3((idz / (float)cable_resolution_ring) * uvScale.x, (idy / (float)cable_resolution_height) * uvScale.y, 0.0);
+	triTop.colorA = cableBaseColor;
+	triTop.vertB = topLeft;
+	triTop.normB = normalTopLeft;
+	triTop.tanB = cross(sample1.forward, triTop.normB);
+	triTop.uvwB = float3(idz / (float)cable_resolution_ring, (idy + 1.0) / (float)cable_resolution_height, 0.0) * uvScale;
+	triTop.colorB = cableBaseColor;
+	triTop.vertC = topRight;
+	triTop.normC = normalTopRight;
+	triTop.tanC = cross(sample1.forward, triTop.normC);
+	triTop.uvwC = float3((idz + 1.0) / (float)cable_resolution_ring, (idy + 1.0) / (float)cable_resolution_height, 0.0) * uvScale;
+	triTop.colorC = cableBaseColor;
+	appendTrianglesCablesCBuffer.Append(triTop);
+
+	Triangle triBottom;
+	triBottom.vertA = bottomRight;
+	triBottom.normA = normalBottomRight;
+	triBottom.tanA = cross(sample0.forward, triBottom.normA);
+	triBottom.uvwA = float3((idz + 1.0) / (float)cable_resolution_ring, idy / (float)cable_resolution_height, 0.0) * uvScale;
+	triBottom.colorA = cableBaseColor;
+	triBottom.vertB = bottomLeft;
+	triBottom.normB = normalBottomLeft;
+	triBottom.tanB = cross(sample0.forward, triBottom.normB);
+	triBottom.uvwB = float3(idz / (float)cable_resolution_ring, idy / (float)cable_resolution_height, 0.0) * uvScale;
+	triBottom.colorB = cableBaseColor;
+	triBottom.vertC = topRight;
+	triBottom.normC = normalTopRight;
+	triBottom.tanC = cross(sample0.forward, triBottom.normC);
+	triBottom.uvwC = float3((idz + 1.0) / (float)cable_resolution_ring, (idy + 1.0) / (float)cable_resolution_height, 0.0) * uvScale;
+	triBottom.colorC = cableBaseColor;
+	appendTrianglesCablesCBuffer.Append(triBottom);
+
+}
+

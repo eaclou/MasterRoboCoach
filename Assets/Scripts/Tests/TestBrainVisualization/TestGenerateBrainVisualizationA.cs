@@ -11,7 +11,8 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     public ComputeShader shaderComputeFloatingGlowyBits;
     public ComputeShader shaderComputeExtraBalls;  // quads w/ nml maps to like like extra blobs attached to neurons & axons
     //public Shader shaderDisplayBrain;
-    public Material displayMaterial;
+    public Material displayMaterialCore;
+    public Material displayMaterialCables;
     public Material floatingGlowyBitsMaterial;
     public Material extraBallsMaterial;
 
@@ -26,12 +27,18 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     private ComputeBuffer neuronSimDataCBuffer;  // holds data that is updatable purely on GPU, like neuron Positions
     //private ComputeBuffer subNeuronSimDataCBuffer; // just 
     private ComputeBuffer axonInitDataCBuffer;  // holds axon weights ( as well as from/to neuron IDs ?)
-    private ComputeBuffer axonSimDataCBuffer;  // axons can be updated entirely on GPU by referencing neuron positions. 
-    // ... this includes all spline data --> positions, vertex colors, uv, radii, etc., pulse positions
+    private ComputeBuffer axonSimDataCBuffer;  // axons can be updated entirely on GPU by referencing neuron positions.
+    // .^.^.^. this includes all spline data --> positions, vertex colors, uv, radii, etc., pulse positions
+    private ComputeBuffer cableInitDataCBuffer;  // initial data required to calculate positions of cables
+    private ComputeBuffer cableSimDataCBuffer;  // holds the positions of the control points of the cable's underlying bezier curve
+    private ComputeBuffer socketInitDataCBuffer;  // holds the positions of the sockets on wall that cables plug into
         // Some other secondary buffers for decorations later
-    private ComputeBuffer appendTrianglesCBuffer; // will likely split this out into seperate ones later to support multiple materials/layers, but all-in-one for now...
-    private ComputeBuffer argsCBuffer;
-    private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
+    private ComputeBuffer appendTrianglesCoreCBuffer; // will likely split this out into seperate ones later to support multiple materials/layers, but all-in-one for now...
+    private ComputeBuffer argsCoreCBuffer;
+    private uint[] argsCore = new uint[5] { 0, 0, 0, 0, 0 };
+    private ComputeBuffer appendTrianglesCablesCBuffer; // will likely split this out into seperate ones later to support multiple materials/layers, but all-in-one for now...
+    private ComputeBuffer argsCablesCBuffer;
+    private uint[] argsCables = new uint[5] { 0, 0, 0, 0, 0 };
 
     //private Material displayMaterial;
 
@@ -58,6 +65,19 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         public Vector3 p2;
         public Vector3 p3;
         public float pulsePos;
+    }
+    public struct CableInitData {
+        public int socketID;
+        public int neuronID;
+    }
+    public struct CableSimData {
+        public Vector3 p0;
+        public Vector3 p1;
+        public Vector3 p2;
+        public Vector3 p3;
+    }
+    public struct SocketInitData {
+        public Vector3 pos;
     }
     public struct ExtraBallsAxonsData {
         public int axonID;
@@ -97,25 +117,15 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         public Vector3 colorC;
     }
 
-    int numNeurons = 16; // refBrain.neuronList.Count;
-    int numAxons = 128; // refBrain.axonList.Count;
+    int numNeurons = 8; // refBrain.neuronList.Count;
+    int numAxons = 32; // refBrain.axonList.Count;
     int maxTrisPerNeuron = 1024;
     int maxTrisPerSubNeuron = 8 * 8 * 2 * 2;
     int maxTrisPerAxon = 2048;
-    int numFloatingGlowyBits = 1024;
-    int numAxonBalls = 128 * 128;
-    int numNeuronBalls = 1024;
-
-    /*public float minAxonRadius = 0.02f;
-    public float maxAxonRadius = 0.28f;
-    public float minNeuronRadius = 0.8f;
-    public float maxNeuronRadius = 1.5f;
-    public float neuronAttractForce = 0.0001f;
-    public float neuronRepelForce = 240.0f;
-    public float axonPerpendicularityForce = 0.01f;
-    public float axonAttachStraightenForce = 0.01f;
-    public float axonAttachSpreadForce = 0.025f;
-    public float axonRepelForce = 360f;*/
+    int numFloatingGlowyBits = 16;
+    int numAxonBalls = 8 * 128;
+    int numNeuronBalls = 128;
+    
 
     // Core Sizes:
     public float minNeuronRadius = 0.05f;
@@ -129,6 +139,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     public float axonFlarePos = 0.92f;
     public float axonFlareWidth = 0.08f;
     public float axonMaxPulseMultiplier = 2.0f;
+    public float cableRadius = 0.05f;
 
     // Noise Parameters:
     public float neuronExtrudeNoiseFreq = 1.5f;
@@ -157,7 +168,8 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     // Use this for initialization
     void Start () {
         //Debug.Log(Quaternion.identity.w.ToString() + ", " + Quaternion.identity.x.ToString() + ", " + Quaternion.identity.y.ToString() + ", " + Quaternion.identity.z.ToString() + ", ");
-        argsCBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        argsCoreCBuffer = new ComputeBuffer(1, argsCore.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        argsCablesCBuffer = new ComputeBuffer(1, argsCables.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         //UpdateBuffers();
         InitializeComputeBuffers();
     }
@@ -175,6 +187,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         computeShader.SetFloat("axonFlarePos", axonFlarePos);
         computeShader.SetFloat("axonFlareWidth", axonFlareWidth);
         computeShader.SetFloat("axonMaxPulseMultiplier", axonMaxPulseMultiplier);
+        computeShader.SetFloat("cableRadius", cableRadius);
 
         // Noise Parameters:
         computeShader.SetFloat("neuronExtrudeNoiseFreq", neuronExtrudeNoiseFreq);
@@ -240,12 +253,12 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         // One-time initialization of positions::::
         NeuronSimData[] neuronSimDataArray = new NeuronSimData[numNeurons];
         for (int i = 0; i < neuronSimDataArray.Length; i++) {
-            neuronSimDataArray[i].pos = UnityEngine.Random.onUnitSphere * 12f; //refBrain.neuronList[i].pos;
+            neuronSimDataArray[i].pos = UnityEngine.Random.insideUnitSphere * 1f; //refBrain.neuronList[i].pos;
             if(tempNeuronList[i].neuronType == NeuronGenome.NeuronType.In) {
-                neuronSimDataArray[i].pos.x = -3.0f * Mathf.Abs(neuronSimDataArray[i].pos.x);
+                neuronSimDataArray[i].pos.z = -1.0f * Mathf.Abs(neuronSimDataArray[i].pos.z);
             }
             else {
-                neuronSimDataArray[i].pos.x = 3.0f * Mathf.Abs(neuronSimDataArray[i].pos.x);
+                neuronSimDataArray[i].pos.z = 1.0f * Mathf.Abs(neuronSimDataArray[i].pos.z);
             }
             
         }
@@ -270,14 +283,74 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
             axonSimDataCBuffer.Release();
         axonSimDataCBuffer = new ComputeBuffer(tempAxonList.Count, sizeof(float) * 13);
 
-        // TRIANGLE BUFFER:
+
+        
+        // SOCKET LOCATIONS DATA:::::
+        if (socketInitDataCBuffer != null)
+            socketInitDataCBuffer.Release();
+        socketInitDataCBuffer = new ComputeBuffer(numNeurons, sizeof(float) * 3);
+        // One-time initialization of positions::::
+        List<Neuron> inputNeuronsList = new List<Neuron>();
+        List<Neuron> outputNeuronsList = new List<Neuron>();
+        SocketInitData[] socketInitDataArray = new SocketInitData[numNeurons];
+        for (int i = 0; i < numNeurons; i++) {
+            if (tempNeuronList[i].neuronType == NeuronGenome.NeuronType.In) {
+                inputNeuronsList.Add(tempNeuronList[i]);
+            }
+            else {
+                outputNeuronsList.Add(tempNeuronList[i]);
+            }
+        }
+        //traverse inputNeurons and assign them positions:
+        for(int i = 0; i < inputNeuronsList.Count; i++) {
+            float x = 0.8f / (float)inputNeuronsList.Count - 0.4f;
+            socketInitDataArray[i].pos = new Vector3(x, 0f, -0.5f);
+        } // //traverse outputNeurons and assign them positions:
+        for (int i = 0; i < outputNeuronsList.Count; i++) {
+            float x = 0.8f / (float)outputNeuronsList.Count - 0.4f;
+            socketInitDataArray[i].pos = new Vector3(x, 0f, -0.5f);
+        }
+        socketInitDataCBuffer.SetData(socketInitDataArray);
+
+        // CABLE INIT DATA:::::
+        if (cableInitDataCBuffer != null)
+            cableInitDataCBuffer.Release();
+        cableInitDataCBuffer = new ComputeBuffer(numNeurons, sizeof(int) * 2);
+        // One-time initialization of positions::::
+        CableInitData[] cableInitDataArray = new CableInitData[numNeurons];
+        //traverse inputNeurons and assign them positions:
+        for (int i = 0; i < inputNeuronsList.Count; i++) {
+            cableInitDataArray[i].neuronID = i;
+            cableInitDataArray[i].socketID = i;
+        } // //traverse outputNeurons and assign them positions:
+        for (int i = 0; i < outputNeuronsList.Count; i++) {
+            cableInitDataArray[i].neuronID = inputNeuronsList.Count + i;
+            cableInitDataArray[i].socketID = inputNeuronsList.Count + i;
+        }        
+        cableInitDataCBuffer.SetData(cableInitDataArray);
+        
+        // CABLE SIM DATA:::::
+        if (cableSimDataCBuffer != null)
+            cableSimDataCBuffer.Release();
+        cableSimDataCBuffer = new ComputeBuffer(numNeurons, sizeof(float) * 12);
+
+
+
+        // TRIANGLE BUFFERZZZ:
         // SET UP GEO BUFFER and REFS:::::
-        if (appendTrianglesCBuffer != null)
-            appendTrianglesCBuffer.Release();
+        if (appendTrianglesCoreCBuffer != null)
+            appendTrianglesCoreCBuffer.Release();
         int maxTris = numNeurons * maxTrisPerNeuron + tempAxonList.Count * maxTrisPerAxon + maxTrisPerSubNeuron * tempAxonList.Count * 2;
         Debug.Log("Max Tris: " + maxTris.ToString());
-        appendTrianglesCBuffer = new ComputeBuffer(maxTris, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
-        appendTrianglesCBuffer.SetCounterValue(0);
+        appendTrianglesCoreCBuffer = new ComputeBuffer(maxTris, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
+        appendTrianglesCoreCBuffer.SetCounterValue(0);
+        ////////////////////////////////////////////////////////////  CABLES:::
+        if (appendTrianglesCablesCBuffer != null)
+            appendTrianglesCablesCBuffer.Release();
+        int maxTrisCable = numNeurons * maxTrisPerNeuron + tempAxonList.Count * maxTrisPerAxon + maxTrisPerSubNeuron * tempAxonList.Count * 2;
+        Debug.Log("Max Tris Cable: " + maxTrisCable.ToString());
+        appendTrianglesCablesCBuffer = new ComputeBuffer(maxTrisCable, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
+        appendTrianglesCablesCBuffer.SetCounterValue(0);
 
 
         //  FREE-FLOATING CAMERA-FACING QUADS:::::::::::
@@ -372,11 +445,26 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         int simNeuronRepelKernelID = shaderComputeBrain.FindKernel("CSSimNeuronRepel");
         int simAxonRepelKernelID = shaderComputeBrain.FindKernel("CSSimAxonRepel");
 
+        // CABLES Init:
+        int initCablesKernelID = shaderComputeBrain.FindKernel("CSInitializeCableSimData");
+        shaderComputeBrain.SetBuffer(initCablesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
+        shaderComputeBrain.SetBuffer(initCablesKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
+        shaderComputeBrain.SetBuffer(initCablesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
+        shaderComputeBrain.SetBuffer(initCablesKernelID, "cableSimDataCBuffer", cableSimDataCBuffer);
+        shaderComputeBrain.SetBuffer(initCablesKernelID, "socketInitDataCBuffer", cableSimDataCBuffer);
+        //CABLES  // create spline geometry for cables:
+        int generateCablesTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateCablesTriangles");
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "cableSimDataCBuffer", cableSimDataCBuffer);
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "socketInitDataCBuffer", cableSimDataCBuffer);
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "appendTrianglesCablesCBuffer", appendTrianglesCablesCBuffer);
+
         int neuronTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateNeuronTriangles");
         shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
         shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
         shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
-        shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
+        shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCoreCBuffer);
 
         int subNeuronTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateSubNeuronTriangles");
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
@@ -384,7 +472,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
-        shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
+        shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCoreCBuffer);
 
         int axonTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateAxonTriangles");
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
@@ -392,11 +480,11 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
-        shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
+        shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCoreCBuffer);
                 
-        displayMaterial.SetPass(0);
-        displayMaterial.SetBuffer("appendTrianglesBuffer", appendTrianglesCBuffer);   // link computeBuffer to both computeShader and displayShader so they share the same one!!
-
+        displayMaterialCore.SetPass(0);
+        displayMaterialCore.SetBuffer("appendTrianglesCoreCBuffer", appendTrianglesCoreCBuffer);   // link computeBuffer to both computeShader and displayShader so they share the same one!!
+        
         shaderComputeBrain.Dispatch(initKernelID, numAxons, 1, 1); // initialize axon positions and attributes
         shaderComputeBrain.Dispatch(simNeuronAttractKernelID, numAxons, 1, 1); // Simulate!! move neuron and axons around
         shaderComputeBrain.Dispatch(simNeuronRepelKernelID, numNeurons, numNeurons, 1); // Simulate!! move neuron and axons around
@@ -404,6 +492,12 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.Dispatch(neuronTrianglesKernelID, numNeurons, 1, 1); // create all triangles from Neurons
         shaderComputeBrain.Dispatch(subNeuronTrianglesKernelID, tempAxonList.Count * 2, 1, 1); // create all triangles for SubNeurons
         shaderComputeBrain.Dispatch(axonTrianglesKernelID, numAxons, 1, 1); // create all geometry for Axons
+        // CABLES:::
+        //displayMaterialCables.SetPass(0);
+        //displayMaterialCables.SetBuffer("appendTrianglesCablesCBuffer", appendTrianglesCablesCBuffer);
+        //shaderComputeBrain.Dispatch(initCablesKernelID, numNeurons, 1, 1); // initialize axon positions and attributes
+        //shaderComputeBrain.Dispatch(generateCablesTrianglesKernelID, numNeurons, 1, 1); // create all geometry for Axons
+
 
         SetCoreBrainDataSharedParameters(shaderComputeExtraBalls);
 
@@ -433,12 +527,19 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeExtraBalls.Dispatch(positionNeuronBallsKernelID, numNeuronBalls, 1, 1); // initialize axon positions and attributes
 
 
-        args[0] = 0; // set later by counter;// 3;  // 3 vertices to start
-        args[1] = 1;  // 1 instance/copy
-        argsCBuffer.SetData(args);
-        ComputeBuffer.CopyCount(appendTrianglesCBuffer, argsCBuffer, 0);
-        argsCBuffer.GetData(args);
-        Debug.Log("triangle count " + args[0]);
+        argsCore[0] = 0; // set later by counter;// 3;  // 3 vertices to start
+        argsCore[1] = 1;  // 1 instance/copy
+        argsCoreCBuffer.SetData(argsCore);
+        ComputeBuffer.CopyCount(appendTrianglesCoreCBuffer, argsCoreCBuffer, 0);
+        argsCoreCBuffer.GetData(argsCore);
+        Debug.Log("triangle count core: " + argsCore[0]);
+
+        argsCables[0] = 0; // set later by counter;// 3;  // 3 vertices to start
+        argsCables[1] = 1;  // 1 instance/copy
+        argsCablesCBuffer.SetData(argsCables);
+        ComputeBuffer.CopyCount(appendTrianglesCablesCBuffer, argsCablesCBuffer, 0);
+        argsCablesCBuffer.GetData(argsCables);
+        Debug.Log("triangle count cables: " + argsCables[0]);
     }
 
     private void UpdateBrainDataAndBuffers() {
@@ -485,7 +586,33 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(simAxonRepelKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
         shaderComputeBrain.Dispatch(simAxonRepelKernelID, numAxons, numAxons, 1); // Simulate!! move neuron and axons around
 
-        // Extra BALLS!
+        // Add Cables Movement Here
+        //))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+        // ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+
+
+        // Extra BALLS!  // Do I need to re-initialize here?
+        int initAxonBallsKernelID = shaderComputeExtraBalls.FindKernel("CSInitializeAxonBallData");
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "axonBallCBuffer", axonBallCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "neuronBallCBuffer", neuronBallCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initAxonBallsKernelID, "extraBallsCBuffer", extraBallsCBuffer);
+        shaderComputeExtraBalls.Dispatch(initAxonBallsKernelID, numAxonBalls, 1, 1); // initialize axon positions and attributes
+        int initNeuronBallsKernelID = shaderComputeExtraBalls.FindKernel("CSInitializeNeuronBallData");
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "axonBallCBuffer", axonBallCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "neuronBallCBuffer", neuronBallCBuffer);
+        shaderComputeExtraBalls.SetBuffer(initNeuronBallsKernelID, "extraBallsCBuffer", extraBallsCBuffer);
+        shaderComputeExtraBalls.Dispatch(initNeuronBallsKernelID, numNeuronBalls, 1, 1); // initialize axon positions and attributes
+
         int positionAxonBallsKernelID = shaderComputeExtraBalls.FindKernel("CSUpdateAxonBallPositions");
         shaderComputeExtraBalls.SetBuffer(positionAxonBallsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
         shaderComputeExtraBalls.SetBuffer(positionAxonBallsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
@@ -513,14 +640,21 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
 
         // Re-Generate TRIANGLES!
         // SET UP GEO BUFFER and REFS:::::
-        if (appendTrianglesCBuffer != null)
-            appendTrianglesCBuffer.Release();
+        if (appendTrianglesCoreCBuffer != null)
+            appendTrianglesCoreCBuffer.Release();
         //Debug.Log("Max Tris: " + (numNeurons * maxTrisPerNeuron + numAxons * maxTrisPerAxon).ToString());
         //appendTrianglesCBuffer = new ComputeBuffer(numNeurons * maxTrisPerNeuron + numAxons * maxTrisPerAxon, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
         int maxTris = numNeurons * maxTrisPerNeuron + tempAxonList.Count * maxTrisPerAxon + maxTrisPerSubNeuron * tempAxonList.Count * 2;
         //Debug.Log("Max Tris: " + maxTris.ToString());
-        appendTrianglesCBuffer = new ComputeBuffer(maxTris, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
-        appendTrianglesCBuffer.SetCounterValue(0);
+        appendTrianglesCoreCBuffer = new ComputeBuffer(maxTris, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
+        appendTrianglesCoreCBuffer.SetCounterValue(0);
+        /////$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        if (appendTrianglesCablesCBuffer != null)
+            appendTrianglesCablesCBuffer.Release();
+        int maxTrisCable = numNeurons * maxTrisPerNeuron + tempAxonList.Count * maxTrisPerAxon + maxTrisPerSubNeuron * tempAxonList.Count * 2;
+        Debug.Log("Max Tris Cable: " + maxTrisCable.ToString());
+        appendTrianglesCablesCBuffer = new ComputeBuffer(maxTrisCable, sizeof(float) * 45, ComputeBufferType.Append); // vector3 position * 3 verts
+        appendTrianglesCablesCBuffer.SetCounterValue(0);
 
         int neuronTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateNeuronTriangles");
         shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
@@ -528,7 +662,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
         //shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
         //shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
-        shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
+        shaderComputeBrain.SetBuffer(neuronTrianglesKernelID, "appendTrianglesCoreCBuffer", appendTrianglesCoreCBuffer);
 
         int subNeuronTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateSubNeuronTriangles");
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
@@ -536,7 +670,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
         shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
-        shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
+        shaderComputeBrain.SetBuffer(subNeuronTrianglesKernelID, "appendTrianglesCoreCBuffer", appendTrianglesCoreCBuffer);
 
         int axonTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateAxonTriangles");
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
@@ -544,23 +678,40 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "axonInitDataCBuffer", axonInitDataCBuffer);
         shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "axonSimDataCBuffer", axonSimDataCBuffer);
-        shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "appendTrianglesCBuffer", appendTrianglesCBuffer);
+        shaderComputeBrain.SetBuffer(axonTrianglesKernelID, "appendTrianglesCoreCBuffer", appendTrianglesCoreCBuffer);
         
-        displayMaterial.SetPass(0);
-        displayMaterial.SetBuffer("appendTrianglesBuffer", appendTrianglesCBuffer);
+        displayMaterialCore.SetPass(0);
+        displayMaterialCore.SetBuffer("appendTrianglesCoreCBuffer", appendTrianglesCoreCBuffer);
         
         shaderComputeBrain.Dispatch(neuronTrianglesKernelID, tempNeuronList.Count, 1, 1); // create all triangles from Neurons
         shaderComputeBrain.Dispatch(subNeuronTrianglesKernelID, tempAxonList.Count * 2, 1, 1); // create all triangles for SubNeurons
         shaderComputeBrain.Dispatch(axonTrianglesKernelID, tempAxonList.Count, 1, 1); // create all geometry for Axons
-        
 
-        args[0] = 0; // set later by counter;// 3;  // 3 vertices to start
-        args[1] = 1;  // 1 instance/copy
-        argsCBuffer.SetData(args);
-        ComputeBuffer.CopyCount(appendTrianglesCBuffer, argsCBuffer, 0);
-        argsCBuffer.GetData(args);
+        //CABLES  // create spline geometry for cables:
+        int generateCablesTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateCablesTriangles");
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "cableSimDataCBuffer", cableSimDataCBuffer);
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "appendTrianglesCablesCBuffer", appendTrianglesCablesCBuffer);
+        // CABLES:::
+        //displayMaterialCables.SetPass(0);
+        //displayMaterialCables.SetBuffer("appendTrianglesCablesCBuffer", appendTrianglesCablesCBuffer);
+        //shaderComputeBrain.Dispatch(generateCablesTrianglesKernelID, numNeurons, 1, 1); // create all geometry for Axons
+
+
+        argsCore[0] = 0; // set later by counter;// 3;  // 3 vertices to start
+        argsCore[1] = 1;  // 1 instance/copy
+        argsCoreCBuffer.SetData(argsCore);
+        ComputeBuffer.CopyCount(appendTrianglesCoreCBuffer, argsCoreCBuffer, 0);
+        argsCoreCBuffer.GetData(argsCore);
         //Debug.Log("triangle count " + args[0]);
-        
+        argsCables[0] = 0; // set later by counter;// 3;  // 3 vertices to start
+        argsCables[1] = 1;  // 1 instance/copy
+        argsCablesCBuffer.SetData(argsCables);
+        ComputeBuffer.CopyCount(appendTrianglesCablesCBuffer, argsCablesCBuffer, 0);
+        argsCablesCBuffer.GetData(argsCables);
+        //Debug.Log("triangle count cables: " + argsCables[0]);
+
     }
 
     private void CreateDummyBrain() {
@@ -597,8 +748,8 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
 
     private void OnRenderObject() {
         
-        displayMaterial.SetPass(0);
-        Graphics.DrawProceduralIndirect(MeshTopology.Points, argsCBuffer, 0);  // not sure why at this used to work with Triangles but now requires Points....
+        displayMaterialCore.SetPass(0);
+        Graphics.DrawProceduralIndirect(MeshTopology.Points, argsCoreCBuffer, 0);  // not sure why at this used to work with Triangles but now requires Points....
         //Graphics.DrawProceduralIndirect(MeshTopology.Triangles, argsCBuffer, 0);
 
         floatingGlowyBitsMaterial.SetPass(0);
@@ -626,10 +777,10 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
             axonInitDataCBuffer.Release();
         if (axonSimDataCBuffer != null)
             axonSimDataCBuffer.Release();
-        if (argsCBuffer != null)
-            argsCBuffer.Release();
-        if (appendTrianglesCBuffer != null)
-            appendTrianglesCBuffer.Release();
+        if (argsCoreCBuffer != null)
+            argsCoreCBuffer.Release();
+        if (appendTrianglesCoreCBuffer != null)
+            appendTrianglesCoreCBuffer.Release();
         if (floatingGlowyBitsCBuffer != null)
             floatingGlowyBitsCBuffer.Release();
         if (quadVerticesCBuffer != null)

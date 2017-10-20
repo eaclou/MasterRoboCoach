@@ -1,4 +1,4 @@
-﻿Shader "Unlit/TestDisplayShaderBrainVisualizationA"
+﻿Shader "Unlit/TestDisplayShaderBrainVisualizationCables"
 {
 	Properties
 	{
@@ -54,7 +54,7 @@
 			};
 
 			#if SHADER_TARGET >= 45
-            StructuredBuffer<Triangle> appendTrianglesCoreCBuffer;
+            StructuredBuffer<Triangle> appendTrianglesCablesCBuffer;
 			#endif
 
 			struct appdata
@@ -112,7 +112,7 @@
 				pIn.id = p[0].id;
 
 				#if SHADER_TARGET >= 45
-					Triangle triData = appendTrianglesCoreCBuffer[p[0].id];				
+					Triangle triData = appendTrianglesCablesCBuffer[p[0].id];				
 				#endif
 
 				float3 fakeLightDir = float3(0.45,1,-0.1);

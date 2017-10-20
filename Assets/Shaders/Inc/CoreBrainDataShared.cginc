@@ -23,6 +23,19 @@ struct AxonSimData {
     float3 p3;
     float pulsePos;
 };
+struct CableInitData {
+    int socketID;
+    int neuronID;
+};
+struct CableSimData {
+    float3 p0;
+    float3 p1;
+    float3 p2;
+    float3 p3;
+};
+struct SocketInitData {
+    float3 pos;
+};
 
 struct CurveSample {
 	float3 origin;
@@ -37,6 +50,9 @@ StructuredBuffer<NeuronFeedData> neuronFeedDataCBuffer;
 RWStructuredBuffer<NeuronSimData> neuronSimDataCBuffer;
 StructuredBuffer<AxonInitData> axonInitDataCBuffer;
 RWStructuredBuffer<AxonSimData> axonSimDataCBuffer;
+StructuredBuffer<SocketInitData> socketInitDataCBuffer;
+StructuredBuffer<CableInitData> cableInitDataCBuffer;
+RWStructuredBuffer<CableSimData> cableSimDataCBuffer;
 
 // Core Sizes:
 float minNeuronRadius = 0.05;
@@ -50,6 +66,7 @@ float maxAxonFlareScale = 0.9;  // max axon flare size relative to SubNeuron
 float axonFlarePos = 0.92;
 float axonFlareWidth = 0.08;
 float axonMaxPulseMultiplier = 2.0;
+float cableRadius = 0.05;
 
 // Noise Parameters:
 float neuronExtrudeNoiseFreq = 1.5;
@@ -154,6 +171,35 @@ CurveSample GetAxonSample(int axonID, float t, float angle) {
 	float spiralUp = sin(t * axonPosSpiralFreq) * axonPosSpiralAmp;
 	ringOrigin += (right * spiralRight + up * spiralUp) * (1.0 - distToSideScreenEdge); // noise masked at ends;
 
+	float x = cos((angle) * 2.0 * 3.14159);
+	float y = sin((angle) * 2.0 * 3.14159);
+		
+	curveSample.normal = right * x + up * y;
+	curveSample.origin = ringOrigin;
+	curveSample.right = right;
+	curveSample.up = up;
+	curveSample.forward = forward;
+	
+	return curveSample;
+}
+
+float GetCableRadius(int ID, float t, float angle) {
+	
+	float radius = cableRadius;
+	return radius;
+	
+}
+
+CurveSample GetCableCurveSample(int ID, float t, float angle) {
+
+	CurveSample curveSample;
+
+	float3 ringOrigin = GetPoint(cableSimDataCBuffer[ID].p0, cableSimDataCBuffer[ID].p1, cableSimDataCBuffer[ID].p2, cableSimDataCBuffer[ID].p3, t);	
+
+	float3 forward = normalize(GetFirstDerivative(cableSimDataCBuffer[ID].p0, cableSimDataCBuffer[ID].p1, cableSimDataCBuffer[ID].p2, cableSimDataCBuffer[ID].p3, t));
+	float3 right = normalize(cross(forward, float3(0.0, 1.0, 0.0)));
+	float3 up = normalize(cross(right, forward));
+	
 	float x = cos((angle) * 2.0 * 3.14159);
 	float y = sin((angle) * 2.0 * 3.14159);
 		

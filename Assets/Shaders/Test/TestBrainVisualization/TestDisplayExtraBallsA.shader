@@ -10,15 +10,15 @@
 	{
 		//Tags { "RenderType"="Opaque" }
 		//LOD 100
-		Tags{ "RenderType" = "Transparant" }
+		//Tags{ "RenderType" = "Transparant" }
 		//ZTest Off
 		//ZWrite Off
 		//Cull Off
-		Blend SrcAlpha One
+		//Blend SrcAlpha One
 		//Blend SrcAlpha OneMinusSrcAlpha
 
-		//Tags { "Queue"="AlphaTest" "RenderType"="TransparentCutout" "IgnoreProjector"="True" }
-		//AlphaToMask On
+		Tags { "Queue"="AlphaTest" "RenderType"="TransparentCutout" "IgnoreProjector"="True" }
+		AlphaToMask On
 
 		Pass
 		{
@@ -27,6 +27,8 @@
 			#pragma fragment frag
 			#pragma target 5.0
 			#include "UnityCG.cginc"
+			// make fog work
+			#pragma multi_compile_fog
 
 			struct BallData {
 				float3 worldPos;
@@ -50,6 +52,7 @@
 				float4 worldLocalVertexPos : TEXCOORD2;
 				float2 uv : TEXCOORD0;  // uv of the brushstroke quad itself, particle texture	
 				float3 colorData : TEXCOORD3;
+				UNITY_FOG_COORDS(4)
 			};
 
 			float rand(float2 co){   // OUTPUT is in [0,1] RANGE!!!
@@ -91,6 +94,8 @@
 				
 				o.uv = quadVerticesCBuffer[id] + 0.5f;
 				o.colorData = float3(data.value, data.inOut, 1.0);   // (value, in/out color, __)
+
+				UNITY_TRANSFER_FOG(o,o.renderPos);
 				
 				return o;
 			}
@@ -104,6 +109,11 @@
 				float3 normalXYZ = normalize(float3(sin(i.uv.x * 2.0 - 1.0), sin(i.uv.y * 2.0 - 1.0), cos(radius * 0.5 * 3.141592))); 				
 				float cutoff = 1.0 - floor(radius);  // assumes default quad UVs...
 				float alpha = saturate(cutoff);
+
+				//float4 testCol = float4(1,1,1,alpha) * _Tint;
+				//UNITY_APPLY_FOG(i.fogCoord, testCol);
+				//return testCol;
+				//return float4(1,1,1,alpha);
 
 				float normalZ = 1.0; // cos(radius * 0.5 * 3.141592);
 				//normalXY *= sin(radius);
@@ -124,10 +134,11 @@
 				float3 baseColorOut = float3(0.5, 0.5, 0.3);
 				float3 baseColor = lerp(baseColorIn, baseColorOut, i.colorData.y);
 				
-				float3 colValue = float3(angleDot, angleDot, angleDot) * angleDot * _Tint.rgb * baseColor * i.colorData.x * 4 + 0.0;
+				float3 colValue = float3(angleDot, angleDot, angleDot) * _Tint.rgb * baseColor * i.colorData.x * 4 + 0.0;
 								
 				//clip(alpha - alphaCutoffValue);
-				return float4(colValue, alpha * _Tint.a);
+				float4 finalCol = lerp(float4(1,1,1,alpha * _Tint.a), float4(colValue, alpha * _Tint.a), 0.5);
+				return finalCol;
 				//return float4(colValue * (worldNormal.x * 0.5 + 0.5), colValue * (worldNormal.y * 0.5 + 0.5), colValue * (worldNormal.z * 0.5 + 0.5), alpha);
 				
 				//float4 finalColor = float4(colValue, colValue, colValue, 1.0) * _Tint;
