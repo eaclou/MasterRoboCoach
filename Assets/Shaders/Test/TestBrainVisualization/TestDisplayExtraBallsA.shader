@@ -114,7 +114,7 @@
 				float3 viewDir = normalize(mul(UNITY_MATRIX_VP, worldViewDir));
 
 				float3 fakeLightDir = float3(0, 1.0, 0);
-				float angleDot = dot(float3(0,0,1), worldNormal);
+				float angleDot = saturate(dot(float3(0,0,1), worldNormal) + 0.25);
 				float lightDot = saturate(dot(fakeLightDir, normalize(worldNormal)));
 				
 				float3 colValue = float3(angleDot, angleDot, angleDot) * _Tint.rgb;

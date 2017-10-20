@@ -38,14 +38,38 @@ RWStructuredBuffer<NeuronSimData> neuronSimDataCBuffer;
 StructuredBuffer<AxonInitData> axonInitDataCBuffer;
 RWStructuredBuffer<AxonSimData> axonSimDataCBuffer;
 
-float minAxonRadius = 0.05;
-float maxAxonRadius = 0.5;
+// Core Sizes:
 float minNeuronRadius = 0.05;
 float maxNeuronRadius = 0.5;
+float minAxonRadius = 0.05;
+float maxAxonRadius = 0.5;
+float minSubNeuronScale = 0.25;
+float maxSubNeuronScale = 0.75;  // max size relative to parent Neuron
+float minAxonFlareScale = 0.2;
+float maxAxonFlareScale = 0.9;  // max axon flare size relative to SubNeuron
+float axonFlarePos = 0.92;
+float axonFlareWidth = 0.08;
+float axonMaxPulseMultiplier = 2.0;
 
+// Noise Parameters:
+float neuronExtrudeNoiseFreq = 1.5;
+float neuronExtrudeNoiseAmp = 0.0;
+float neuronExtrudeNoiseScrollSpeed = 0.6;
+float axonExtrudeNoiseFreq = 0.33;
+float axonExtrudeNoiseAmp = 0.33;
+float axonExtrudeNoiseScrollSpeed = 1.0;
+float axonPosNoiseFreq = 0.14;
+float axonPosNoiseAmp = 0;
+float axonPosNoiseScrollSpeed = 10;
+float axonPosSpiralFreq = 20.0;
+float axonPosSpiralAmp = 0;
+
+// Forces:
 float neuronAttractForce = 0.004;
-float axonStraightenForce = .02;
 float neuronRepelForce = 2.0;
+float axonPerpendicularityForce = 0.01;
+float axonAttachStraightenForce = 0.01;
+float axonAttachSpreadForce = 0.025;
 float axonRepelForce = 0.2;
 
 float time = 0.0;
@@ -65,56 +89,48 @@ float3 GetFirstDerivative (float3 p0, float3 p1, float3 p2, float3 p3, float t) 
 
 float GetNeuronRadius(int neuronID, float3 dir) {
 
-	//float radius = min(max(neuronInitDataCBuffer[neuronID].radius * abs(neuronFeedDataCBuffer[neuronID].curValue), minNeuronRadius), maxNeuronRadius) * 3;
-
 	float interp = smoothstep(0, 1, abs(neuronFeedDataCBuffer[neuronID].curValue));
 	float radius = lerp(minNeuronRadius, maxNeuronRadius, interp);
-	//float3 origin = neuronSimDataCBuffer[neuronID].pos;
+	
+	float3 extrudeNoiseOffset = float3(0.14, 0.73, 0.52) * time * neuronExtrudeNoiseScrollSpeed;
 
-	float extrudeNoiseFreq = 1.5;
-	float extrudeNoiseAmp = 0.0;
-	float3 extrudeNoiseOffset = float3(0.14, 0.73, 0.52) * time * 0.6;
-
-	float noiseExtrude = (Value3D(dir + neuronID + extrudeNoiseOffset, extrudeNoiseFreq).x + 0.25) * radius;  // add neuronID so noise varies from neuron to neuron
-	radius += noiseExtrude * extrudeNoiseAmp;
+	float noiseExtrude = (Value3D(dir + neuronID + extrudeNoiseOffset, neuronExtrudeNoiseFreq).x + 0.25) * radius;  // add neuronID so noise varies from neuron to neuron
+	radius += noiseExtrude * neuronExtrudeNoiseAmp;
 
 	return radius;
 }
 
 float GetAxonRadius(int axonID, float t, float angle) {
 	
-	//// Clean up this function to return radius at uv coordinate / sample position
-	//// Convert old BrainCompute code to utilize these two functions
-	//// debug
-
-
 	float weight = axonInitDataCBuffer[axonID].weight;
 	float baseRadius = abs(weight) * (maxAxonRadius - minAxonRadius) + minAxonRadius;
 
-	////////////////////////////////////////////////////////////////////////////
-	float extrudeNoiseFreq = 0.33;
+	float3 extrudeNoiseOffset = float3(0.14, 0.73, 0.52) * time * axonExtrudeNoiseScrollSpeed;
+	float noiseExtrude = (Value3D(float3(axonID, t, angle) + extrudeNoiseOffset, axonExtrudeNoiseFreq).x + 0.25) * baseRadius;
 
-	float noiseExtrude = (Value3D(float3(axonID, t, angle), extrudeNoiseFreq).x + 0.5) * baseRadius;
-	baseRadius += noiseExtrude * 1.5;
-	////////////////////////////////////////////////////////////////////////////
-
-	//float neuron0 = abs(neuronFeedDataCBuffer[axonInitDataCBuffer[axonID].fromID].curValue) * neuronInitDataCBuffer[axonInitDataCBuffer[axonID].fromID].radius;
-	//float neuron1 = abs(neuronFeedDataCBuffer[axonInitDataCBuffer[axonID].toID].curValue) * neuronInitDataCBuffer[axonInitDataCBuffer[axonID].toID].radius;
+	baseRadius += clamp(noiseExtrude * axonExtrudeNoiseAmp, 0, 10);
 
 	float neuronRadius0 = GetNeuronRadius(axonInitDataCBuffer[axonID].fromID, float3(0,1,0));
 	float neuronRadius1 = GetNeuronRadius(axonInitDataCBuffer[axonID].toID, float3(0,1,0));
-
 	float closestNeuronRadius = lerp(neuronRadius0, neuronRadius1, round(t));
 
-	float distToSideScreenEdge = (0.5 - min((1.0 - t), t));           // 0.5 at edge, 0.0 at middle of spline
-	float flareMask = saturate(distToSideScreenEdge - 0.4) * 10 * 1;      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
-
+	float distToSideScreenEdge = (0.5 - min((1.0 - t), t)) * 2.0;           // 1 at edge, 0.0 at middle of spline
+	//float flareLength = 0.1;
+	//float flareMask = saturate(distToSideScreenEdge - (1.0 - flareLength)) * (1.0 / flareLength);      // 0.0 --> 0.1 * 10 == 0->1,   1 at edge
+	
+	float distToInflectionPoint = abs(distToSideScreenEdge - axonFlarePos);
+	float flareMask = smoothstep((axonFlarePos - axonFlareWidth), (axonFlarePos + axonFlareWidth), distToSideScreenEdge);
+	
 	float pulseDistance = abs(t - axonSimDataCBuffer[axonID].pulsePos);
-	float pulseMultiplier = ((1.0 - smoothstep(0, 0.2, pulseDistance)) + 1.0) * 1.0;
+	float pulseMultiplier = 1.0 - smoothstep(0, 0.2, pulseDistance);  // 0->1
+	pulseMultiplier = pulseMultiplier * axonMaxPulseMultiplier + 1.0;  // [1,1+axonMaxPulseMultiplier]
 
 	baseRadius *= pulseMultiplier;
 
-	baseRadius = lerp(baseRadius, closestNeuronRadius * 0.5, flareMask);
+	float edgeRadius = lerp(max(minAxonRadius, closestNeuronRadius * (maxSubNeuronScale * minAxonFlareScale)), closestNeuronRadius * (maxSubNeuronScale * maxAxonFlareScale), abs(axonInitDataCBuffer[axonID].weight));
+	edgeRadius += clamp(noiseExtrude * axonExtrudeNoiseAmp, 0, 10);
+	
+	baseRadius = lerp(baseRadius, edgeRadius, flareMask);
 	
 	return baseRadius;
 }
@@ -123,25 +139,20 @@ CurveSample GetAxonSample(int axonID, float t, float angle) {
 
 	CurveSample curveSample;
 
-	float noiseFreq = 0.14;
-	float noiseAmp = 1.5;
-	float3 noiseOffset = float3(0.5, 0.25, 0.9) * time * 10.0;
-
-	float distToSideScreenEdge = (0.5 - min((1.0 - t), t)) + 0.1;           // 0.5 at edge, 0.0 at middle of spline
-
 	float3 ringOrigin = GetPoint(axonSimDataCBuffer[axonID].p0, axonSimDataCBuffer[axonID].p1, axonSimDataCBuffer[axonID].p2, axonSimDataCBuffer[axonID].p3, t);
-	ringOrigin += Value3D(ringOrigin + noiseOffset, noiseFreq).yzw * noiseAmp * (1.0 - distToSideScreenEdge * 2.0);
+
+	float3 noiseOffset = float3(0.5, 0.25, 0.9) * time * axonPosNoiseScrollSpeed;
+	float distToSideScreenEdge = (0.5 - min((1.0 - t), t)) * 2.0;           // 0.5 at edge, 0.0 at middle of spline
+	ringOrigin += Value3D(ringOrigin + noiseOffset, axonPosNoiseFreq).yzw * axonPosNoiseAmp * (1.0 - distToSideScreenEdge); // noise masked at ends
 
 	float3 forward = normalize(GetFirstDerivative(axonSimDataCBuffer[axonID].p0, axonSimDataCBuffer[axonID].p1, axonSimDataCBuffer[axonID].p2, axonSimDataCBuffer[axonID].p3, t));
 	float3 right = normalize(cross(forward, float3(0.0, 1.0, 0.0)));
 	float3 up = normalize(cross(right, forward));
 
 	// Spiral Offset!!!:::::
-	float spiralFreq = 20.0;
-	float spiralAmp = 1;
-	float spiralRight = cos(t * spiralFreq) * spiralAmp;
-	float spiralUp = sin(t * spiralFreq) * spiralAmp;
-	ringOrigin += right * spiralRight + up * spiralUp;
+	float spiralRight = cos(t * axonPosSpiralFreq) * axonPosSpiralAmp;
+	float spiralUp = sin(t * axonPosSpiralFreq) * axonPosSpiralAmp;
+	ringOrigin += (right * spiralRight + up * spiralUp) * (1.0 - distToSideScreenEdge); // noise masked at ends;
 
 	float x = cos((angle) * 2.0 * 3.14159);
 	float y = sin((angle) * 2.0 * 3.14159);

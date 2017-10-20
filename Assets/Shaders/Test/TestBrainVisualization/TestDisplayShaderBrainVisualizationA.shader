@@ -210,7 +210,7 @@
 
 				float3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
 				float3 fakeLightDir = float3(0, 1.0, 0);
-				float angleDot = saturate(dot(viewDir, normalize(worldNormal)));
+				float angleDot = saturate(dot(viewDir, normalize(worldNormal)) + 0.25);
 				float lightDot = saturate(dot(fakeLightDir, normalize(worldNormal)));		
 				//float3 c = reflect(-viewDir, normalize(worldNormal)); //triData.colorB;
 				// sample the default reflection cubemap, using the reflection vector
