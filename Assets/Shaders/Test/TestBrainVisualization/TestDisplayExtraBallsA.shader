@@ -10,15 +10,15 @@
 	{
 		//Tags { "RenderType"="Opaque" }
 		//LOD 100
-		//Tags{ "RenderType" = "Transparant" }
+		Tags{ "RenderType" = "Transparant" }
 		//ZTest Off
 		//ZWrite Off
 		//Cull Off
-		//Blend SrcAlpha One
+		Blend SrcAlpha One
 		//Blend SrcAlpha OneMinusSrcAlpha
 
-		Tags { "Queue"="AlphaTest" "RenderType"="TransparentCutout" "IgnoreProjector"="True" }
-		AlphaToMask On
+		//Tags { "Queue"="AlphaTest" "RenderType"="TransparentCutout" "IgnoreProjector"="True" }
+		//AlphaToMask On
 
 		Pass
 		{
@@ -31,6 +31,7 @@
 			struct BallData {
 				float3 worldPos;
 				float value;
+				float inOut;  // 0 = inColor, 1 = outColor;
 				float scale;
 			};
 
@@ -48,6 +49,7 @@
 				float4 worldPivotPos : TEXCOORD1;
 				float4 worldLocalVertexPos : TEXCOORD2;
 				float2 uv : TEXCOORD0;  // uv of the brushstroke quad itself, particle texture	
+				float3 colorData : TEXCOORD3;
 			};
 
 			float rand(float2 co){   // OUTPUT is in [0,1] RANGE!!!
@@ -88,6 +90,7 @@
 				o.renderPos = mul(UNITY_MATRIX_P, mul(UNITY_MATRIX_V, float4(worldPosition, 1.0f)) + float4(rotatedPoint, 0.0f));
 				
 				o.uv = quadVerticesCBuffer[id] + 0.5f;
+				o.colorData = float3(data.value, data.inOut, 1.0);   // (value, in/out color, __)
 				
 				return o;
 			}
@@ -116,11 +119,15 @@
 				float3 fakeLightDir = float3(0, 1.0, 0);
 				float angleDot = saturate(dot(float3(0,0,1), worldNormal) + 0.25);
 				float lightDot = saturate(dot(fakeLightDir, normalize(worldNormal)));
+
+				float3 baseColorIn = float3(0.3, 0.4, 0.5);
+				float3 baseColorOut = float3(0.5, 0.5, 0.3);
+				float3 baseColor = lerp(baseColorIn, baseColorOut, i.colorData.y);
 				
-				float3 colValue = float3(angleDot, angleDot, angleDot) * _Tint.rgb;
+				float3 colValue = float3(angleDot, angleDot, angleDot) * angleDot * _Tint.rgb * baseColor * i.colorData.x * 4 + 0.0;
 								
 				//clip(alpha - alphaCutoffValue);
-				return float4(colValue, alpha);
+				return float4(colValue, alpha * _Tint.a);
 				//return float4(colValue * (worldNormal.x * 0.5 + 0.5), colValue * (worldNormal.y * 0.5 + 0.5), colValue * (worldNormal.z * 0.5 + 0.5), alpha);
 				
 				//float4 finalColor = float4(colValue, colValue, colValue, 1.0) * _Tint;

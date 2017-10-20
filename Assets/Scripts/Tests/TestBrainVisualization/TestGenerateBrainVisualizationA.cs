@@ -73,6 +73,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
     public struct BallData {
         public Vector3 worldPos;        
         public float value;
+        public float inOut;
         public float scale;
         // per-particle size / rotation etc.???
     }
@@ -96,14 +97,14 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         public Vector3 colorC;
     }
 
-    int numNeurons = 32; // refBrain.neuronList.Count;
+    int numNeurons = 16; // refBrain.neuronList.Count;
     int numAxons = 128; // refBrain.axonList.Count;
     int maxTrisPerNeuron = 1024;
     int maxTrisPerSubNeuron = 8 * 8 * 2 * 2;
     int maxTrisPerAxon = 2048;
     int numFloatingGlowyBits = 1024;
-    int numAxonBalls = 2048;
-    int numNeuronBalls = 2048;
+    int numAxonBalls = 128 * 128;
+    int numNeuronBalls = 1024;
 
     /*public float minAxonRadius = 0.02f;
     public float maxAxonRadius = 0.28f;
@@ -309,7 +310,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         
         if (extraBallsCBuffer != null)
             extraBallsCBuffer.Release();
-        extraBallsCBuffer = new ComputeBuffer(numAxonBalls + numNeuronBalls, sizeof(float) * 5);
+        extraBallsCBuffer = new ComputeBuffer(numAxonBalls + numNeuronBalls, sizeof(float) * 6);
         extraBallsMaterial.SetPass(0);
         extraBallsMaterial.SetBuffer("quadVerticesCBuffer", quadVerticesCBuffer);
         extraBallsMaterial.SetBuffer("extraBallsCBuffer", extraBallsCBuffer);

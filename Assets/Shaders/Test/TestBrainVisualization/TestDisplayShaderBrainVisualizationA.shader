@@ -192,8 +192,8 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				//return float4(0,0,0,1);
-				float normalStrength = 0.7;
+				//return float4(i.col, 1);
+				float normalStrength = 5;
 				half3 tnormal = lerp(float4(normalize(float3(0.0, 0.0, 1.0)), 1.0), UnpackNormal(tex2D(_BumpMap, i.uv)), normalStrength);
 
 				float4 texColor = tex2D(_MainTex, i.uv);
@@ -210,7 +210,7 @@
 
 				float3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
 				float3 fakeLightDir = float3(0, 1.0, 0);
-				float angleDot = saturate(dot(viewDir, normalize(worldNormal)) + 0.25);
+				float angleDot = saturate(dot(viewDir, normalize(worldNormal)) + 0);
 				float lightDot = saturate(dot(fakeLightDir, normalize(worldNormal)));		
 				//float3 c = reflect(-viewDir, normalize(worldNormal)); //triData.colorB;
 				// sample the default reflection cubemap, using the reflection vector
@@ -223,9 +223,11 @@
 				// sample the texture
 				//i.angleDot = saturate(i.angleDot);
 				//i.angleDot = i.angleDot * 1;
-				
-				fixed4 col = float4(0.6, .95, .7,1); //tex2D(_MainTex, i.uv);
-				col = lerp(float4(lightDot,lightDot,lightDot,1), col * angleDot, 1);
+
+				float3 textureMaskColor = lerp(0, 1.0 - texColor, pow(1.0 - angleDot, 1.0/1.0));
+				fixed4 col = fixed4(i.col - textureMaskColor * 2.0 + lightDot * 0.2 + 0.4, 1.0); //lerp(fixed4(i.col, 1.0), fixed4(textureMaskColor, 1), 1);
+				//fixed4 col = fixed4(i.col.r * textureMaskColor, i.col.g * textureMaskColor, i.col.b * textureMaskColor, 1.0) + lightDot * 0.25 + 0.1; //float4(0.6, .95, .7,1); //tex2D(_MainTex, i.uv);
+				col = lerp(float4(textureMaskColor,1), col, 1);
 				// apply fog
 				//UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;
