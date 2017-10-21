@@ -1,8 +1,8 @@
 ﻿
 RWStructuredBuffer<float3> floatingGlowyBitsCBuffer;
 
-float minRadius = 0.05;
-float maxRadius = 12;
+float minRadius = 0.0;
+float maxRadius = 0.8;
 float time = 0.0;
 
 // Each #kernel tells which function to compile; you can have many kernels

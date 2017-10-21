@@ -88,6 +88,7 @@ float axonPerpendicularityForce = 0.01;
 float axonAttachStraightenForce = 0.01;
 float axonAttachSpreadForce = 0.025;
 float axonRepelForce = 0.2;
+float cableAttractForce = 0.01;
 
 float time = 0.0;
 
