@@ -185,8 +185,28 @@ CurveSample GetAxonSample(int axonID, float t, float angle) {
 }
 
 float GetCableRadius(int ID, float t, float angle) {
-	
 	float radius = cableRadius;
+	float edgeRadius = cableRadius * 4;
+
+	float flarePos = 0.9;
+	float flareWidth = 0.03;
+	float distToSideScreenEdge = (0.5 - min((1.0 - t), t)) * 2.0;           // 1 at edge, 0.0 at middle of spline	
+	float distToInflectionPoint = abs(distToSideScreenEdge - flarePos);
+	float flareMask = smoothstep((flarePos - flareWidth), (flarePos + flareWidth), distToSideScreenEdge);
+	
+	//float pulseDistance = abs(t - axonSimDataCBuffer[axonID].pulsePos);
+	//float pulseMultiplier = 1.0 - smoothstep(0, 0.2, pulseDistance);  // 0->1
+	//pulseMultiplier = pulseMultiplier * axonMaxPulseMultiplier + 1.0;  // [1,1+axonMaxPulseMultiplier]
+	//baseRadius *= pulseMultiplier;
+
+	//float edgeRadius = lerp(max(minAxonRadius, closestNeuronRadius * (maxSubNeuronScale * minAxonFlareScale)), closestNeuronRadius * (maxSubNeuronScale * maxAxonFlareScale), abs(axonInitDataCBuffer[axonID].weight));
+	//edgeRadius += clamp(noiseExtrude * axonExtrudeNoiseAmp, 0, 10);
+	
+	radius = lerp(radius, edgeRadius, flareMask);
+
+
+
+	//float radius = cableRadius;
 	return radius;
 	
 }

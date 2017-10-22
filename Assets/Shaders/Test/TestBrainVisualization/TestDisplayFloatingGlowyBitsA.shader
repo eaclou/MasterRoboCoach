@@ -29,13 +29,22 @@
 			float4 _MainTex_ST;
 			float4 _Tint;
 			float4 _Size;
-			StructuredBuffer<float3> floatingGlowyBitsCBuffer;
+
+			struct GlowyBitData {
+				float3 worldPos;
+				float3 color;
+			};
+
+			StructuredBuffer<GlowyBitData> floatingGlowyBitsCBuffer;
 			StructuredBuffer<float3> quadVerticesCBuffer;
+
+			
 
 			struct v2f
 			{
 				float4 pos : SV_POSITION;
 				float2 uv : TEXCOORD0;  // uv of the brushstroke quad itself, particle texture	
+				float3 color : TEXCOORD1;
 			};
 
 			float rand(float2 co){   // OUTPUT is in [0,1] RANGE!!!
@@ -46,9 +55,13 @@
 			{
 				v2f o;
 
+
+				o.color = floatingGlowyBitsCBuffer[inst].color;
+				//o.color = lerp(inNeuronsBaseColor, outNeuronsBaseColor, floatingGlowyBitsCBuffer[inst].type) * floatingGlowyBitsCBuffer[inst].brightness;
+
 				//Only transform world pos by view matrix
 				//To Create a billboarding effect
-				float3 worldPosition = floatingGlowyBitsCBuffer[inst];
+				float3 worldPosition = floatingGlowyBitsCBuffer[inst].worldPos;
 				float3 quadPoint = quadVerticesCBuffer[id];
 
 				float random1 = rand(float2(inst, inst));
@@ -78,7 +91,7 @@
 			{
 				
 				float4 texColor = tex2D(_MainTex, i.uv);  // Read Brush Texture
-				float4 finalColor = texColor * _Tint;
+				float4 finalColor = _Tint * float4(i.color, 1);
 				return finalColor;
 				
 			}

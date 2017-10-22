@@ -192,9 +192,9 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				float4 testCol = lerp(float4(1,1,1,1), float4(i.col,1), 0.5);
-				UNITY_APPLY_FOG(i.fogCoord, testCol);
-				return testCol;
+				//float4 testCol = lerp(float4(1,1,1,1), float4(i.col * 0.5,1), 1);
+				//UNITY_APPLY_FOG(i.fogCoord, testCol);
+				//return testCol;
 
 				float normalStrength = 5;
 				half3 tnormal = lerp(float4(normalize(float3(0.0, 0.0, 1.0)), 1.0), UnpackNormal(tex2D(_BumpMap, i.uv)), normalStrength);
@@ -227,10 +227,12 @@
 				//i.angleDot = saturate(i.angleDot);
 				//i.angleDot = i.angleDot * 1;
 
+				float fakeFog = 1.0 - (i.worldPos.x * 0.5 + 0.5) * 1.0;
+
 				float3 textureMaskColor = lerp(0, 1.0 - texColor, pow(1.0 - angleDot, 1.0/1.0));
-				fixed4 col = fixed4(i.col - textureMaskColor * 2.0 + lightDot * 0.2 + 0.4, 1.0); //lerp(fixed4(i.col, 1.0), fixed4(textureMaskColor, 1), 1);
+				fixed4 col = fixed4(i.col, 1.0); //lerp(fixed4(i.col, 1.0), fixed4(textureMaskColor, 1), 1);
 				//fixed4 col = fixed4(i.col.r * textureMaskColor, i.col.g * textureMaskColor, i.col.b * textureMaskColor, 1.0) + lightDot * 0.25 + 0.1; //float4(0.6, .95, .7,1); //tex2D(_MainTex, i.uv);
-				col = lerp(float4(textureMaskColor,1), col, 1);
+				col = lerp(col, float4(0.1, 0.1, 0.1, 1), fakeFog);
 				// apply fog
 				//UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;

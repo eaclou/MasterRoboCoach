@@ -97,6 +97,10 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         public float scale;
         // per-particle size / rotation etc.???
     }
+    public struct GlowyBitData {
+        public Vector3 worldPos;
+        public Vector3 color;
+    }
     public struct Triangle {
         public Vector3 vertA;
         public Vector3 normA;
@@ -117,13 +121,13 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         public Vector3 colorC;
     }
 
-    int numNeurons = 16; // refBrain.neuronList.Count;
-    int numAxons = 128; // refBrain.axonList.Count;
+    int numNeurons = 33; // refBrain.neuronList.Count;
+    int numAxons = 270; // refBrain.axonList.Count;
     int maxTrisPerNeuron = 1024;
     int maxTrisPerSubNeuron = 8 * 8 * 2 * 2;
     int maxTrisPerAxon = 2048;
     int maxTrisPerCable = 2048;
-    int numFloatingGlowyBits = 8192;
+    int numFloatingGlowyBits = 8192 * 8;
     int numAxonBalls = 8 * 128;
     int numNeuronBalls = 128;
     
@@ -308,11 +312,13 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         //traverse inputNeurons and assign them positions:
         for(int i = 0; i < inputNeuronsList.Count; i++) {
             float x = 0.6f * (float)i / (float)inputNeuronsList.Count - 0.3f;
-            socketInitDataArray[i].pos = new Vector3(x, 0f, -0.9f);
+            int tier = UnityEngine.Random.Range(0, 5);
+            socketInitDataArray[i].pos = new Vector3(x, (float)(tier - 2) * 0.12f, -0.9f);
         } // //traverse outputNeurons and assign them positions:
         for (int i = 0; i < outputNeuronsList.Count; i++) {
             float x = 0.6f * (float)i / (float)outputNeuronsList.Count - 0.3f;
-            socketInitDataArray[i + inputNeuronsList.Count].pos = new Vector3(x, 0f, 0.9f);
+            int tier = UnityEngine.Random.Range(0, 5);
+            socketInitDataArray[i + inputNeuronsList.Count].pos = new Vector3(x, (float)(tier - 2) * 0.12f, 0.9f);
         }
         socketInitDataCBuffer.SetData(socketInitDataArray);
         socketInitDataCBuffer.GetData(socketInitDataArray);
@@ -375,7 +381,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         
         if (floatingGlowyBitsCBuffer != null)
             floatingGlowyBitsCBuffer.Release();
-        floatingGlowyBitsCBuffer = new ComputeBuffer(numFloatingGlowyBits, sizeof(float) * 3);
+        floatingGlowyBitsCBuffer = new ComputeBuffer(numFloatingGlowyBits, sizeof(float) * 6);
         floatingGlowyBitsMaterial.SetPass(0);
         floatingGlowyBitsMaterial.SetBuffer("quadVerticesCBuffer", quadVerticesCBuffer);
         floatingGlowyBitsMaterial.SetBuffer("floatingGlowyBitsCBuffer", floatingGlowyBitsCBuffer);
@@ -460,6 +466,7 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         shaderComputeBrain.SetBuffer(initCablesKernelID, "socketInitDataCBuffer", socketInitDataCBuffer);
         //CABLES  // create spline geometry for cables:
         int generateCablesTrianglesKernelID = shaderComputeBrain.FindKernel("CSGenerateCablesTriangles");
+        shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
         shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
         shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
         shaderComputeBrain.SetBuffer(generateCablesTrianglesKernelID, "cableSimDataCBuffer", cableSimDataCBuffer);
@@ -712,7 +719,35 @@ public class TestGenerateBrainVisualizationA : MonoBehaviour {
         displayMaterialCables.SetPass(0);
         displayMaterialCables.SetBuffer("appendTrianglesCablesCBuffer", appendTrianglesCablesCBuffer);
         shaderComputeBrain.Dispatch(generateCablesTrianglesKernelID, numNeurons, 1, 1); // create all geometry for Axons
-        
+
+
+        //GlowyBitData FLOATING BITS:
+        SetCoreBrainDataSharedParameters(shaderComputeFloatingGlowyBits);
+
+        if (floatingGlowyBitsCBuffer != null)
+            floatingGlowyBitsCBuffer.Release();
+        floatingGlowyBitsCBuffer = new ComputeBuffer(numFloatingGlowyBits, sizeof(float) * 6);
+        floatingGlowyBitsMaterial.SetPass(0);
+        floatingGlowyBitsMaterial.SetBuffer("quadVerticesCBuffer", quadVerticesCBuffer);
+        floatingGlowyBitsMaterial.SetBuffer("floatingGlowyBitsCBuffer", floatingGlowyBitsCBuffer);
+        int initGlowyBitsKernelID = shaderComputeFloatingGlowyBits.FindKernel("CSInitializePositions");
+        shaderComputeFloatingGlowyBits.SetFloat("minRadius", 0.0f);
+        shaderComputeFloatingGlowyBits.SetFloat("maxRadius", 0.8f);
+        shaderComputeFloatingGlowyBits.SetFloat("time", Time.fixedTime);
+        shaderComputeFloatingGlowyBits.SetBuffer(initGlowyBitsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
+        shaderComputeFloatingGlowyBits.SetBuffer(initGlowyBitsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
+        shaderComputeFloatingGlowyBits.SetBuffer(initGlowyBitsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
+        shaderComputeFloatingGlowyBits.SetBuffer(initGlowyBitsKernelID, "floatingGlowyBitsCBuffer", floatingGlowyBitsCBuffer);
+        shaderComputeFloatingGlowyBits.Dispatch(initGlowyBitsKernelID, numFloatingGlowyBits / 64, 1, 1); // initialize axon positions and attributes
+        int updateGlowyBitsKernelID = shaderComputeFloatingGlowyBits.FindKernel("CSUpdateColor");
+        shaderComputeFloatingGlowyBits.SetFloat("minRadius", 0.0f);
+        shaderComputeFloatingGlowyBits.SetFloat("maxRadius", 0.8f);
+        shaderComputeFloatingGlowyBits.SetFloat("time", Time.fixedTime);
+        shaderComputeFloatingGlowyBits.SetBuffer(updateGlowyBitsKernelID, "floatingGlowyBitsCBuffer", floatingGlowyBitsCBuffer);
+        shaderComputeFloatingGlowyBits.SetBuffer(updateGlowyBitsKernelID, "neuronInitDataCBuffer", neuronInitDataCBuffer);
+        shaderComputeFloatingGlowyBits.SetBuffer(updateGlowyBitsKernelID, "neuronSimDataCBuffer", neuronSimDataCBuffer);
+        shaderComputeFloatingGlowyBits.SetBuffer(updateGlowyBitsKernelID, "neuronFeedDataCBuffer", neuronFeedDataCBuffer);
+        shaderComputeFloatingGlowyBits.Dispatch(updateGlowyBitsKernelID, numFloatingGlowyBits / 64, numNeurons, 1); // initialize axon positions and attributes
 
         argsCore[0] = 0; // set later by counter;// 3;  // 3 vertices to start
         argsCore[1] = 1;  // 1 instance/copy

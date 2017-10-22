@@ -23,8 +23,8 @@ struct Triangle {
 AppendStructuredBuffer<Triangle> appendTrianglesCoreCBuffer;
 AppendStructuredBuffer<Triangle> appendTrianglesCablesCBuffer;
 
-static const float3 inNeuronsBaseColor = float3(0.3, 0.4, 0.5);
-static const float3 outNeuronsBaseColor = float3(0.5, 0.5, 0.3);
+static const float3 inNeuronsBaseColor = float3(0.4, 0.85, 1);
+static const float3 outNeuronsBaseColor = float3(1, 0.9, 0.4);
 static const float3 positiveValuesBaseColor = float3(0.5, 1, 0.5);
 static const float3 negativeValuesBaseColor = float3(1, 0.5, 0.5);
 
@@ -806,8 +806,8 @@ void CSGenerateCablesTriangles (uint3 id : SV_DispatchThreadID)
 	float rand2 = rand(float2(id.x, rand1));
 	float rand3 = rand(float2(rand1, rand2));
 	float3 randColor = float3(rand1, rand2, rand3);
-	float3 color = randColor; //cableBaseColor; //lerp(inNeuronsBaseColor, outNeuronsBaseColor, neuronInitDataCBuffer[id.x].type);
-			
+	float3 color = lerp(inNeuronsBaseColor, outNeuronsBaseColor, neuronInitDataCBuffer[id.x].type); //randColor; //cableBaseColor; //lerp(inNeuronsBaseColor, outNeuronsBaseColor, neuronInitDataCBuffer[id.x].type);
+	color += randColor * 0.25;	
 	
 	Triangle triTop;
 	triTop.vertA = bottomLeft;
