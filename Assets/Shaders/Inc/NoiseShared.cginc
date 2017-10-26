@@ -60,7 +60,8 @@ float2 Value1D(float p, float frequency) {
 	t = Smooth(t);  // remap the 0-1 t value to a function with slope=0 at end points, to keep function continuous
 	//i0 &= hashMask;  // make sure i0 integer value falls within the bounds of the hash table, i.e. always between 0-255 in this case
 	// Hacky workaround for bitwise/modulo issues in shader code:
-	fi0 = fmod(fi0, 256.0);
+	fi0 = fmod(fi0 + 256.0, 256.0);
+	fi0 = fmod(fi0 + 256.0, 256.0);
 	int i0 = round(fi0);
 	int i1 = i0 + 1;  // get value of next whole integer
 
@@ -86,8 +87,10 @@ float3 Value2D(float2 p, float frequency) {
 	//ix0 &= hashMask; // get X floor int position in range of hash table, 0-255
 	//iy0 &= hashMask; // get Y floor int position in range of hash table, 0-255
 	// Hacky workaround for bitwise/modulo issues in shader code:
-	fix0 = fmod(fix0, 256.0);
-	fiy0 = fmod(fiy0, 256.0);
+	fix0 = fmod(fix0 + 256.0, 256.0); // gpu hacky workaround to prevent negative indices
+	fiy0 = fmod(fiy0 + 256.0, 256.0);  // done twice to ensure positive value
+	fix0 = fmod(fix0 + 256.0, 256.0);  // gpu hacky workaround to prevent negative indices
+	fiy0 = fmod(fiy0 + 256.0, 256.0);
 	int ix0 = round(fix0);
 	int iy0 = round(fiy0);
 	int ix1 = ix0 + 1;  // get X position of next whole integer, floor int + one;
@@ -132,9 +135,12 @@ float4 Value3D (float3 p, float frequency) {
 	float ty = p.y - fiy0;
 	float tz = p.z - fiz0;
 	// Hacky workaround for bitwise/modulo issues in shader code:
-	fix0 = fmod(fix0, 256.0);
-	fiy0 = fmod(fiy0, 256.0); 
-	fiz0 = fmod(fiz0, 256.0);
+	fix0 = fmod(fix0 + 256.0, 256.0); // gpu hacky workaround to prevent negative indices
+	fiy0 = fmod(fiy0 + 256.0, 256.0); 
+	fiz0 = fmod(fiz0 + 256.0, 256.0);
+	fix0 = fmod(fix0 + 256.0, 256.0); // gpu hacky workaround to prevent negative indices
+	fiy0 = fmod(fiy0 + 256.0, 256.0); 
+	fiz0 = fmod(fiz0 + 256.0, 256.0);
 	int ix0 = round(fix0);
 	int iy0 = round(fiy0);
 	int iz0 = round(fiz0);

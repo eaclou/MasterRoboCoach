@@ -91,7 +91,7 @@
 			{
 				
 				float4 texColor = tex2D(_MainTex, i.uv);  // Read Brush Texture
-				float4 finalColor = _Tint * float4(i.color, 1);
+				float4 finalColor = texColor * _Tint * float4(i.color, 1);
 				return finalColor;
 				
 			}
