@@ -30,6 +30,10 @@ RWStructuredBuffer<VertexData> terrainVertexDataCBuffer;
 RWStructuredBuffer<VertexData> terrainVertexDataSwapCBuffer;
 RWStructuredBuffer<TriangleIndexData> terrainTriangleIndexDataCBuffer;
 
+//RWTexture2D<float4> heightMapTextureA;
+//RWTexture2D<float4> heightMapTextureB;
+
+
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSGenerateVertexData
 
@@ -77,11 +81,17 @@ void CSGenerateVertexData (uint3 id : SV_DispatchThreadID)
 
 	float3 normal = normalize(float3(-accumulatedNormal.x, 1, -accumulatedNormal.y));
 
+	//heightMapTextureA[float2(xPart,zPart)] = accumulatedAltitude;
+
 	VertexData vertexData;
 	vertexData.worldPos = float3(x, accumulatedAltitude, z);
 	vertexData.normal = normal;
 	vertexData.uv = float2(xPart, zPart);
-	vertexData.color = lerp(float4(0.5,0.5,0.5,1), Value3D(vertexData.worldPos, 0.5), 0.1).yzw * 0.5 + 0.5;
+	
+	float3 baseColor = accumulatedAltitude * 0.5 + 0.5;
+	float3 noiseColor = Value2D(float2(x,z), 16).x;	
+	//float3 checkerColor = fmod(fmod((float)id.z * 2 + (float)id.x * 2 + 64, 4) + 4, 4) * 0.5;
+	vertexData.color = baseColor + noiseColor * 0.5; //lerp(baseColor, noiseColor, 1);
 
 	terrainVertexDataCBuffer[index] = vertexData;
 }
@@ -94,6 +104,10 @@ void CSCopyFromBaseToSwap (uint3 id : SV_DispatchThreadID)
 {
 	int indexCenter = (id.x * (resolutionZ + 1) + id.z);
 	terrainVertexDataSwapCBuffer[indexCenter] = terrainVertexDataCBuffer[indexCenter];
+
+	//float xPart = float(id.x) / (float)resolutionX;
+	//float zPart = float(id.z) / (float)resolutionZ;
+	//heightMapTextureB[float2(xPart,zPart)] = heightMapTextureA[float2(xPart,zPart)];
 }
 
 #pragma kernel CSCopyFromSwapToBase
@@ -103,6 +117,9 @@ void CSCopyFromSwapToBase (uint3 id : SV_DispatchThreadID)
 	int indexCenter = (id.x * (resolutionZ + 1) + id.z);
 	terrainVertexDataCBuffer[indexCenter] = terrainVertexDataSwapCBuffer[indexCenter];
 
+	//float xPart = float(id.x) / (float)resolutionX;
+	//float zPart = float(id.z) / (float)resolutionZ;
+	//heightMapTextureA[float2(xPart,zPart)] = heightMapTextureB[float2(xPart,zPart)];
 }
 
 
@@ -112,7 +129,7 @@ void CSCopyFromSwapToBase (uint3 id : SV_DispatchThreadID)
 void CSSimulateCA (uint3 id : SV_DispatchThreadID)
 {
 	int indexCenter = ((id.x + 1) * (resolutionZ + 1) + (id.z + 1));
-
+	
 	int nextX = round(min((float)id.x + 2, (float)resolutionX - 1));
 	int prevX = round(max((float)id.x, 1));
 	int nextZ = round(min((float)id.z + 2, (float)resolutionZ - 1));
@@ -132,9 +149,6 @@ void CSSimulateCA (uint3 id : SV_DispatchThreadID)
 	float avgHeight = (heightCenter + heightUp + heightRight + heightDown + heightLeft) / 5;
 	float2 gradient = float2((heightRight - heightCenter) + (heightCenter - heightLeft) * 0.5, (heightUp - heightCenter) + (heightCenter - heightDown) * 0.5);
 	
-	//terrainVertexDataSwapCBuffer[indexCenter].worldPos.y = terrainVertexDataCBuffer[indexDown].worldPos.y;
-
-
 	float erosionForce = 0.25;
 	float erosion = length(gradient) * erosionForce;
 
@@ -159,7 +173,8 @@ void CSSimulateCA (uint3 id : SV_DispatchThreadID)
 	avgHeight = (heightCenter + heightUp + heightRight + heightDown + heightLeft) / 5;
 	//float2 gradient = float2((heightRight - heightCenter) + (heightCenter - heightLeft) * 0.5, (heightUp - heightCenter) + (heightCenter - heightDown) * 0.5);
 	
-	terrainVertexDataSwapCBuffer[indexCenter].worldPos.y = lerp(terrainVertexDataSwapCBuffer[indexCenter].worldPos.y, avgHeight, 0.75);
+	terrainVertexDataSwapCBuffer[indexCenter].worldPos.y = 0; // lerp(terrainVertexDataSwapCBuffer[indexCenter].worldPos.y, avgHeight, 0.75);
+	
 }
 
 

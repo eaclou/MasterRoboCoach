@@ -10,6 +10,9 @@ public class TestGenerateTerrainA : MonoBehaviour {
     private ComputeBuffer terrainVertexDataSwapCBuffer;
     private ComputeBuffer terrainTriangleIndexDataCBuffer;
 
+    private RenderTexture heightMapTextureA;
+    private RenderTexture heightMapTextureB;
+
     private Mesh terrainMesh;
 
     public int resolutionX = 8;
@@ -62,6 +65,10 @@ public class TestGenerateTerrainA : MonoBehaviour {
         }
         terrainGenomeCBuffer.SetData(genomeNoiseOctaveDataArray);
 
+        // TEXTURES:
+        //heightMapTextureA = new RenderTexture(resolutionX + 1, resolutionZ + 1, 1, RenderTextureFormat.Default);
+       // heightMapTextureB = new RenderTexture(resolutionX + 1, resolutionZ + 1, 1, RenderTextureFormat.Default);
+
         if (terrainVertexDataCBuffer != null)
             terrainVertexDataCBuffer.Release();
         terrainVertexDataCBuffer = new ComputeBuffer((resolutionX + 1) * (resolutionZ + 1), sizeof(float) * 11);
@@ -86,18 +93,26 @@ public class TestGenerateTerrainA : MonoBehaviour {
         terrainComputeShader.SetBuffer(vertexDataKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
         terrainComputeShader.SetBuffer(vertexDataKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
         terrainComputeShader.SetBuffer(vertexDataKernelID, "terrainVertexDataSwapCBuffer", terrainVertexDataSwapCBuffer);
+        //terrainComputeShader.SetTexture(vertexDataKernelID, "heightMapTextureA", heightMapTextureA);
+        //terrainComputeShader.SetTexture(vertexDataKernelID, "heightMapTextureB", heightMapTextureB);
 
         int simulateCAKernelID = terrainComputeShader.FindKernel("CSSimulateCA");
         terrainComputeShader.SetBuffer(simulateCAKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
         terrainComputeShader.SetBuffer(simulateCAKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
         terrainComputeShader.SetBuffer(simulateCAKernelID, "terrainVertexDataSwapCBuffer", terrainVertexDataSwapCBuffer);
+        //terrainComputeShader.SetTexture(simulateCAKernelID, "heightMapTextureA", heightMapTextureA);
+        //terrainComputeShader.SetTexture(simulateCAKernelID, "heightMapTextureB", heightMapTextureB);
         int baseToSwapKernelID = terrainComputeShader.FindKernel("CSCopyFromBaseToSwap");
         terrainComputeShader.SetBuffer(baseToSwapKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
         terrainComputeShader.SetBuffer(baseToSwapKernelID, "terrainVertexDataSwapCBuffer", terrainVertexDataSwapCBuffer);
+        //terrainComputeShader.SetTexture(baseToSwapKernelID, "heightMapTextureA", heightMapTextureA);
+        //terrainComputeShader.SetTexture(baseToSwapKernelID, "heightMapTextureB", heightMapTextureB);
         int swapToBaseKernelID = terrainComputeShader.FindKernel("CSCopyFromSwapToBase");
         terrainComputeShader.SetBuffer(swapToBaseKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
         terrainComputeShader.SetBuffer(swapToBaseKernelID, "terrainVertexDataSwapCBuffer", terrainVertexDataSwapCBuffer);
-        
+        //terrainComputeShader.SetTexture(swapToBaseKernelID, "heightMapTextureA", heightMapTextureA);
+        //terrainComputeShader.SetTexture(swapToBaseKernelID, "heightMapTextureB", heightMapTextureB);
+
         // Or should I just do this on the CPU??? probably faster?? .... optimize/profile later on...
         int triangleIndicesKernelID = terrainComputeShader.FindKernel("CSGenerateTriangleIndices");
         terrainComputeShader.SetBuffer(triangleIndicesKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
@@ -169,19 +184,33 @@ public class TestGenerateTerrainA : MonoBehaviour {
 		
 	}
 
-    public void IterateHeightField() {
+    public void IterateTimes5() {
+        IterateHeightField();
+        IterateHeightField();
+        IterateHeightField();
+        IterateHeightField();
+        IterateHeightField();
+    }
 
+    public void IterateHeightField() {
+        Debug.Log("IterateHeightField");
         int simulateCAKernelID = terrainComputeShader.FindKernel("CSSimulateCA");
         terrainComputeShader.SetBuffer(simulateCAKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
         terrainComputeShader.SetBuffer(simulateCAKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
         terrainComputeShader.SetBuffer(simulateCAKernelID, "terrainVertexDataSwapCBuffer", terrainVertexDataSwapCBuffer);
+        //terrainComputeShader.SetTexture(simulateCAKernelID, "heightMapTextureA", heightMapTextureA);
+        //terrainComputeShader.SetTexture(simulateCAKernelID, "heightMapTextureB", heightMapTextureB);
         int baseToSwapKernelID = terrainComputeShader.FindKernel("CSCopyFromBaseToSwap");
         terrainComputeShader.SetBuffer(baseToSwapKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
         terrainComputeShader.SetBuffer(baseToSwapKernelID, "terrainVertexDataSwapCBuffer", terrainVertexDataSwapCBuffer);
+        //terrainComputeShader.SetTexture(baseToSwapKernelID, "heightMapTextureA", heightMapTextureA);
+        //terrainComputeShader.SetTexture(baseToSwapKernelID, "heightMapTextureB", heightMapTextureB);
         int swapToBaseKernelID = terrainComputeShader.FindKernel("CSCopyFromSwapToBase");
         terrainComputeShader.SetBuffer(swapToBaseKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
         terrainComputeShader.SetBuffer(swapToBaseKernelID, "terrainVertexDataSwapCBuffer", terrainVertexDataSwapCBuffer);
-
+       // terrainComputeShader.SetTexture(swapToBaseKernelID, "heightMapTextureA", heightMapTextureA);
+        //terrainComputeShader.SetTexture(swapToBaseKernelID, "heightMapTextureB", heightMapTextureB);
+        
         terrainComputeShader.Dispatch(baseToSwapKernelID, resolutionX + 1, 1, resolutionZ + 1);  // initialize swap buffer as copy of original
         terrainComputeShader.Dispatch(simulateCAKernelID, resolutionX - 1, 1, resolutionZ - 1);  // read from original buffer, write modified values to swap buffer
         terrainComputeShader.Dispatch(swapToBaseKernelID, resolutionX + 1, 1, resolutionZ + 1);  // copy new values in swap buffer back to original to be read
