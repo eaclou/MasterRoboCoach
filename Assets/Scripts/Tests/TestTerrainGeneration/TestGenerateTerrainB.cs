@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TestGenerateTerrainB : MonoBehaviour {
 
@@ -14,8 +15,13 @@ public class TestGenerateTerrainB : MonoBehaviour {
     private ComputeBuffer terrainVertexDataCBuffer;
     private ComputeBuffer terrainTriangleIndexDataCBuffer;
 
+    private ComputeBuffer weightMatrix5CBuffer;
+    private ComputeBuffer weightMatrix9CBuffer;
+    private ComputeBuffer weightMatrix13CBuffer;
+
     private RenderTexture mainHeightTexture;
     private RenderTexture secondaryHeightTexture;
+    private RenderTexture lowResHeightTexture;
 
     private Mesh terrainMesh;
 
@@ -34,6 +40,14 @@ public class TestGenerateTerrainB : MonoBehaviour {
     public float xEnd = 8f;
     public float zStart = 0f;
     public float zEnd = 8f;
+
+    public float filterStrength = 0.5f;
+    public float terrainHeightDisplayMultiplier = 0.2f;
+
+    public Button buttonAutoPlay;
+    private bool autoPlayOn = false;
+    private float timer = 0f;
+    public float simRate = 1f;
 
     public struct VertexData {
         public Vector3 worldPos;
@@ -56,6 +70,7 @@ public class TestGenerateTerrainB : MonoBehaviour {
     void Start () {
 
         InitializeBuffers();
+        
 
         CreateTextures();
 
@@ -66,70 +81,6 @@ public class TestGenerateTerrainB : MonoBehaviour {
         
         GenerateMeshData();
         RecalculateMesh();
-    }
-
-    private void CreateTextures() {
-
-        mainHeightTexture = new RenderTexture(texturePixelsX, texturePixelsY, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-        mainHeightTexture.wrapMode = TextureWrapMode.Clamp;
-        mainHeightTexture.filterMode = FilterMode.Point;
-        mainHeightTexture.enableRandomWrite = true;
-        mainHeightTexture.Create();
-
-        secondaryHeightTexture = new RenderTexture(texturePixelsX, texturePixelsY, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);        
-        secondaryHeightTexture.wrapMode = TextureWrapMode.Clamp;
-        secondaryHeightTexture.filterMode = FilterMode.Point;
-        secondaryHeightTexture.enableRandomWrite = true;        
-        secondaryHeightTexture.Create();
-
-        TextureDisplayQuadGO.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", mainHeightTexture);
-    }
-
-    private void InitializeHeightTextureMap() {
-        //CSInitializeTextureHeightData
-        int initTextureHeightKernelID = computeGenerateTerrainB.FindKernel("CSInitializeTextureHeightData");
-        computeGenerateTerrainB.SetBuffer(initTextureHeightKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
-        computeGenerateTerrainB.SetTexture(initTextureHeightKernelID, "mainHeightTexture", mainHeightTexture);
-        computeGenerateTerrainB.Dispatch(initTextureHeightKernelID, texturePixelsX, texturePixelsY, 1);
-
-        //mainHeightTexture.;
-    }
-
-    private void BlitTexture() {
-        blitMaterial.SetPass(0);
-        blitMaterial.SetInt("_PixelsWidth", mainHeightTexture.width);
-        blitMaterial.SetInt("_PixelsHeight", mainHeightTexture.width);
-        Graphics.Blit(mainHeightTexture, secondaryHeightTexture, blitMaterial);  // perform calculations on texture
-        Graphics.Blit(secondaryHeightTexture, mainHeightTexture); // copy results back into main texture
-    }
-
-    public void SimulateAndRemesh() {
-        for(int i = 0; i < numFilterIterations; i++) {
-            BlitTexture();
-        }
-        GenerateMeshData();
-        RecalculateMesh();
-    }
-
-    private void GenerateMeshData() {
-        // Generate Vertex Position/Color data from mainTextureHeightMap:
-        //int generateVertexDataKernelID = computeGenerateTerrainB.FindKernel("CSGenerateVertData");
-        //computeGenerateTerrainB.SetTexture(generateVertexDataKernelID, "mainHeightTexture", mainHeightTexture);
-        //computeGenerateTerrainB.SetBuffer(generateVertexDataKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
-
-        // Calculate Triangle Indices for Mesh:
-        int triangleIndicesKernelID = computeGenerateTerrainB.FindKernel("CSGenerateTriangleIndices");
-        computeGenerateTerrainB.SetBuffer(triangleIndicesKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
-        computeGenerateTerrainB.SetBuffer(triangleIndicesKernelID, "terrainTriangleIndexDataCBuffer", terrainTriangleIndexDataCBuffer);
-
-        int testKernelID = computeGenerateTerrainB.FindKernel("CSTest");  // Bypass some weird bug, copied code into new kernel Name and it worked..... fucking hell
-        computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTexture", mainHeightTexture);
-        computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTextureRead", mainHeightTexture);
-        //computeGenerateTerrainB.SetBuffer(testKernelID, "testCBuffer", testCBuffer);
-        computeGenerateTerrainB.SetBuffer(testKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
-
-        computeGenerateTerrainB.Dispatch(testKernelID, meshResolutionX, meshResolutionZ, 1);        
-        computeGenerateTerrainB.Dispatch(triangleIndicesKernelID, meshResolutionX - 1, 1, meshResolutionZ - 1);
     }
 
     private void InitializeBuffers() {
@@ -154,8 +105,123 @@ public class TestGenerateTerrainB : MonoBehaviour {
         if (terrainTriangleIndexDataCBuffer != null)
             terrainTriangleIndexDataCBuffer.Release();
         terrainTriangleIndexDataCBuffer = new ComputeBuffer((meshResolutionX - 1) * (meshResolutionZ - 1) * 2, sizeof(int) * 3);
-        
+
+        if (weightMatrix5CBuffer != null)
+            weightMatrix5CBuffer.Release();
+        weightMatrix5CBuffer = new ComputeBuffer(5, sizeof(float) * 3);  // center + 4 cardinal direction neighbors
+        if (weightMatrix9CBuffer != null)
+            weightMatrix9CBuffer.Release();
+        weightMatrix9CBuffer = new ComputeBuffer(9, sizeof(float) * 3);  // center + all direction neighbors
+        if (weightMatrix13CBuffer != null)
+            weightMatrix13CBuffer.Release();
+        weightMatrix13CBuffer = new ComputeBuffer(13, sizeof(float) * 3);  // center + all direction neighbors 1 away + cardinal dir neighbors 2 away
+
+        SetWeightMatricesToNextRandom();
     }
+
+    private void SetWeightMatricesToNextRandom() {
+        Vector3[] weight5Array = new Vector3[5];
+        for(int i = 0; i < weight5Array.Length; i++) {
+            Vector3 randWeight = UnityEngine.Random.insideUnitSphere;
+            weight5Array[i] = randWeight;
+        }
+        weightMatrix5CBuffer.SetData(weight5Array);
+
+        Vector3[] weight9Array = new Vector3[9];
+        for (int i = 0; i < weight9Array.Length; i++) {
+            Vector3 randWeight = UnityEngine.Random.insideUnitSphere;
+            weight9Array[i] = randWeight;
+        }
+        weightMatrix9CBuffer.SetData(weight9Array);
+
+        Vector3[] weight13Array = new Vector3[13];
+        for (int i = 0; i < weight13Array.Length; i++) {
+            Vector3 randWeight = UnityEngine.Random.insideUnitSphere;
+            weight13Array[i] = randWeight;
+        }
+        weightMatrix13CBuffer.SetData(weight13Array);
+    }
+
+    private void CreateTextures() {
+
+        mainHeightTexture = new RenderTexture(texturePixelsX, texturePixelsY, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        mainHeightTexture.wrapMode = TextureWrapMode.Repeat;
+        mainHeightTexture.filterMode = FilterMode.Point;
+        mainHeightTexture.enableRandomWrite = true;
+        mainHeightTexture.useMipMap = true;
+        mainHeightTexture.Create();
+
+        secondaryHeightTexture = new RenderTexture(texturePixelsX, texturePixelsY, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);        
+        secondaryHeightTexture.wrapMode = TextureWrapMode.Repeat;
+        secondaryHeightTexture.filterMode = FilterMode.Point;
+        secondaryHeightTexture.enableRandomWrite = true;
+        secondaryHeightTexture.useMipMap = true;
+        secondaryHeightTexture.Create();
+
+        lowResHeightTexture = new RenderTexture(texturePixelsX / 1, texturePixelsY / 1, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        lowResHeightTexture.wrapMode = TextureWrapMode.Repeat;
+        lowResHeightTexture.filterMode = FilterMode.Point;
+        lowResHeightTexture.enableRandomWrite = true;
+        lowResHeightTexture.useMipMap = true;
+        lowResHeightTexture.Create();
+
+        TextureDisplayQuadGO.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", lowResHeightTexture);
+    }
+
+    private void InitializeHeightTextureMap() {
+        //CSInitializeTextureHeightData
+        int initTextureHeightKernelID = computeGenerateTerrainB.FindKernel("CSInitializeTextureHeightData");
+        computeGenerateTerrainB.SetBuffer(initTextureHeightKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
+        computeGenerateTerrainB.SetTexture(initTextureHeightKernelID, "mainHeightTexture", mainHeightTexture);
+        computeGenerateTerrainB.Dispatch(initTextureHeightKernelID, texturePixelsX, texturePixelsY, 1);
+
+        //mainHeightTexture.;
+    }
+
+    private void BlitTexture() {
+        blitMaterial.SetPass(0);
+        blitMaterial.SetBuffer("weight5MatrixCBuffer", weightMatrix5CBuffer);
+        blitMaterial.SetBuffer("weight9MatrixCBuffer", weightMatrix9CBuffer);
+        blitMaterial.SetBuffer("weight13MatrixCBuffer", weightMatrix13CBuffer);
+        blitMaterial.SetInt("_PixelsWidth", mainHeightTexture.width);
+        blitMaterial.SetInt("_PixelsHeight", mainHeightTexture.width);
+        blitMaterial.SetFloat("_FilterStrength", filterStrength);
+        Graphics.Blit(mainHeightTexture, secondaryHeightTexture, blitMaterial);  // perform calculations on texture
+        Graphics.Blit(secondaryHeightTexture, mainHeightTexture); // copy results back into main texture
+        Graphics.Blit(secondaryHeightTexture, lowResHeightTexture);  // downscale
+    }
+
+    public void SimulateAndRemesh() {
+        SetShaderGlobalValues();
+        for (int i = 0; i < numFilterIterations; i++) {
+            BlitTexture();
+        }
+        GenerateMeshData();
+        RecalculateMesh();
+    }
+
+    private void GenerateMeshData() {
+        // Generate Vertex Position/Color data from mainTextureHeightMap:
+        //int generateVertexDataKernelID = computeGenerateTerrainB.FindKernel("CSGenerateVertData");
+        //computeGenerateTerrainB.SetTexture(generateVertexDataKernelID, "mainHeightTexture", mainHeightTexture);
+        //computeGenerateTerrainB.SetBuffer(generateVertexDataKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
+
+        // Calculate Triangle Indices for Mesh:
+        int triangleIndicesKernelID = computeGenerateTerrainB.FindKernel("CSGenerateTriangleIndices");
+        computeGenerateTerrainB.SetBuffer(triangleIndicesKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
+        computeGenerateTerrainB.SetBuffer(triangleIndicesKernelID, "terrainTriangleIndexDataCBuffer", terrainTriangleIndexDataCBuffer);
+
+        int testKernelID = computeGenerateTerrainB.FindKernel("CSTest");  // Bypass some weird bug, copied code into new kernel Name and it worked..... fucking hell
+        computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTexture", mainHeightTexture);
+        computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTextureRead", lowResHeightTexture);
+        //computeGenerateTerrainB.SetBuffer(testKernelID, "testCBuffer", testCBuffer);
+        computeGenerateTerrainB.SetBuffer(testKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
+
+        computeGenerateTerrainB.Dispatch(testKernelID, meshResolutionX, meshResolutionZ, 1);        
+        computeGenerateTerrainB.Dispatch(triangleIndicesKernelID, meshResolutionX - 1, 1, meshResolutionZ - 1);
+    }
+
+    
 
     private void SetShaderGlobalValues() {
         // Upload TerrainGenome to GPU
@@ -167,6 +233,7 @@ public class TestGenerateTerrainB : MonoBehaviour {
         computeGenerateTerrainB.SetFloat("xEnd", xEnd);
         computeGenerateTerrainB.SetFloat("zStart", zStart);
         computeGenerateTerrainB.SetFloat("zEnd", zEnd);
+        computeGenerateTerrainB.SetFloat("terrainHeightDisplayMultiplier", terrainHeightDisplayMultiplier);
     }
 
     private void RecalculateMesh() {
@@ -198,8 +265,8 @@ public class TestGenerateTerrainB : MonoBehaviour {
 
             //Debug.Log(i.ToString() + " index0: " + triangleIndexDataArray[i].v1.ToString() + ", " + triangleIndexDataArray[i].v2.ToString() + ", " + triangleIndexDataArray[i].v3.ToString() + ", ");
         }
-        Debug.Log(" numVerts: " + vertexDataArray.Length.ToString());
-        Debug.Log(" numTris: " + triangleIndexDataArray.Length.ToString());
+        //Debug.Log(" numVerts: " + vertexDataArray.Length.ToString());
+        //Debug.Log(" numTris: " + triangleIndexDataArray.Length.ToString());
         terrainMesh.vertices = vertices;
         terrainMesh.uv = uvs; //Unwrapping.GeneratePerTriangleUV(NewMesh);
         terrainMesh.triangles = tris;
@@ -210,10 +277,42 @@ public class TestGenerateTerrainB : MonoBehaviour {
         // Display Mesh (set as MeshFilter's Mesh)
         this.GetComponent<MeshFilter>().sharedMesh = terrainMesh;
     }
+
+    public void NewRandomFilter() {
+        SetWeightMatricesToNextRandom();
+    }
+    public void ToggleAutoPlay() {
+        autoPlayOn = !autoPlayOn;
+        buttonAutoPlay.GetComponentInChildren<Text>().text = autoPlayOn.ToString();
+    }
+    public void ResetNoise() {
+        InitializeBuffers();
+        SetShaderGlobalValues();
+        InitializeHeightTextureMap();
+        GenerateMeshData();
+        RecalculateMesh();
+    }
 	
 	// Update is called once per frame
 	void Update () {
-		
+        if(autoPlayOn) {
+
+
+
+            timer += Time.deltaTime;
+
+            if (timer > simRate) {
+                SetShaderGlobalValues();
+                for (int i = 0; i < numFilterIterations; i++) {
+                    BlitTexture();
+                }
+                GenerateMeshData();
+                RecalculateMesh();
+
+                timer = 0f;
+            }
+        }
+        
 	}
 
     private void OnDestroy() {
@@ -227,6 +326,12 @@ public class TestGenerateTerrainB : MonoBehaviour {
             mainHeightTexture.Release();
         if (secondaryHeightTexture != null)
             secondaryHeightTexture.Release();
+        if (weightMatrix5CBuffer != null)
+            weightMatrix5CBuffer.Release();
+        if (weightMatrix9CBuffer != null)
+            weightMatrix9CBuffer.Release();
+        if (weightMatrix13CBuffer != null)
+            weightMatrix13CBuffer.Release();
 
     }
 }

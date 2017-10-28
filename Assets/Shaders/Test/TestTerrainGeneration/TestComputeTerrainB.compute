@@ -25,7 +25,7 @@ float xStart = 0;
 float xEnd = 8;
 float zStart = 0;
 float zEnd = 8;
-
+float terrainHeightDisplayMultiplier = 0.5;
 
 StructuredBuffer<GenomeNoiseOctaveData> terrainGenomeCBuffer;
 RWStructuredBuffer<VertexData> terrainVertexDataCBuffer;
@@ -34,6 +34,9 @@ RWStructuredBuffer<TriangleIndexData> terrainTriangleIndexDataCBuffer;
 RWTexture2D<float4> mainHeightTexture;
 Texture2D<float4> mainHeightTextureRead;
 SamplerState _LinearClamp;
+SamplerState _LinearRepeat;
+SamplerState _PointClamp;
+SamplerState _PointRepeat;
 
 
 // Each #kernel tells which function to compile; you can have many kernels
@@ -71,7 +74,7 @@ void CSInitializeTextureHeightData (uint3 id : SV_DispatchThreadID)
 	
 	//float2 uv = float2(xPart,zPart);
 	float colorValue = accumulatedAltitude;
-	mainHeightTexture[float2(id.x,id.y)] = float4(colorValue,colorValue,0.25,1);
+	mainHeightTexture[float2(id.x,id.y)] = float4(colorValue,colorValue,colorValue,1);
 }
 
 // GENERATE VERTEX DATA:::::
@@ -93,15 +96,47 @@ void CSTest (uint3 id : SV_DispatchThreadID)
 	float2 textureIndex = float2(0,0); //float2(round(xPart * (float)texturePixelsX), round(zPart * (float)texturePixelsY));
 
 	//float4 texLoad = mainHeightTexture.Load(uint3(id.x, id.y,0));
-	float4 readRenderTex = mainHeightTextureRead.SampleLevel(_LinearClamp, float2(xPart, zPart), 0);
+	float4 readRenderTexCC = mainHeightTextureRead.SampleLevel(_PointRepeat, float2(xPart, zPart), 0);
+	//float4 readRenderTexCL = mainHeightTextureRead.SampleLevel(_LinearClamp, float2(float(id.x - 1.5) / (float)meshResolutionX, zPart), 0);
+	//float4 readRenderTexTC = mainHeightTextureRead.SampleLevel(_LinearClamp, float2(xPart, float(id.y + 1.5) / (float)meshResolutionZ), 0);
+	//float4 readRenderTexCR = mainHeightTextureRead.SampleLevel(_LinearClamp, float2(float(id.x + 1.5) / (float)meshResolutionX, zPart), 0);
+	//float4 readRenderTexBC = mainHeightTextureRead.SampleLevel(_LinearClamp, float2(xPart, float(id.y - 1.5) / (float)meshResolutionZ), 0);
+
+
 	
-	float height = readRenderTex.x + readRenderTex.b * 0.2;   //0.5;
+	//float height = (readRenderTexCC.x + readRenderTexCC.y + readRenderTexCC.z) +
+	//			   (readRenderTexCL.x + readRenderTexCL.y + readRenderTexCL.z) +	
+	//			   (readRenderTexTC.x + readRenderTexTC.y + readRenderTexTC.z) +	
+	//			   (readRenderTexCR.x + readRenderTexCR.y + readRenderTexCR.z) +	
+	//			   (readRenderTexBC.x + readRenderTexBC.y + readRenderTexBC.z);		
+	//height = height / 3 / 5 * terrainHeightDisplayMultiplier;
+	
+	
+	float height = (readRenderTexCC.x + readRenderTexCC.y + readRenderTexCC.z) / 3;
 
 	VertexData vertexData;
-	vertexData.worldPos = float3(x, height, z);
+	
 	vertexData.normal = float3(0,1,0);
 	vertexData.uv = float2(xPart, zPart);
-	vertexData.color = float3(readRenderTex.g * 0.5 + 0.5,readRenderTex.g * 0.5 + 0.5,readRenderTex.g * 0.5 + 0.5);
+
+	float4 color1 = mainHeightTextureRead.SampleLevel(_LinearRepeat, float2(xPart, zPart), 1);
+	float4 color2 = mainHeightTextureRead.SampleLevel(_LinearRepeat, float2(xPart, zPart), 2);
+	float4 color3 = mainHeightTextureRead.SampleLevel(_LinearRepeat, float2(xPart, zPart), 3);
+	float4 color4 = mainHeightTextureRead.SampleLevel(_LinearRepeat, float2(xPart, zPart), 4);
+	float4 color5 = mainHeightTextureRead.SampleLevel(_LinearRepeat, float2(xPart, zPart), 5);
+	float4 color6 = mainHeightTextureRead.SampleLevel(_LinearRepeat, float2(xPart, zPart), 6);
+
+	float3 compositeColor = color6.xyz * 2 +
+							color5.xyz * 1 + 
+							color4.xyz * 0.5 + 
+							color3.xyz * 0.5 + 
+							color2.xyz * 0.5 + 
+							color1.xyz * 0.25 + 
+							readRenderTexCC.xyz * 0.125;
+	float val = (compositeColor.x + compositeColor.y + compositeColor.z) / 3 * terrainHeightDisplayMultiplier;
+	
+	vertexData.worldPos = float3(x, val, z);
+	vertexData.color = compositeColor * 0.5 + 0.5;
 
 	//float4 textureValue = mainHeightTexture.Sample(_LinearClamp, float2(xPart, zPart));
 	

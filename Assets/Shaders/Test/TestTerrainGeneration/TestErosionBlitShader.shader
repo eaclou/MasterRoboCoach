@@ -14,9 +14,11 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma target 5.0
 			
 			#include "UnityCG.cginc"
 
+			
 			struct appdata
 			{
 				float4 vertex : POSITION;
@@ -37,10 +39,90 @@
 				return o;
 			}
 			
+
+			StructuredBuffer<float3> weight5MatrixCBuffer;
+			StructuredBuffer<float3> weight9MatrixCBuffer;
+			StructuredBuffer<float3> weight13MatrixCBuffer;
+
 			sampler2D _MainTex;
 			float4 _MainTex_TexelSize;
 			int _PixelsWidth;
 			int _PixelsHeight;
+			float _FilterStrength;
+
+			float GetValue5(float s, float2 uv) {
+				float4 cl = tex2D(_MainTex, uv + float2(-s * 2, 0)); // Centre Left
+				float4 tc = tex2D(_MainTex, uv + float2(0, -s * 2)); // Top Centre
+				float4 cc = tex2D(_MainTex, uv + float2(0, 0)); // Centre Centre
+				float4 bc = tex2D(_MainTex, uv + float2(0, +s * 2)); // Bottom Centre
+				float4 cr = tex2D(_MainTex, uv + float2(+s * 2, 0)); // Centre Right
+								
+				float newValue = dot(cl.xyz, weight5MatrixCBuffer[0]) +
+								 dot(tc.xyz, weight5MatrixCBuffer[1]) +
+								 dot(cc.xyz, weight5MatrixCBuffer[2]) +
+								 dot(bc.xyz, weight5MatrixCBuffer[3]) +
+								 dot(cr.xyz, weight5MatrixCBuffer[4]);
+
+				return newValue;
+			}
+
+			float GetValue9(float s, float2 uv) {
+				float4 cc = tex2D(_MainTex, uv + float2(0, 0)); // Centre Centre
+				float4 cl = tex2D(_MainTex, uv + float2(-s, 0)); // Centre Left
+				float4 tl = tex2D(_MainTex, uv + float2(-s * 2, -s * 2)); // Top Left
+				float4 tc = tex2D(_MainTex, uv + float2(0, -s)); // Top Centre
+				float4 tr = tex2D(_MainTex, uv + float2(+s * 2, -s * 2)); // Top Right
+				float4 cr = tex2D(_MainTex, uv + float2(+s, 0)); // Centre Right
+				float4 br = tex2D(_MainTex, uv + float2(+s * 2, +s * 2)); // Bottom Right
+				float4 bc = tex2D(_MainTex, uv + float2(0, +s)); // Bottom Centre
+				float4 bl = tex2D(_MainTex, uv + float2(-s * 2, +s * 2)); // Bottom Left
+				
+								
+				float newValue = dot(cc.xyz, weight9MatrixCBuffer[0]) +
+								 dot(cl.xyz, weight9MatrixCBuffer[1]) +
+								 dot(tl.xyz, weight9MatrixCBuffer[2]) +
+								 dot(tc.xyz, weight9MatrixCBuffer[3]) +
+								 dot(tr.xyz, weight9MatrixCBuffer[4]) +
+								 dot(cr.xyz, weight9MatrixCBuffer[5]) +
+								 dot(br.xyz, weight9MatrixCBuffer[6]) +
+								 dot(bc.xyz, weight9MatrixCBuffer[7]) +
+								 dot(bl.xyz, weight9MatrixCBuffer[8]);
+
+				return newValue;
+			}
+
+			float GetValue13(float s, float2 uv) {
+				float4 cc = tex2D(_MainTex, uv + float2(0, 0)); // Centre Centre
+				float4 cl = tex2D(_MainTex, uv + float2(-s, 0)); // Centre Left
+				float4 tl = tex2D(_MainTex, uv + float2(-s, -s)); // Top Left
+				float4 tc = tex2D(_MainTex, uv + float2(0, -s)); // Top Centre
+				float4 tr = tex2D(_MainTex, uv + float2(+s, -s)); // Top Right
+				float4 cr = tex2D(_MainTex, uv + float2(+s, 0)); // Centre Right
+				float4 br = tex2D(_MainTex, uv + float2(+s, +s)); // Bottom Right
+				float4 bc = tex2D(_MainTex, uv + float2(0, +s)); // Bottom Centre
+				float4 bl = tex2D(_MainTex, uv + float2(-s, +s)); // Bottom Left
+				float4 ll = tex2D(_MainTex, uv + float2(-s * 2, 0)); // Left Left
+				float4 tt = tex2D(_MainTex, uv + float2(0, -s * 2)); // Top Top
+				float4 rr = tex2D(_MainTex, uv + float2(+s * 2, 0)); // Right Right
+				float4 bb = tex2D(_MainTex, uv + float2(0, +s * 2)); // Bottom Bottom
+				
+								
+				float newValue = dot(cc.xyz, weight13MatrixCBuffer[0]) +
+								 dot(cl.xyz, weight13MatrixCBuffer[1]) +
+								 dot(tl.xyz, weight13MatrixCBuffer[2]) +
+								 dot(tc.xyz, weight13MatrixCBuffer[3]) +
+								 dot(tr.xyz, weight13MatrixCBuffer[4]) +
+								 dot(cr.xyz, weight13MatrixCBuffer[5]) +
+								 dot(br.xyz, weight13MatrixCBuffer[6]) +
+								 dot(bc.xyz, weight13MatrixCBuffer[7]) +
+								 dot(bl.xyz, weight13MatrixCBuffer[8]) +
+								 dot(ll.xyz, weight13MatrixCBuffer[9]) +
+								 dot(tt.xyz, weight13MatrixCBuffer[10]) +
+								 dot(rr.xyz, weight13MatrixCBuffer[11]) +
+								 dot(bb.xyz, weight13MatrixCBuffer[12]);
+
+				return newValue;
+			}
 
 			fixed4 frag (v2f i) : SV_Target
 			{	
@@ -54,42 +136,21 @@
  
 				 // Neighbour cells
 				float s = 1 / _Pixels;
-				float4 cl = tex2D(_MainTex, i.uv + float2(-s, 0)); // Centre Left
-				float4 tc = tex2D(_MainTex, i.uv + float2(0, -s)); // Top Centre
 				float4 cc = tex2D(_MainTex, i.uv + float2(0, 0)); // Centre Centre
-				float4 bc = tex2D(_MainTex, i.uv + float2(0, +s)); // Bottom Centre
-				float4 cr = tex2D(_MainTex, i.uv + float2(+s, 0)); // Centre Right
 
-				float waterHeight = 0.2;
+				float3 oldValue = cc.xyz;
+				float newValueR = GetValue13(s, i.uv);
+				float newValueG = GetValue9(s, i.uv);
+				float newValueB = GetValue5(s, i.uv);
 
-				float waterGradLeft = (cl.x + cl.b * waterHeight) - (cc.x + cc.b * waterHeight);
-				float waterGradRight = (cr.x + cr.b * waterHeight) - (cc.x + cc.b * waterHeight);
-				float waterGradUp = (tc.x + tc.b * waterHeight) - (cc.x + cc.b * waterHeight);
-				float waterGradDown = (bc.x + bc.b * waterHeight) - (cc.x + cc.b * waterHeight);
-
-				float gradAvg = length(float2((waterGradLeft - waterGradRight) / 2, (waterGradDown - waterGradUp) / 2));
-				float flowIn = max(0,waterGradLeft) + max(0,waterGradRight) + max(0,waterGradUp) + max(0,waterGradDown);
-				float flowOut = (min(0,waterGradLeft) + min(0,waterGradRight) + min(0,waterGradUp) + min(0,waterGradDown));
-				float strength = 1;
-				float groundStrength = 0.5 * gradAvg;
-
-				float newWaterAmount = max(0, cc.b + (flowIn + flowOut) * strength);
-				float newGroundAmount = cc.x + 0.2 * (cl.x + tc.x + bc.x + cr.x + cc.x) * groundStrength;
-
-				float dx = gradAvg;
-				float dz = (waterGradDown + waterGradUp) / 2;
-				 // Diffusion step
-				float factor = groundStrength * (	0.25 * (cl.x + tc.x + bc.x + cr.x)	- cc.x);
-				cc.x += factor;
-
-				float r = cc.x;
-				float g = dx * 5;
-
-				float b = newWaterAmount;
+				float strength = _FilterStrength;
+				float valR = round(lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength));
+				float valG = round(lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength));
+				float valB = round(lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength));
 
 				fixed4 col = tex2D(_MainTex, i.uv);
 				// just invert the colors
-				col = float4(r,g,b,1); //1 - col;
+				col = float4(valR,valG,valB,1); //1 - col;
 				return col;
 			}
 			ENDCG
