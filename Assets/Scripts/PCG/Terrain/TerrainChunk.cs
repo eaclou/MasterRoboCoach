@@ -137,7 +137,7 @@ public class TerrainChunk : MonoBehaviour {
             GameObject chunkNEGO = new GameObject("chunk_" + childID.ToString() + "." + lod.ToString());
             chunkNE = chunkNEGO.AddComponent<TerrainChunk>();
             chunkNEGO.transform.parent = gameObject.transform;
-            chunkNEGO.transform.localPosition = new Vector3(scale.x * 0.5f, 0f, scale.y * 0.5f);
+            chunkNEGO.transform.localPosition = new Vector3(0f, 0f, 0f);
             chunkNE.maxLOD = this.maxLOD;
             chunkNE.Initialize(gameObject, genome, childID, this.lod + 1, this.resolutionX, this.resolutionZ, arenaBounds, position + (scale * 0.5f), scale * 0.5f, mat);
 
@@ -146,7 +146,7 @@ public class TerrainChunk : MonoBehaviour {
             GameObject chunkSEGO = new GameObject("chunk_" + childID.ToString() + "." + lod.ToString());
             chunkSE = chunkSEGO.AddComponent<TerrainChunk>();
             chunkSEGO.transform.parent = gameObject.transform;
-            chunkSEGO.transform.localPosition = new Vector3(scale.x * 0.5f, 0f, -scale.y * 0.5f);
+            chunkSEGO.transform.localPosition = new Vector3(0f, 0f, 0f);
             chunkSE.maxLOD = this.maxLOD;
             chunkSE.Initialize(gameObject, genome, childID, this.lod + 1, this.resolutionX, this.resolutionZ, arenaBounds, new Vector2(position.x + (scale.x * 0.5f), position.y - (scale.y * 0.5f)), scale * 0.5f, mat);
 
@@ -155,7 +155,7 @@ public class TerrainChunk : MonoBehaviour {
             GameObject chunkSWGO = new GameObject("chunk_" + childID.ToString() + "." + lod.ToString());
             chunkSW = chunkSWGO.AddComponent<TerrainChunk>();
             chunkSWGO.transform.parent = gameObject.transform;
-            chunkSWGO.transform.localPosition = new Vector3(-scale.x * 0.5f, 0f, -scale.y * 0.5f);
+            chunkSWGO.transform.localPosition = new Vector3(0f, 0f, 0f);
             chunkSW.maxLOD = this.maxLOD;
             chunkSW.Initialize(gameObject, genome, childID, this.lod + 1, this.resolutionX, this.resolutionZ, arenaBounds, new Vector2(position.x - (scale.x * 0.5f), position.y - (scale.y * 0.5f)), scale * 0.5f, mat);
 
@@ -164,7 +164,7 @@ public class TerrainChunk : MonoBehaviour {
             GameObject chunkNWGO = new GameObject("chunk_" + childID.ToString() + "." + lod.ToString());
             chunkNW = chunkNWGO.AddComponent<TerrainChunk>();
             chunkNWGO.transform.parent = gameObject.transform;
-            chunkNWGO.transform.localPosition = new Vector3(-scale.x * 0.5f, 0f, scale.y * 0.5f);
+            chunkNWGO.transform.localPosition = new Vector3(0f, 0f, 0f);
             chunkNW.maxLOD = this.maxLOD;
             chunkNW.Initialize(gameObject, genome, childID, this.lod + 1, this.resolutionX, this.resolutionZ, arenaBounds, new Vector2(position.x - (scale.x * 0.5f), position.y + (scale.y * 0.5f)), scale * 0.5f, mat);
             
@@ -173,11 +173,18 @@ public class TerrainChunk : MonoBehaviour {
 
     public void BuildChunk(EnvironmentGenome genome, Vector2 position, Vector2 scale, Material mat) {
         GameObject chunkGO = new GameObject("chunkMesh");
-        chunkGO.AddComponent<MeshFilter>().sharedMesh = TerrainConstructor.GetTerrainMesh(genome, 32, 32, position.x, position.y, scale.x * 2f, scale.y *2);
+        /*Debug.Log("BuildChunk position: " + position.ToString() + ", scale: " + scale.ToString()
+            + ", west: " + thisWest.ToString()
+             + ", north: " + thisNorth.ToString()
+              + ", east: " + thisEast.ToString()
+               + ", south: " + thisSouth.ToString());*/
+        //TerrainConstructorGPU constructor = new TerrainConstructorGPU();
+        Mesh groundMesh = TerrainConstructorGPU.GetTerrainMesh(genome, this.resolutionX, this.resolutionZ, position.x, position.y, scale.x * 2f, scale.y * 2);
+        chunkGO.AddComponent<MeshFilter>().sharedMesh = groundMesh;
+        this.mesh = groundMesh;
         chunkGO.AddComponent<MeshRenderer>().material = mat;
         chunkGO.transform.parent = gameObject.transform;
         chunkGO.transform.localPosition = new Vector3(0f, 0f, 0f);
-        //chunkGO.transform.localScale = new Vector3(scale.x, 1f, scale.y);
         
     }
 }

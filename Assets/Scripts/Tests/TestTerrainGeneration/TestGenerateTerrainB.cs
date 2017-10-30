@@ -160,7 +160,7 @@ public class TestGenerateTerrainB : MonoBehaviour {
 
         lowResHeightTexture = new RenderTexture(texturePixelsX / 1, texturePixelsY / 1, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         lowResHeightTexture.wrapMode = TextureWrapMode.Repeat;
-        lowResHeightTexture.filterMode = FilterMode.Point;
+        lowResHeightTexture.filterMode = FilterMode.Bilinear;
         lowResHeightTexture.enableRandomWrite = true;
         lowResHeightTexture.useMipMap = true;
         lowResHeightTexture.Create();
@@ -208,12 +208,12 @@ public class TestGenerateTerrainB : MonoBehaviour {
 
         // Calculate Triangle Indices for Mesh:
         int triangleIndicesKernelID = computeGenerateTerrainB.FindKernel("CSGenerateTriangleIndices");
-        computeGenerateTerrainB.SetBuffer(triangleIndicesKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
+        //computeGenerateTerrainB.SetBuffer(triangleIndicesKernelID, "terrainGenomeCBuffer", terrainGenomeCBuffer);
         computeGenerateTerrainB.SetBuffer(triangleIndicesKernelID, "terrainTriangleIndexDataCBuffer", terrainTriangleIndexDataCBuffer);
 
         int testKernelID = computeGenerateTerrainB.FindKernel("CSTest");  // Bypass some weird bug, copied code into new kernel Name and it worked..... fucking hell
-        computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTexture", mainHeightTexture);
-        computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTextureRead", lowResHeightTexture);
+        //computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTexture", mainHeightTexture);
+        computeGenerateTerrainB.SetTexture(testKernelID, "mainHeightTextureRead", mainHeightTexture);
         //computeGenerateTerrainB.SetBuffer(testKernelID, "testCBuffer", testCBuffer);
         computeGenerateTerrainB.SetBuffer(testKernelID, "terrainVertexDataCBuffer", terrainVertexDataCBuffer);
 

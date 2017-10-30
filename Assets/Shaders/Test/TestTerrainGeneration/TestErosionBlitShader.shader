@@ -93,18 +93,30 @@
 
 			float GetValue13(float s, float2 uv) {
 				float4 cc = tex2D(_MainTex, uv + float2(0, 0)); // Centre Centre
-				float4 cl = tex2D(_MainTex, uv + float2(-s, 0)); // Centre Left
-				float4 tl = tex2D(_MainTex, uv + float2(-s, -s)); // Top Left
-				float4 tc = tex2D(_MainTex, uv + float2(0, -s)); // Top Centre
-				float4 tr = tex2D(_MainTex, uv + float2(+s, -s)); // Top Right
-				float4 cr = tex2D(_MainTex, uv + float2(+s, 0)); // Centre Right
-				float4 br = tex2D(_MainTex, uv + float2(+s, +s)); // Bottom Right
-				float4 bc = tex2D(_MainTex, uv + float2(0, +s)); // Bottom Centre
-				float4 bl = tex2D(_MainTex, uv + float2(-s, +s)); // Bottom Left
-				float4 ll = tex2D(_MainTex, uv + float2(-s * 2, 0)); // Left Left
-				float4 tt = tex2D(_MainTex, uv + float2(0, -s * 2)); // Top Top
-				float4 rr = tex2D(_MainTex, uv + float2(+s * 2, 0)); // Right Right
-				float4 bb = tex2D(_MainTex, uv + float2(0, +s * 2)); // Bottom Bottom
+				float4 cl = tex2D(_MainTex, uv + float2(-s * 1, 0)); //float2(-s * 4, 0)); // Centre Left
+				float4 tl = tex2D(_MainTex, uv + float2(0, s * 1)); //float2(-s, -s * 2)); // Top Left
+				float4 tc = tex2D(_MainTex, uv + float2(s * 1, 0)); //float2(0, -s * 4)); // Top Centre
+				float4 tr = tex2D(_MainTex, uv + float2(0, -s * 1)); //float2(+s * 2, -s)); // Top Right
+
+				float4 cr = tex2D(_MainTex, uv + float2(-s * 1, -s * 1)); //float2(+s * 4, 0)); // Centre Right
+				float4 br = tex2D(_MainTex, uv + float2(-s * 1, s * 1)); //float2(+s * 2, +s)); // Bottom Right
+				float4 bc = tex2D(_MainTex, uv + float2(-s * 1, s * 1)); //float2(0, +s * 4)); // Bottom Centre
+				float4 bl = tex2D(_MainTex, uv + float2(s * 1, -s * 1)); //float2(-s, +s * 2)); // Bottom Left
+
+				float4 ll = tex2D(_MainTex, uv + float2(-s * 2, -s * 1)); //float2(-s * 8, 0)); // Left Left
+				float4 tt = tex2D(_MainTex, uv + float2(-s * 1, s * 2)); //float2(0, -s * 8)); // Top Top
+				float4 rr = tex2D(_MainTex, uv + float2(-s * 2, s * 1)); //float2(+s * 8, 0)); // Right Right
+				float4 bb = tex2D(_MainTex, uv + float2(s * 1, -s * 2)); //float2(0, +s * 8)); // Bottom Bottom
+
+				float4 p0 = tex2D(_MainTex, uv + float2(-s * 1, -s * 2));
+				float4 p1 = tex2D(_MainTex, uv + float2(-s * 2, s * 1)); 
+				float4 p2 = tex2D(_MainTex, uv + float2(s * 1, -s * 2));
+				float4 p3 = tex2D(_MainTex, uv + float2(s * 2, s * 1));
+
+				float4 p4 = tex2D(_MainTex, uv + float2(-s * 2, -s * 2)); 
+				float4 p5 = tex2D(_MainTex, uv + float2(-s * 2, s * 2)); 
+				float4 p6 = tex2D(_MainTex, uv + float2(s * 2, -s * 2)); 
+				float4 p7 = 0; //tex2D(_MainTex, uv + float2(s * 2, s * 2)); 
 				
 								
 				float newValue = dot(cc.xyz, weight13MatrixCBuffer[0]) +
@@ -119,7 +131,15 @@
 								 dot(ll.xyz, weight13MatrixCBuffer[9]) +
 								 dot(tt.xyz, weight13MatrixCBuffer[10]) +
 								 dot(rr.xyz, weight13MatrixCBuffer[11]) +
-								 dot(bb.xyz, weight13MatrixCBuffer[12]);
+								 dot(bb.xyz, weight13MatrixCBuffer[12]) +
+								 dot(p0.xyz, weight5MatrixCBuffer[0]) +
+								 dot(p1.xyz, weight5MatrixCBuffer[1]) +
+								 dot(p2.xyz, weight5MatrixCBuffer[2]) +
+								 dot(p3.xyz, weight5MatrixCBuffer[3]) +
+								 dot(p4.xyz, weight9MatrixCBuffer[4]) +
+								 dot(p5.xyz, weight9MatrixCBuffer[5]) +
+								 dot(p6.xyz, weight9MatrixCBuffer[6]) +
+								 dot(p7.xyz, weight9MatrixCBuffer[7]);
 
 				return newValue;
 			}
@@ -144,9 +164,9 @@
 				float newValueB = GetValue5(s, i.uv);
 
 				float strength = _FilterStrength;
-				float valR = round(lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength));
-				float valG = round(lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength));
-				float valB = round(lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength));
+				float valR = lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength);
+				float valG = lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength);
+				float valB = lerp(clamp(oldValue.x, -1, 1), clamp(newValueR, -1, 1), strength);
 
 				fixed4 col = tex2D(_MainTex, i.uv);
 				// just invert the colors

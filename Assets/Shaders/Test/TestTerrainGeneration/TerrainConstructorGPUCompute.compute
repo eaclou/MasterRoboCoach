@@ -1,0 +1,116 @@
+﻿#include "Assets/Shaders/Inc/NoiseShared.cginc"
+
+struct GenomeNoiseOctaveData {
+    float amplitude;
+    float frequency;
+    float3 offset;
+};
+struct TriangleIndexData {
+    int v1;
+    int v2;
+    int v3;
+};
+
+int resolutionX = 8;
+int resolutionZ = 8;
+float xStart = 0;
+float xEnd = 8;
+float zStart = 0;
+float zEnd = 8;
+
+
+StructuredBuffer<GenomeNoiseOctaveData> terrainGenomeCBuffer;
+
+RWTexture2D<float4> mainRenderTexture;
+Texture2D<float4> mainRenderTextureRead;
+SamplerState _LinearClamp;
+SamplerState _PointClamp;
+
+RWStructuredBuffer<float3> terrainVertexCBuffer;
+RWStructuredBuffer<float2> terrainUVCBuffer;
+RWStructuredBuffer<float3> terrainNormalCBuffer;
+RWStructuredBuffer<float4> terrainColorCBuffer;
+RWStructuredBuffer<TriangleIndexData> terrainTriangleCBuffer;
+
+
+#pragma kernel CSInitializeMainRenderTexture
+[numthreads(1,1,1)]
+void CSInitializeMainRenderTexture (uint3 id : SV_DispatchThreadID)
+{
+	// TODO: insert actual code here!
+	
+	uint elements;
+	uint stride;
+	terrainGenomeCBuffer.GetDimensions(elements, stride);	
+	float noiseOctaveCount = (float)elements;
+
+	float xRange = xEnd - xStart;
+	float zRange = zEnd - zStart;
+	float xPart = float(id.x) / (float)(resolutionX - 1);
+	float zPart = float(id.y) / (float)(resolutionZ - 1);
+	float x = xPart * xRange + xStart;
+	float z = zPart * zRange + zStart;
+
+	float accumulatedAltitude = 0;
+
+	// NOISE!!!!
+	for(int i = 0; i < 4; i++) {
+		if(i < noiseOctaveCount) {			
+			float3 noiseSample = Value2D(float2(x,z) + terrainGenomeCBuffer[i].offset.xz, terrainGenomeCBuffer[i].frequency);
+			accumulatedAltitude += noiseSample.x * terrainGenomeCBuffer[i].amplitude;
+		}	
+	}
+
+	mainRenderTexture[float2(id.x,id.y)] = float4(accumulatedAltitude,accumulatedAltitude,accumulatedAltitude,1);
+}
+
+
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSGenerateMeshData
+[numthreads(1,1,1)]
+void CSGenerateMeshData (uint3 id : SV_DispatchThreadID)
+{	
+	int index = id.x * resolutionZ + id.z;
+
+	float xRange = xEnd - xStart;
+	float zRange = zEnd - zStart;
+	float xPart = float(id.x) / (float)(resolutionX - 1);
+	float zPart = float(id.z) / (float)(resolutionZ - 1);
+	float x = xPart * xRange + xStart;
+	float z = zPart * zRange + zStart;
+	
+	float4 textureSample =  mainRenderTextureRead.SampleLevel(_LinearClamp, float2(xPart, zPart), 0);
+
+	terrainVertexCBuffer[index] = float3(x, textureSample.x, z);
+	terrainUVCBuffer[index] = float2(0,0); //float2(x, z) * 1 / 680;
+	terrainNormalCBuffer[index] = float3(0,1,0);
+	terrainColorCBuffer[index] = float4(textureSample.y,textureSample.z,0,1);	
+}
+
+#pragma kernel CSGenerateTriangleIndices
+
+[numthreads(1,1,1)]
+void CSGenerateTriangleIndices (uint3 id : SV_DispatchThreadID)
+{
+	TriangleIndexData triangleIndexData0;
+	TriangleIndexData triangleIndexData1;
+
+	int index0 = (id.x * (resolutionZ - 1) + id.z) * 2;
+	int index1 = index0 + 1;
+
+	int v00 = id.x * resolutionZ + id.z;
+	int v10 = (id.x + 1) * resolutionZ + id.z;
+	int v01 = id.x * resolutionZ + (id.z + 1);
+	int v11 = (id.x + 1) * resolutionZ + (id.z + 1);
+
+	triangleIndexData0.v1 = v00;
+	triangleIndexData0.v2 = v01;
+	triangleIndexData0.v3 = v11;
+
+	triangleIndexData1.v1 = v00;
+	triangleIndexData1.v2 = v11;
+	triangleIndexData1.v3 = v10;
+
+	terrainTriangleCBuffer[index0] = triangleIndexData0;
+	terrainTriangleCBuffer[index1] = triangleIndexData1;
+}
