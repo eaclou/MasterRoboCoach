@@ -58,7 +58,7 @@ public class TerrainManager : MonoBehaviour {
         //position = new Vector2(0f, 0f);
         //scale = new Vector2(320f, 320f);
         rootChunk.maxLOD = this.maxLOD;
-        rootChunk.Initialize(gameObject, genome, 0, 0, 32, 32, new Vector2(40f, 40f), position, scale, groundMaterial);
+        rootChunk.Initialize(gameObject, genome, 0, 0, 61, 61, new Vector2(40f, 40f), position, scale, groundMaterial);
 
         
     }

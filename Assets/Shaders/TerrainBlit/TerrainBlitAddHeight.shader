@@ -46,6 +46,7 @@
 			sampler2D _MainTex;
 			sampler2D _MaskTex;
 			float4 _MainTex_TexelSize;
+			float4 _MaskTex_TexelSize;
 			int _PixelsWidth;
 			int _PixelsHeight;
 			float _NoiseAmplitude;
@@ -70,17 +71,20 @@
 				
 				float2 vertexUV = (i.uv - float2(s * 0.5, s * 0.5)) * ((_Pixels.x + 1.0) / _Pixels.x);  //float2(,);
 				float2 coords = float2(_GridBounds.x + vertexUV.x * gridSize.x, _GridBounds.z + vertexUV.y * gridSize.y);
-				float3 noiseSample = Value2D(coords, _NoiseFrequency);
-//#define USE_MASK
+				float3 noiseSample = Value2D(coords, _NoiseFrequency * 0.05);
+
+				noiseSample = 1.0 - abs(noiseSample);
+
 				float4 maskValue = float4(1,1,1,1);
 #if defined(USE_MASK)
-				float4 maskSample = tex2D(_MaskTex, coords);
-				maskValue.x = i.uv.x;
-#endif
+				float4 maskSample = tex2D(_MaskTex, coords * 0.003);
+				maskValue = maskSample;
 
-				baseHeight.x += noiseSample.x * 20 * maskValue.x;
-				baseHeight.y = frac(vertexUV.x * 1);
-				baseHeight.z = frac(vertexUV.y * 1);
+
+				baseHeight.x += noiseSample.x * 6 * maskValue.x;
+				baseHeight.y = maskValue.x; //frac(vertexUV.x * 1);
+				baseHeight.z = 1; //frac(vertexUV.y * 1);
+#endif
 				// just invert the colors
 				//col = float4(0,0,0,1); //1 - col;
 				return baseHeight;

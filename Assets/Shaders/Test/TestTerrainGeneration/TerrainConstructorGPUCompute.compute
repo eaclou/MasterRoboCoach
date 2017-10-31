@@ -1,9 +1,11 @@
 ﻿#include "Assets/Shaders/Inc/NoiseShared.cginc"
 
 struct GenomeNoiseOctaveData {
-    float amplitude;
-    float frequency;
+    float3 amplitude;
+    float3 frequency;
     float3 offset;
+    float rotation;
+    float use_ridged_noise;
 };
 struct TriangleIndexData {
     int v1;
@@ -56,8 +58,10 @@ void CSInitializeMainRenderTexture (uint3 id : SV_DispatchThreadID)
 	// NOISE!!!!
 	for(int i = 0; i < 4; i++) {
 		if(i < noiseOctaveCount) {			
-			float3 noiseSample = Value2D(float2(x,z) + terrainGenomeCBuffer[i].offset.xz, terrainGenomeCBuffer[i].frequency);
-			accumulatedAltitude += noiseSample.x * terrainGenomeCBuffer[i].amplitude;
+			float3 noiseSample = Value2D(float2(x,z) + terrainGenomeCBuffer[i].offset.xz, terrainGenomeCBuffer[i].frequency.x);
+
+			float altitude = 1 - abs(noiseSample.x);
+			accumulatedAltitude += altitude * terrainGenomeCBuffer[i].amplitude.x;
 		}	
 	}
 
@@ -84,7 +88,7 @@ void CSGenerateMeshData (uint3 id : SV_DispatchThreadID)
 	terrainVertexCBuffer[index] = float3(x, textureSample.x, z);
 	terrainUVCBuffer[index] = float2(0,0); //float2(x, z) * 1 / 680;
 	terrainNormalCBuffer[index] = float3(0,1,0);
-	terrainColorCBuffer[index] = float4(textureSample.y,textureSample.z,0,1);	
+	terrainColorCBuffer[index] = float4(0.5, 0.5, 0.5, 1);	 //float4(textureSample.x * 0.5 + 0.5, textureSample.y * 0.5 + 0.5, textureSample.z * 0.5 + 0.5, 1);	
 }
 
 #pragma kernel CSGenerateTriangleIndices
