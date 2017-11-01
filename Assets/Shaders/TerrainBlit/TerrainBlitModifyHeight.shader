@@ -3,10 +3,10 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}  // Original Heights
-		_NewTex  ("Texture", 2D) = "white" {}
+		_NewTex  ("Texture", 2D) = "black" {}
 		_MaskTex1 ("Texture", 2D) = "white" {}
 		_MaskTex2 ("Texture", 2D) = "white" {}
-		_FlowTex ("Texture", 2D) = "white" {}
+		_FlowTex ("Texture", 2D) = "gray" {}
 	}
 	SubShader
 	{
@@ -20,6 +20,7 @@
 			#pragma fragment frag
 			#pragma target 5.0
 
+			// Default to Textures, which should have no effect if they are not Set (default values)
 			#pragma shader_feature _USE_NEW_TEX
 			#pragma shader_feature _ _USE_MASK1_TEX _USE_MASK1_NOISE
 			#pragma shader_feature _ _USE_MASK2_TEX _USE_MASK2_NOISE

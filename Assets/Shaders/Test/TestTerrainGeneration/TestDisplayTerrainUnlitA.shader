@@ -32,6 +32,7 @@
 				float2 uv : TEXCOORD0;
 				UNITY_FOG_COORDS(1)
 				float4 vertex : SV_POSITION;
+				float4 worldPos : TEXCOORD2;
 				float3 normal: NORMAL;
 				float3 vertexColor: COLOR;
 			};
@@ -42,6 +43,7 @@
 			v2f vert (appdata v)
 			{
 				v2f o;
+				o.worldPos = v.vertex;
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.normal = v.color;
 				o.vertexColor = v.color;
@@ -54,6 +56,9 @@
 			{
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv) * float4(i.vertexColor, 1);
+
+				float altitudeColor = fmod(i.worldPos.y, 4);
+				col *= altitudeColor;
 				// apply fog
 				UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;

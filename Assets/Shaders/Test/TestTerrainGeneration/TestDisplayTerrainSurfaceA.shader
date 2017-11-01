@@ -20,12 +20,14 @@
 
 		struct v2f {
            float4 pos : SV_POSITION;
+		   float4 worldPos : TEXCOORD1;
            fixed4 color : COLOR;
          };
 
 		struct Input {
 			float2 uv_MainTex;
 			float3 vertexColor;
+			float3 worldPos;
 		};
 
 		half _Glossiness;
@@ -39,6 +41,10 @@
 			// put more per-instance properties here
 		UNITY_INSTANCING_CBUFFER_END
 
+		float rand(float2 co){
+			return frac(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
+		}
+
 		void vert (inout appdata_full v, out Input o)
          {
              UNITY_INITIALIZE_OUTPUT(Input,o);
@@ -48,7 +54,9 @@
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 			// Albedo comes from a texture tinted by color
 			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-			o.Albedo = c.rgb * IN.vertexColor;
+
+			float altitudeColor = 1 - 0.25 * rand(float2(floor(IN.worldPos.y), 1)); //fmod(IN.worldPos.y, 2);
+			o.Albedo = c.rgb * IN.vertexColor * altitudeColor;
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;

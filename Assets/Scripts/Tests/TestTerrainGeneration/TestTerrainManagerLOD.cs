@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class TestTerrainManagerLOD : MonoBehaviour {
 
-    public GameObject TextureDisplayQuadGO;
+    public GameObject TextureDisplayQuadGO1;
+    public GameObject TextureDisplayQuadGO2;
+    public GameObject TextureDisplayQuadGO3;
 
     public TerrainManager terrainManagerRef;
     public ComputeShader terrainConstructorGPUCompute;
@@ -20,27 +22,30 @@ public class TestTerrainManagerLOD : MonoBehaviour {
     public Texture2D presetNoiseTex6;
     public Texture2D presetNoiseTex7;
 
-    private RenderTexture[] generatedPaletteNoiseTextures;  // created procedurally based on genome parameters
+    //private RenderTexture[] generatedPaletteNoiseTextures;  // created procedurally based on genome parameters
     private Texture2D[] presetNoiseTextures;  // set in inspector, existing images
 
+    private RenderTexture[] heightMapCascadeTextures;
+    private RenderTexture temporaryRT;
+
     private ComputeBuffer terrainGenomeCBuffer;
+
+    public int xResolution = 1024;
+    public int yResolution = 1024;
 
     public struct GenomeNoiseOctaveData {
         public Vector3 amplitude;
         public Vector3 frequency;
         public Vector3 offset;
         public float rotation;
-        public float use_ridged_noise;
+        public float ridgeNoise;
     }
 
     // Use this for initialization
     void Start () {
 
         envGenome = (Resources.Load("Templates/Environments/TemplateTestDefault") as EnvironmentGenomeTemplate).templateGenome;
-
-        // Compute Shader:
-        TerrainConstructorGPU.terrainConstructorGPUCompute = this.terrainConstructorGPUCompute;
-
+        
         // Set Noise Textures:
         presetNoiseTextures = new Texture2D[8];
 
@@ -53,23 +58,144 @@ public class TestTerrainManagerLOD : MonoBehaviour {
         presetNoiseTextures[6] = this.presetNoiseTex6;
         presetNoiseTextures[7] = this.presetNoiseTex7;
 
-
         // PROCESS GENOME DATA FOR COMPUTE SHADER!!!!!!
         if (terrainGenomeCBuffer != null)
             terrainGenomeCBuffer.Release();        
         
-        generatedPaletteNoiseTextures = new RenderTexture[4];
+        //generatedPaletteNoiseTextures = new RenderTexture[4];
         // Create palette noise textures:
-        GeneratePaletteNoise();
+        //GeneratePaletteNoise();
 
-        TerrainConstructorGPU.presetNoiseTextures = this.presetNoiseTextures;
+        //TerrainConstructorGPU.presetNoiseTextures = this.presetNoiseTextures;
 
-        TextureDisplayQuadGO.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", generatedPaletteNoiseTextures[1]);
 
-        terrainManagerRef.Initialize(this.gameObject, envGenome, groundMat, new Vector2(0f, 0f), new Vector2(680f, 680f), 6);
+        // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        // &&&&&&&&&&&&&&&&&&&&&&&&&&&&    CONSTRUCT HEIGHT MAP CASCADE    &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         
+
+        heightMapCascadeTextures = new RenderTexture[4];    // Initialize Cascade Textures
+        for(int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            RenderTexture renderTexture = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Default);
+            renderTexture.wrapMode = TextureWrapMode.Clamp;
+            renderTexture.filterMode = FilterMode.Bilinear;
+            renderTexture.enableRandomWrite = true;
+            renderTexture.useMipMap = true;
+            renderTexture.Create();
+
+            heightMapCascadeTextures[i] = renderTexture;
+        }
+        temporaryRT = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        temporaryRT.wrapMode = TextureWrapMode.Clamp;
+        temporaryRT.filterMode = FilterMode.Bilinear;
+        temporaryRT.enableRandomWrite = true;
+        temporaryRT.useMipMap = true;
+        temporaryRT.Create();
+
+        // PASSES:
+        FirstPass();  // populated height texture with solid rocks height
+
+
+        // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+        TextureDisplayQuadGO1.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", heightMapCascadeTextures[0]);
+        if(heightMapCascadeTextures.Length > 1) {
+            TextureDisplayQuadGO2.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", heightMapCascadeTextures[1]);
+        }
+        if (heightMapCascadeTextures.Length > 2) {
+            TextureDisplayQuadGO3.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", heightMapCascadeTextures[2]);
+        }
+
+
+        // Set Data on Constructor:
+        TerrainConstructorGPU.terrainConstructorGPUCompute = this.terrainConstructorGPUCompute;
+        // Set Cascade Height Textures:
+        TerrainConstructorGPU.heightMapCascadeTextures = heightMapCascadeTextures;
+
+        // BUILD MESH FROM TEXTURE STACK!!!!
+        terrainManagerRef.Initialize(this.gameObject, envGenome, groundMat, new Vector2(0f, 0f), new Vector2(680f, 680f), 7);        
     }
 
+    private void FirstPass() {
+
+        //Vector3 offset = new Vector3(xSize * 0.5f, 0f, zSize * 0.5f);
+
+        Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitModifyRockHeightGlobal"));
+        modifyHeightMat.SetPass(0);
+        //modifyHeightMat.SetInt("_PixelsWidth", xResolution);
+        //modifyHeightMat.SetInt("_PixelsHeight", yResolution);
+
+        modifyHeightMat.EnableKeyword("_USE_NEW_NOISE"); // absence uses procedural noise
+        //modifyHeightMat.EnableKeyword("_USE_MASK1_TEX");
+        //modifyHeightMat.EnableKeyword("_USE_MASK2_TEX");
+        modifyHeightMat.EnableKeyword("_USE_FLOW_NOISE");
+        
+        modifyHeightMat.SetTexture("_NewTex", presetNoiseTextures[0]);
+        //modifyHeightMat.SetTexture("_MaskTex1", presetNoiseTextures[5]);
+        //modifyHeightMat.SetTexture("_MaskTex2", presetNoiseTextures[2]);
+        modifyHeightMat.SetTexture("_FlowTex", presetNoiseTextures[3]);
+
+        // NEW HEIGHTS TEXTURE:::::
+        int numNoiseOctaves = 6;
+        ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);        
+        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(1f,1f,1f) * 50f, new Vector3(1f, 1.4f, 1f) * 1f, Vector3.zero, 0.26f, 0f));
+        modifyHeightMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
+        modifyHeightMat.SetVector("_NewTexLevels", new Vector4(0f, 0.25f, 0f, 1f));   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_NewTexFlowAmount", 1f);
+
+        // MASK 1 TEXTURE:::::
+        numNoiseOctaves = 1;
+        ComputeBuffer maskTex1SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex1SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(1f, 1f, 1f) * 1f, new Vector3(1f, 1f, 1f) * 0.05f, Vector3.zero, 0.8f, 0f));
+        modifyHeightMat.SetBuffer("maskTex1SampleParamsCBuffer", maskTex1SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex1Levels", new Vector4(0f, 0.5f, 0f, 1f));   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex1FlowAmount", 1f);
+
+        // MASK 2 TEXTURE:::::
+        numNoiseOctaves = 1;
+        ComputeBuffer maskTex2SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex2SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(1f, 1f, 1f) * 1f, new Vector3(1f, 2f, 1f) * 0.25f, Vector3.zero, 0f, 0f));
+        modifyHeightMat.SetBuffer("maskTex2SampleParamsCBuffer", maskTex2SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex2Levels", new Vector4(0.0f, 0.1f, 0f, 1f));   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex2FlowAmount", 1f);
+
+        // FLOW TEXTURE:::::
+        numNoiseOctaves = 5;
+        ComputeBuffer flowTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        flowTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(1f, 1f, 1f) * 0.05f, new Vector3(1f, 1f, 1f) * 0.5f, Vector3.one * 80, -1.1f, 0f));
+        modifyHeightMat.SetBuffer("flowTexSampleParamsCBuffer", flowTexSampleParamsCBuffer);
+                
+
+        for(int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i), -1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i)));
+            Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, modifyHeightMat);  // perform calculations on texture
+            Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
+        }
+            
+        
+
+        newTexSampleParamsCBuffer.Release();
+        maskTex1SampleParamsCBuffer.Release();
+        maskTex2SampleParamsCBuffer.Release();
+        flowTexSampleParamsCBuffer.Release();
+    }
+
+    private GenomeNoiseOctaveData[] SetNoiseSamplerSettings(int numOctaves, Vector3 baseAmplitude, Vector3 baseFrequency, Vector3 baseOffset, float baseRotation, float ridgeNoise) {
+        
+        GenomeNoiseOctaveData[] sampleParamsArray = new GenomeNoiseOctaveData[numOctaves];
+        for (int i = 0; i < sampleParamsArray.Length; i++) {
+            GenomeNoiseOctaveData genomeNoiseOctaveData;
+            genomeNoiseOctaveData.amplitude = baseAmplitude / Mathf.Pow(2, i);
+            genomeNoiseOctaveData.frequency = baseFrequency * Mathf.Pow(2, i);
+            genomeNoiseOctaveData.offset = new Vector3(0f, 0f, 0f) + baseOffset;
+            genomeNoiseOctaveData.rotation = baseRotation * i;
+            genomeNoiseOctaveData.ridgeNoise = ridgeNoise;
+            sampleParamsArray[i] = genomeNoiseOctaveData;
+        }
+        return sampleParamsArray;
+    }
+
+    /*
     private void GeneratePaletteNoise() {
         // PROCESS GENOME DATA FOR COMPUTE SHADER!!!!!!
         if (terrainGenomeCBuffer != null)
@@ -90,7 +216,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
         Vector3 baseFrequency = Vector3.one * 10f;
         Vector3 baseOffset = Vector3.zero;
         float baseRotation = 0;
-        float use_ridged_noise = 1f;
+        float ridgeNoise = 1f;
 
         terrainGenomeCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
         GenomeNoiseOctaveData[] genomeNoiseOctaveDataArray = new GenomeNoiseOctaveData[numNoiseOctaves];
@@ -100,7 +226,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
             genomeNoiseOctaveData.frequency = baseFrequency * Mathf.Pow(2, i);
             genomeNoiseOctaveData.offset = new Vector3(0f, 0f, 0f) + baseOffset;
             genomeNoiseOctaveData.rotation = baseRotation;
-            genomeNoiseOctaveData.use_ridged_noise = use_ridged_noise;
+            genomeNoiseOctaveData.ridgeNoise = ridgeNoise;
             genomeNoiseOctaveDataArray[i] = genomeNoiseOctaveData;
         }
         terrainGenomeCBuffer.SetData(genomeNoiseOctaveDataArray);
@@ -113,7 +239,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
         baseFrequency.x = 7f;
         baseOffset = Vector3.zero;
         baseRotation = 4;
-        use_ridged_noise = 1f;
+        ridgeNoise = 1f;
         genomeNoiseOctaveDataArray = new GenomeNoiseOctaveData[numNoiseOctaves];
         for (int i = 0; i < genomeNoiseOctaveDataArray.Length; i++) {
             GenomeNoiseOctaveData genomeNoiseOctaveData;
@@ -121,7 +247,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
             genomeNoiseOctaveData.frequency = baseFrequency * Mathf.Pow(2, i);
             genomeNoiseOctaveData.offset = new Vector3(0f, 0f, 0f) + baseOffset;
             genomeNoiseOctaveData.rotation = baseRotation;
-            genomeNoiseOctaveData.use_ridged_noise = use_ridged_noise;
+            genomeNoiseOctaveData.ridgeNoise = ridgeNoise;
             genomeNoiseOctaveDataArray[i] = genomeNoiseOctaveData;
         }
         terrainGenomeCBuffer.SetData(genomeNoiseOctaveDataArray);
@@ -133,7 +259,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
         baseFrequency = Vector3.one * 100f;
         baseOffset = Vector3.zero;
         baseRotation = 0;
-        use_ridged_noise = 1f;
+        ridgeNoise = 1f;
         genomeNoiseOctaveDataArray = new GenomeNoiseOctaveData[numNoiseOctaves];
         for (int i = 0; i < genomeNoiseOctaveDataArray.Length; i++) {
             GenomeNoiseOctaveData genomeNoiseOctaveData;
@@ -141,7 +267,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
             genomeNoiseOctaveData.frequency = baseFrequency * Mathf.Pow(2, i);
             genomeNoiseOctaveData.offset = new Vector3(0f, 0f, 0f) + baseOffset;
             genomeNoiseOctaveData.rotation = baseRotation;
-            genomeNoiseOctaveData.use_ridged_noise = use_ridged_noise;
+            genomeNoiseOctaveData.ridgeNoise = ridgeNoise;
             genomeNoiseOctaveDataArray[i] = genomeNoiseOctaveData;
         }
         terrainGenomeCBuffer.SetData(genomeNoiseOctaveDataArray);
@@ -153,7 +279,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
         baseFrequency = Vector3.one * 2f;
         baseOffset = Vector3.zero;
         baseRotation = 0;
-        use_ridged_noise = 1f;
+        ridgeNoise = 1f;
         genomeNoiseOctaveDataArray = new GenomeNoiseOctaveData[numNoiseOctaves];
         for (int i = 0; i < genomeNoiseOctaveDataArray.Length; i++) {
             GenomeNoiseOctaveData genomeNoiseOctaveData;
@@ -161,7 +287,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
             genomeNoiseOctaveData.frequency = baseFrequency * Mathf.Pow(2, i);
             genomeNoiseOctaveData.offset = new Vector3(0f, 0f, 0f) + baseOffset;
             genomeNoiseOctaveData.rotation = baseRotation;
-            genomeNoiseOctaveData.use_ridged_noise = use_ridged_noise;
+            genomeNoiseOctaveData.ridgeNoise = ridgeNoise;
             genomeNoiseOctaveDataArray[i] = genomeNoiseOctaveData;
         }
         terrainGenomeCBuffer.SetData(genomeNoiseOctaveDataArray);
@@ -173,7 +299,6 @@ public class TestTerrainManagerLOD : MonoBehaviour {
 
         TerrainConstructorGPU.generatedPaletteNoiseTextures = this.generatedPaletteNoiseTextures;
     }
-
     private void GeneratePaletteNoiseTex(int index, RenderTexture tempTex, GenomeNoiseOctaveData[] genomeNoiseOctaveDataArray) {
         RenderTexture renderTex = new RenderTexture(512, 512, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Default);
         renderTex.wrapMode = TextureWrapMode.Repeat;
@@ -196,7 +321,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
                                                                       //Blit(generate noise texture and save it to generatedPaletteNoiseTextures[i])
         }
     }
-	
+	*/
 	// Update is called once per frame
 	void Update () {
 		
