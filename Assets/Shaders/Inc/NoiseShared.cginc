@@ -71,11 +71,11 @@ float2 Value1D(float p, float frequency) {
 	float a = h0;
 	float b = h1 - h0;
 
-	float2 sample;
-	sample.x = a + b * t;  // blend between the noise values at i0 and i1, based on the smoothed 0-1 curve t
-	sample.y = b * dt;
-	//sample.y *= frequency;
-	return sample * (2.0 / 255.0) - 1.0;
+	float2 noise;
+	noise.x = a + b * t;  // blend between the noise values at i0 and i1, based on the smoothed 0-1 curve t
+	noise.y = b * dt;
+	//noise.y *= frequency;
+	return noise * (2.0 / 255.0) - 1.0;
 }
 
 float3 Value2D(float2 p, float frequency) {
@@ -117,13 +117,13 @@ float3 Value2D(float2 p, float frequency) {
 	float c = h01 - h00;
 	float d = h11 - h01 - h10 + h00;
 
-	float3 sample;
-	sample.x = a + b * tx + (c + d * tx) * ty;
-	sample.y = (b + d * ty) * dtx;
-	sample.z = (c + d * tx) * dty;
-	//sample.y *= frequency;  // derivatives
-	//sample.z *= frequency;  // derivatives
-	return sample * (2.0 / 255.0) - 1.0;
+	float3 noise;
+	noise.x = a + b * tx + (c + d * tx) * ty;
+	noise.y = (b + d * ty) * dtx;
+	noise.z = (c + d * tx) * dty;
+	//noise.y *= frequency;  // derivatives
+	//noise.z *= frequency;  // derivatives
+	return noise * (2.0 / 255.0) - 1.0;
 }
 
 float4 Value3D (float3 p, float frequency) {
@@ -179,17 +179,17 @@ float4 Value3D (float3 p, float frequency) {
 	float g = (float)h011 - (float)h001 - (float)h010 + (float)h000;
 	float h = (float)h111 - (float)h011 - (float)h101 + (float)h001 - (float)h110 + (float)h010 + (float)h100 - (float)h000;
 
-	float4 sample;
-	sample.x = a + b * tx + (c + e * tx) * ty + (d + f * tx + (g + h * tx) * ty) * tz;
-	sample.y = (b + e * ty + (f + h * ty) * tz) * dtx;
-	sample.z = (c + e * tx + (g + h * tx) * tz) * dty;
-	sample.w = (d + f * tx + (g + h * tx) * ty) * dtz;
-	//sample.y *= frequency;
-	//sample.z *= frequency;
-	//sample.w *= frequency;
+	float4 noise;
+	noise.x = a + b * tx + (c + e * tx) * ty + (d + f * tx + (g + h * tx) * ty) * tz;
+	noise.y = (b + e * ty + (f + h * ty) * tz) * dtx;
+	noise.z = (c + e * tx + (g + h * tx) * tz) * dty;
+	noise.w = (d + f * tx + (g + h * tx) * ty) * dtz;
+	//noise.y *= frequency;
+	//noise.z *= frequency;
+	//noise.w *= frequency;
 
-	return sample * (2.0 / 255.0) - 1.0;
+	return noise * (2.0 / 255.0) - 1.0;
 	//int test = floor(p.x);
 	//test = ((test % hashMask) + hashMask) % hashMask;
-	//return float4(1, sample.yzw) / 1.0;
+	//return float4(1, noise.yzw) / 1.0;
 }

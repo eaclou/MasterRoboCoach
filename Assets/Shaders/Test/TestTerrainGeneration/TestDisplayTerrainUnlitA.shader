@@ -57,10 +57,11 @@
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv) * float4(i.vertexColor, 1);
 
-				float altitudeColor = fmod(i.worldPos.y, 4);
-				col *= altitudeColor;
+				//float altitudeColor = fmod(i.worldPos.y, 4);
+				//col *= altitudeColor;
 				// apply fog
-				UNITY_APPLY_FOG(i.fogCoord, col);
+				//UNITY_APPLY_FOG(i.fogCoord, col);
+				//col = float4(i.vertexColor.z, i.vertexColor.z, i.vertexColor.z, 1);
 				return col;
 			}
 			ENDCG
