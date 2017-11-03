@@ -224,8 +224,8 @@
 
 				float2 northDir = float2(0,1);
 
-				float snowLineStart = 16.0;
-				float snowLineEnd = 22.0;
+				float snowLineStart = -15.0;
+				float snowLineEnd = 10.0;
 
 				float snowMask = smoothstep(snowLineStart, snowLineEnd, baseHeight.x + baseHeight.y);
 

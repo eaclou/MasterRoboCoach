@@ -76,6 +76,8 @@
 			float _MaskTex2FlowAmount;
 			//float4 _FlowTexLevels;
 			
+			float _SeaLevel;
+			float _TalusAngle;
 
 			//int _PixelsWidth;
 			//int _PixelsHeight;
@@ -219,23 +221,28 @@
 				
 				float newDebrisHeight = newHeight.x * mask1Value.x * mask2Value.x;
 
-				float gradX = ddx(baseHeight.x);
-				float gradY = ddy(baseHeight.x);
-				float2 grad = float2(gradX, gradY);
-				float gradMag = length(grad);
-
-				float slopeMin = 0;
-				float slopeMax = 0.5;
-
-				float depositionAmount = 1.0 - smoothstep(slopeMin, slopeMax, gradMag);
 				
-				float seaLevel = 0.0;
+
+
 				
-				float amountToFill = max(0, seaLevel - (baseHeight.x * 0.5)); 
+				
+				//float seaLevel = 36.0;
+				
+				float amountToFill = max(0, _SeaLevel - (baseHeight.x * 0.85)); 
 				
 				baseHeight.y += amountToFill;
 
+				float gradX = ddx(baseHeight.x + baseHeight.y);
+				float gradY = ddy(baseHeight.x + baseHeight.y);
+				float2 grad = float2(gradX, gradY);
+				float gradMag = length(grad);
 
+				float slopeMin = 20;
+				float slopeMax = 100;
+
+				float depositionAmount = min(0, gradMag - 0.25) * -1; //1.0 - smoothstep(slopeMin, slopeMax, gradMag);
+
+				baseHeight.y += depositionAmount;
 
 				return baseHeight;
 				

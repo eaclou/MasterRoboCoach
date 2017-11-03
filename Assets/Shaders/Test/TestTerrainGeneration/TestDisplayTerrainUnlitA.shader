@@ -55,7 +55,7 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				// sample the texture
-				fixed4 col = tex2D(_MainTex, i.uv) * float4(i.vertexColor, 1);
+				fixed4 col = float4(0,0,i.vertexColor.z, 1); //tex2D(_MainTex, i.uv) * float4(i.vertexColor, 1);
 
 				//float altitudeColor = fmod(i.worldPos.y, 4);
 				//col *= altitudeColor;

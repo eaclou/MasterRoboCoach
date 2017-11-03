@@ -3,10 +3,10 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}  // Original Heights
-		_NewTex  ("Texture", 2D) = "black" {}
-		_MaskTex1 ("Texture", 2D) = "white" {}
-		_MaskTex2 ("Texture", 2D) = "white" {}
-		_FlowTex ("Texture", 2D) = "gray" {}
+		//_RemapTex  ("Texture", 2D) = "gray" {}
+		//_MaskTex1 ("Texture", 2D) = "white" {}
+		//_MaskTex2 ("Texture", 2D) = "white" {}
+		//_FlowTex ("Texture", 2D) = "gray" {}
 	}
 	SubShader
 	{
@@ -56,7 +56,7 @@
 			};
 
 			sampler2D _MainTex;
-			
+			//sampler2D _RemapTex;
 			StructuredBuffer<RockStrataData> rockStrataDataCBuffer;
 
 			//int _PixelsWidth;
@@ -75,26 +75,24 @@
 			{	
 				float4 baseHeight = tex2D(_MainTex, i.uv);
 
-				float normalizedAltitude = (baseHeight.x - _MinAltitude) / (_MaxAltitude - _MinAltitude);
-				float strataValue = GetRemappedValue01(normalizedAltitude, _RemapOffset, _NumStrata);
-				float pixelAltitude = baseHeight.x;
+				float normalizedAltitude = (GetRemappedAltitude(float3(i.uv.x * 2 - 1, baseHeight.x, i.uv.y * 2 - 1), _MinAltitude, _MaxAltitude) - _MinAltitude) / (_MaxAltitude - _MinAltitude);
+				float pixelAltitude = GetRemappedAltitude(float3(i.uv.x * 2 - 1, baseHeight.x, i.uv.y * 2 - 1), _MinAltitude, _MaxAltitude);
 
 				float strataHardness = rockStrataDataCBuffer[_StrataIndex].hardness;
 
-				float strataStartValue01 = GetRemappedValue01(_StrataIndex / (_NumStrata - 1), _RemapOffset, _NumStrata);
-				float strataStartAltitude = strataStartValue01 * (_MaxAltitude - _MinAltitude) + _MinAltitude;
+				float thisStrataStartAltitude = GetRemappedAltitude((floor(float3(i.uv.x * 2 - 1, normalizedAltitude, i.uv.y * 2 - 1) * (_NumStrata - 1)) / (_NumStrata - 1)) * (_MaxAltitude - _MinAltitude) + _MinAltitude, _MinAltitude, _MaxAltitude);
+				float thisStrataEndAltitude = GetRemappedAltitude((ceil(float3(i.uv.x * 2 - 1, normalizedAltitude, i.uv.y * 2 - 1) * (_NumStrata - 1)) / (_NumStrata - 1)) * (_MaxAltitude - _MinAltitude) + _MinAltitude, _MinAltitude, _MaxAltitude);
 
-				float strataTopValue01 = GetRemappedValue01((_StrataIndex + 1) / (_NumStrata - 1), _RemapOffset, _NumStrata);
-				float strataTopAltitude = strataTopValue01 * (_MaxAltitude - _MinAltitude) + _MinAltitude;
+				float strataStartAltitude = GetRemappedAltitude(float3(i.uv.x * 2 - 1 ,(_StrataIndex / (_NumStrata - 1)) * (_MaxAltitude - _MinAltitude) + _MinAltitude, i.uv.y * 2 - 1), _MinAltitude, _MaxAltitude);
+				float strataTopAltitude = GetRemappedAltitude(float3(i.uv.x * 2 - 1 ,((_StrataIndex + 1) / (_NumStrata - 1)) * (_MaxAltitude - _MinAltitude) + _MinAltitude, i.uv.y * 2 - 1), _MinAltitude, _MaxAltitude);
 
 				float cliffMask = 0;
 				
-				float centerOfStrataAltitude = (strataTopAltitude - strataStartAltitude) * 0.5 + strataStartAltitude;
+				float centerOfStrataAltitude = (strataTopAltitude + strataStartAltitude) * 0.5;
 				float heightDeltaSoft = 0;
 				if(pixelAltitude < centerOfStrataAltitude) {
 					float midPointAltitude = (centerOfStrataAltitude - _MinAltitude) * 0.5;
 					float distToMidAltitude = abs(midPointAltitude - pixelAltitude);
-					//cliffMask = 1.0 - saturate(distToMidAltitude / (centerOfStrataAltitude - _MinAltitude) * 0.5);
 
 					float distToStrataCenter = centerOfStrataAltitude - pixelAltitude;
 					cliffMask = 1.0 - saturate(distToStrataCenter / ((centerOfStrataAltitude - _MinAltitude) * 0.5));
@@ -104,7 +102,6 @@
 				else {
 					float midPointAltitude = (_MaxAltitude - centerOfStrataAltitude) * 0.5;
 					float distToMidAltitude = abs(midPointAltitude - pixelAltitude);
-					//cliffMask = 1.0 - saturate(distToMidAltitude / (_MaxAltitude - centerOfStrataAltitude) * 0.5);
 
 					float distToStrataCenter = pixelAltitude - centerOfStrataAltitude;
 					cliffMask = 1.0 - saturate(distToStrataCenter / ((_MaxAltitude - centerOfStrataAltitude) * 0.5));
@@ -113,36 +110,16 @@
 				}
 
 
-				// HARD CLIFFS ONLY:::				
-				//float4 baseHeight = tex2D(_MainTex, i.uv);
-
-				//float normalizedAltitude = (baseHeight.x - _MinAltitude) / (_MaxAltitude - _MinAltitude);
-				//float strataValue = GetRemappedValue01(normalizedAltitude, _RemapOffset, _NumStrata);
-				//float pixelAltitude = baseHeight.x;
-
-				//float strataHardness = rockStrataDataCBuffer[_StrataIndex].hardness;
-
-				//float strataStartValue01 = GetRemappedValue01(_StrataIndex / (_NumStrata - 1), _RemapOffset, _NumStrata);
-				//float strataStartAltitude = strataStartValue01 * (_MaxAltitude - _MinAltitude) + _MinAltitude;
-
-				//float strataTopValue01 = GetRemappedValue01((_StrataIndex + 1) / (_NumStrata - 1), _RemapOffset, _NumStrata);
-				//float strataTopAltitude = strataTopValue01 * (_MaxAltitude - _MinAltitude) + _MinAltitude;
-
 				float cliffMaskHard = (pixelAltitude - strataStartAltitude) / (_MaxAltitude - strataStartAltitude);
 				cliffMaskHard = 1.0 - saturate(cliffMaskHard);
 				if(pixelAltitude < strataStartAltitude)
 					cliffMaskHard = 0;
 
-				float heightDeltaHard = (strataTopAltitude - strataStartAltitude) * cliffMaskHard * strataHardness;
+				float heightDeltaHard = (strataTopAltitude - strataStartAltitude) * cliffMaskHard * saturate(strataHardness - 0.5) * 2;
 				
-				//baseHeight.x = cliffMask;
-				//baseHeight.x += (strataTopAltitude - strataStartAltitude) * cliffMask * strataHardness;
-				//return baseHeight;
-				
+				baseHeight.x += lerp(heightDeltaSoft, heightDeltaHard, 1); // only using hardening for now
 
-
-				baseHeight.x += lerp(heightDeltaSoft, heightDeltaHard, strataHardness);
-
+				//baseHeight.x = thisStrataEndAltitude; //lerp(0, thisStrataEndAltitude - pixelAltitude, cliffMaskHard);
 				return baseHeight;
 				
 

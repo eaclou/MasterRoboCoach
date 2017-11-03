@@ -22,9 +22,11 @@ int resolutionZ = 8;
 float4 _QuadBounds;
 float4 _GlobalBounds;
 
+int _NumStrata;
+
 //StructuredBuffer<GenomeNoiseOctaveData> terrainGenomeCBuffer;
 //RWTexture2D<float4> mainRenderTexture;
-
+//RWTexture2D<float4> strataRemapTexture;
 
 Texture2D<float4> heightTexture0;
 Texture2D<float4> heightTexture1;
@@ -116,40 +118,30 @@ void CSGenerateTriangleIndices (uint3 id : SV_DispatchThreadID)
 	terrainTriangleCBuffer[index1] = triangleIndexData1;
 }
 
-
-
-
-// OLD:
-/*
-#pragma kernel CSInitializeMainRenderTexture
+#pragma kernel CSFillStrataRemapTexture
 [numthreads(1,1,1)]
-void CSInitializeMainRenderTexture (uint3 id : SV_DispatchThreadID)
+void CSFillStrataRemapTexture (uint3 id : SV_DispatchThreadID)
 {
-	// TODO: insert actual code here!
+	float numStrataFloat = (float)_NumStrata;
+	float offset = Value1D(id.x, 4).x * 0.0 * (1.0 / (numStrataFloat - 1.0));
+	float remapValue = (float)id.x / (numStrataFloat - 1.0) + offset;
+	//strataRemapTexture[id.xy] = float4(remapValue,0,0,0);
 	
-	uint elements;
-	uint stride;
-	terrainGenomeCBuffer.GetDimensions(elements, stride);	
-	float noiseOctaveCount = (float)elements;
+	//strataRemapTexture[float2(0,0)] = float4(0,0,0,0);               // 0-->0
+	//strataRemapTexture[float2(_NumStrata - 1,0)] = float4(1,0,0,0);  // 1-->1
+}
 
-	float xRange = xEnd - xStart;
-	float zRange = zEnd - zStart;
-	float xPart = float(id.x) / (float)(resolutionX - 1);
-	float zPart = float(id.y) / (float)(resolutionZ - 1);
-	float x = xPart * xRange + xStart;
-	float z = zPart * zRange + zStart;
+#pragma kernel CSGenerateStrataProperties
+[numthreads(1,1,1)]
+void CSGenerateStrataProperties (uint3 id : SV_DispatchThreadID)
+{
 
-	float accumulatedAltitude = 0;
 
-	// NOISE!!!!
-	for(int i = 0; i < 4; i++) {
-		if(i < noiseOctaveCount) {			
-			float3 noiseSample = Value2D(float2(x,z) + terrainGenomeCBuffer[i].offset.xz, terrainGenomeCBuffer[i].frequency.x);
-
-			float altitude = 1 - abs(noiseSample.x);
-			accumulatedAltitude += altitude * terrainGenomeCBuffer[i].amplitude.x;
-		}	
-	}
-
-	mainRenderTexture[float2(id.x,id.y)] = float4(accumulatedAltitude,accumulatedAltitude,accumulatedAltitude,1);
-}*/
+	//float numStrataFloat = (float)_NumStrata;
+	//float offset = Value1D(id.x, 4).x * 0.0 * (1.0 / (numStrataFloat - 1.0));
+	//float remapValue = (float)id.x / (numStrataFloat - 1.0) + offset;
+	//strataRemapTexture[id.xy] = float4(remapValue,0,0,0);
+	
+	//strataRemapTexture[float2(0,0)] = float4(0,0,0,0);               // 0-->0
+	//strataRemapTexture[float2(_NumStrata - 1,0)] = float4(1,0,0,0);  // 1-->1
+}

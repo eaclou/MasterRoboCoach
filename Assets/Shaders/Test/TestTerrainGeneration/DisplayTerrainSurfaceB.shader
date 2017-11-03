@@ -2,6 +2,7 @@
 	Properties {
 		_Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
+		//_RemapTex ("Remap Tex", 2D) = "gray" {}
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 	}
@@ -23,6 +24,7 @@
 
 
 		sampler2D _MainTex;
+		//sampler2D _RemapTex;
 
 		struct v2f {
 			float4 vertex : POSITION;
@@ -81,24 +83,41 @@
 			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
 			o.Albedo = c.rgb;
 			o.Albedo = IN.worldPos;
+			float3 strataColorNext;
+			float3 strataColorPrev;
 			float3 strataColor;
 			float strataHardness; 
 			
-			float normalizedAltitude = (IN.worldPos.y - _MinAltitude) / (_MaxAltitude - _MinAltitude);
-			float strataValue = GetRemappedValue01(normalizedAltitude, _RemapOffset, _NumStrata);
-			float pixelAltitude = IN.worldPos.y;
+			float normalizedAltitude = (GetRemappedAltitude(IN.worldPos * float3(1/680 ,1 , 1/680), _MinAltitude, _MaxAltitude) - _MinAltitude) / (_MaxAltitude - _MinAltitude);
+			//float3 normalizedPosition = float3(IN.worldPos.x / 680, normalizedAltitude, IN.worldPos.z / 680);
+			//float strataValue = GetRemappedValue01(normalizedPosition, _RemapOffset, _NumStrata);
+			//float strataValue = tex2D(_RemapTex, float2(normalizedAltitude, 0.5)).x;
+			//float pixelAltitude = IN.worldPos.y;
 			
-			float strataIndex = round(strataValue * (_NumStrata-1));  // 7 == SizeOfBuffer - 1
+			float strataIndex = floor(normalizedAltitude * (_NumStrata-1));  // 7 == SizeOfBuffer - 1
 			// REALLY WEIRD stuff going on with this, need to set it up exactly like this otherwise it seems to choose 1 or the other compiler path
 			#ifdef SHADER_API_D3D11	
 			normalizedAltitude = 1;
             strataColor = rockStrataDataCBuffer[(int)clamp(strataIndex, 0, _NumStrata - 1)].color;
+			strataColorNext = rockStrataDataCBuffer[(int)clamp(strataIndex + 1, 0, _NumStrata - 1)].color;
+			strataColorPrev = rockStrataDataCBuffer[(int)clamp(strataIndex - 1, 0, _NumStrata - 1)].color;
 			strataHardness = rockStrataDataCBuffer[(int)clamp(strataIndex, 0, _NumStrata - 1)].hardness;
 			#endif
 
-			o.Albedo = float3(1,1,1) * strataHardness * normalizedAltitude * strataColor; // REALLY WEIRD need to multiply by altitude to get strata Colors??????
 			
-			
+
+			o.Albedo = float3(1,1,1) * normalizedAltitude * strataColor * strataColor * strataColorNext; // REALLY WEIRD need to multiply by altitude to get strata Colors??????
+			o.Albedo = lerp(o.Albedo, float3(0.9, 0.8, 0.7), 0.8);
+			o.Albedo *= length(strataColor);// * strataHardness;
+			//o.Albedo = lerp(o.Albedo, float3(0.9, 0.8, 0.7), 1);
+			if(IN.color.y > 0) {
+				o.Albedo = lerp(o.Albedo, float3(0.5, 0.5, 0.5) + (strataColor + strataColorNext + strataColorPrev) * 0.03, smoothstep(0.005, 0.09, IN.color.y));
+			}
+			if(IN.color.z > 0) {
+				o.Albedo = lerp(o.Albedo, float3(1, 1, 1), smoothstep(0.01, 0.08, IN.color.z));
+			}
+			//o.Albedo = float3(0,0,0);
+			//o.Albedo.b = IN.color.b;
 
 			
 			// Metallic and smoothness come from slider variables
