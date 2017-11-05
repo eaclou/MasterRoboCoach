@@ -179,7 +179,7 @@ public class TerrainChunk : MonoBehaviour {
               + ", east: " + thisEast.ToString()
                + ", south: " + thisSouth.ToString());*/
         //TerrainConstructorGPU constructor = new TerrainConstructorGPU();
-        Mesh groundMesh = TerrainConstructorGPU.GetTerrainMesh(genome, this.resolutionX, this.resolutionZ, position.x, position.y, scale.x * 2f, scale.y * 2);
+        Mesh groundMesh = TerrainConstructorGPU.GetTerrainMesh(this.resolutionX, this.resolutionZ, position.x, position.y, scale.x * 2f, scale.y * 2);
         chunkGO.AddComponent<MeshFilter>().sharedMesh = groundMesh;
         this.mesh = groundMesh;
         chunkGO.AddComponent<MeshRenderer>().material = mat;

@@ -106,18 +106,18 @@
 
 			
 
-			o.Albedo = float3(1,1,1) * normalizedAltitude * strataColor * strataColor * strataColorNext; // REALLY WEIRD need to multiply by altitude to get strata Colors??????
-			o.Albedo = lerp(o.Albedo, float3(0.9, 0.8, 0.7), 0.8);
-			o.Albedo *= length(strataColor);// * strataHardness;
-			//o.Albedo = lerp(o.Albedo, float3(0.9, 0.8, 0.7), 1);
+			//o.Albedo = float3(1,1,1) * normalizedAltitude * strataColor * strataColor * strataColorNext; // REALLY WEIRD need to multiply by altitude to get strata Colors??????
+			//o.Albedo = lerp(o.Albedo, float3(0.9, 0.8, 0.7), 0.8);
+			//o.Albedo *= length(strataColor);// * strataHardness;
+			o.Albedo = float3(0.4, 0.4, 0.4); // * IN.color;
 			if(IN.color.y > 0) {
-				o.Albedo = lerp(o.Albedo, float3(0.5, 0.5, 0.5) + (strataColor + strataColorNext + strataColorPrev) * 0.03, smoothstep(0.005, 0.09, IN.color.y));
+				o.Albedo = lerp(o.Albedo, float3(1, 0.5, 0.25), smoothstep(0.01, 1, IN.color.y));
 			}
 			if(IN.color.z > 0) {
-				o.Albedo = lerp(o.Albedo, float3(1, 1, 1), smoothstep(0.01, 0.08, IN.color.z));
+				//o.Albedo = lerp(o.Albedo, float3(0.7, 0.8, 1), smoothstep(0.01, 0.08, IN.color.z));
 			}
-			//o.Albedo = float3(0,0,0);
-			//o.Albedo.b = IN.color.b;
+			//o.Albedo = float3(IN.color.y,0,0);
+			//o.Albedo = IN.color;
 
 			
 			// Metallic and smoothness come from slider variables

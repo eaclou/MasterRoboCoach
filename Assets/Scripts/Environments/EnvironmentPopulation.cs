@@ -72,7 +72,7 @@ public class EnvironmentPopulation {
     }
 
     public void TrimBaselineGenomes() {
-        Debug.Log("TrimBaselineGenomes RemoveRange " + popSize.ToString() + ", " + numBaseline.ToString() + ", envList: " + environmentGenomeList.Count.ToString());
+        //Debug.Log("TrimBaselineGenomes RemoveRange " + popSize.ToString() + ", " + numBaseline.ToString() + ", envList: " + environmentGenomeList.Count.ToString());
         environmentGenomeList.RemoveRange(popSize, numBaseline);
     }
     public void AppendBaselineGenomes() {

@@ -186,7 +186,7 @@
 				float4 baseHeight = tex2D(_MainTex, i.uv);
 
 				float distToCenter = length(i.uv - float2(0.5, 0.5));
-				baseHeight.x = lerp(baseHeight.x, centerAltitude, 1.0 - saturate(distToCenter * 6));
+				baseHeight.x = lerp(baseHeight.x, centerAltitude, saturate(1.5 - saturate(distToCenter * 12)));
 				
 				return baseHeight;				
 			}

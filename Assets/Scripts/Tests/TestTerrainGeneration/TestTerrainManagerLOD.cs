@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class TestTerrainManagerLOD : MonoBehaviour {
 
     public GameObject TextureDisplayQuadGO1;
@@ -37,18 +38,15 @@ public class TestTerrainManagerLOD : MonoBehaviour {
 
     public int xResolution = 1024;
     public int yResolution = 1024;
-
-    public struct GenomeNoiseOctaveData {
-        public Vector3 amplitude;
-        public Vector3 frequency;
-        public Vector3 offset;
-        public float rotation;
-        public float ridgeNoise;
-    }
-
+    
     public struct RockStrataData {
         public Vector3 color;
         public float hardness;
+    }
+
+    public void GenerateTerrainFromGenome(EnvironmentGenome genome) {
+
+
     }
 
     // Use this for initialization
@@ -140,22 +138,19 @@ public class TestTerrainManagerLOD : MonoBehaviour {
         ThirdPass();  // Debris 1
 
         FourthPass(); // SNOW
-
-        for(int i = 0; i < 8; i++) {
-            SmoothHeights();
-        }
-
-        
+                
         //StrataAdjustments(3);
 
         //for (int i = 0; i < 2; i++) {
         //    SmoothHeights();
         //}
 
-
         // Arena Adjustments:
         ArenaAdjustments();
 
+        for (int i = 0; i < 8; i++) {
+            SmoothHeights();
+        }
 
         // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -200,7 +195,7 @@ public class TestTerrainManagerLOD : MonoBehaviour {
         // NEW HEIGHTS TEXTURE:::::
         int numNoiseOctaves = 7;
         ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
-        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(1f,1f,1f) * 42f, new Vector3(1.6f, 1f, 1f) * 1.0f, new Vector3(0f, 0.1f, 0f), 4.56f, 1f));
+        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(1f,1f,1f) * 40f, new Vector3(1.6f, 1f, 1f) * 2.0f, new Vector3(0f, 0.1f, 0f), 4.56f, 1f));
         modifyHeightMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
         modifyHeightMat.SetVector("_NewTexLevels", new Vector4(0f, 0.25f, 0f, 1f));   // blackIn, whiteIn, blackOut, whiteOut
         modifyHeightMat.SetFloat("_NewTexFlowAmount", 0.75f);

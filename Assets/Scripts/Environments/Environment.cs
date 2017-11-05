@@ -50,6 +50,15 @@ public class Environment : MonoBehaviour {
         terrainManagerGO.transform.localPosition = Vector3.zero;
         TerrainManager terrainManager = terrainManagerGO.AddComponent<TerrainManager>();
         //Debug.Log("TERRAIN BUILD!");
+
+        
+
+        // Set Data on Constructor:
+        //TerrainConstructorGPU.terrainConstructorGPUCompute = this.terrainConstructorGPUCompute; // set in GameManager Start()
+        // Set Cascade Height Textures:
+        //TerrainConstructorGPU.heightMapCascadeTextures = heightMapCascadeTextures;
+        TerrainConstructorGPU.GenerateTerrainTexturesFromGenome(genome);
+
         terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 17f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 17f), 6);
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");
@@ -253,7 +262,18 @@ public class Environment : MonoBehaviour {
 
         if(genome.useTerrain) {
             environmentGameplay.groundCollision = new GameObject("ground");
-            Mesh topology = TerrainConstructor.GetTerrainMesh(genome, 32, 32, 0f, 0f, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
+
+            //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+            // Need to set Terrain RenderTextureCascade and some other data before getting Collision Mesh:
+            //TerrainConstructorGPU.GenerateTerrainTexturesFromGenome();
+            // INITIALIZE TERRAIN-COMPUTE::
+            
+            TerrainConstructorGPU.GenerateTerrainTexturesFromGenome(genome);
+
+            Mesh topology = TerrainConstructorGPU.GetTerrainMesh(32, 32, 0f, 0f, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
+            //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+            //Mesh topology = TerrainConstructor.GetTerrainMesh(genome, 32, 32, 0f, 0f, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
             environmentGameplay.groundCollision.AddComponent<MeshCollider>().sharedMesh = topology;
             environmentGameplay.groundCollision.transform.parent = environmentGameplay.gameObject.transform;
             environmentGameplay.groundCollision.transform.localPosition = new Vector3(0f, 0f, 0f);

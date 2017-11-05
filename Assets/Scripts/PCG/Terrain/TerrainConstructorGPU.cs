@@ -6,10 +6,9 @@ using UnityEngine;
 public static class TerrainConstructorGPU {
 
     public static ComputeShader terrainConstructorGPUCompute;
-    public static RenderTexture mainRenderTexture;
-    private static RenderTexture secondaryRenderTexture;
-
-    private static ComputeBuffer terrainGenomeCBuffer;
+    //public static RenderTexture mainRenderTexture;
+    //private static RenderTexture secondaryRenderTexture;
+    //private static ComputeBuffer terrainGenomeCBuffer;
 
     private static ComputeBuffer terrainVertexCBuffer;
     private static ComputeBuffer terrainUVCBuffer;
@@ -18,9 +17,10 @@ public static class TerrainConstructorGPU {
     private static ComputeBuffer terrainTriangleCBuffer;
 
     public static RenderTexture[] heightMapCascadeTextures;
+    public static RenderTexture temporaryRT;
 
-    //public static Texture2D[] presetNoiseTextures;
-    //public static RenderTexture[] generatedPaletteNoiseTextures;
+    public static int xResolution = 1024;
+    public static int yResolution = 1024;
 
     public struct TriangleIndexData {
         public int v1;
@@ -28,39 +28,263 @@ public static class TerrainConstructorGPU {
         public int v3;
     }
 
-    /*public struct GenomeNoiseOctaveData {
-        public Vector3 amplitude;
-        public Vector3 frequency;
-        public Vector3 offset;
-        public float rotation;
-        public float use_ridged_noise;
-    }*/
+    public static void GenerateTerrainTexturesFromGenome(EnvironmentGenome genome) {
+        
+
+        if(heightMapCascadeTextures == null) {
+            heightMapCascadeTextures = new RenderTexture[4];
+            // Initialize Cascade Textures
+            for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+                RenderTexture renderTexture = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Default);
+                renderTexture.wrapMode = TextureWrapMode.Clamp;
+                renderTexture.filterMode = FilterMode.Bilinear;
+                renderTexture.enableRandomWrite = true;
+                renderTexture.useMipMap = true;
+                renderTexture.Create();
+
+                heightMapCascadeTextures[i] = renderTexture;
+            }
+        }
+        else {
+            ClearCascadeHeightTextures();
+        }
+        
+        if(temporaryRT == null) {
+            temporaryRT = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            temporaryRT.wrapMode = TextureWrapMode.Clamp;
+            temporaryRT.filterMode = FilterMode.Bilinear;
+            temporaryRT.enableRandomWrite = true;
+            temporaryRT.useMipMap = true;
+            temporaryRT.Create();
+        }
+               
+
+        //Debug.Log("CascadeRenderTexturesCreated!");
+        // BLIT PASSES HERE::::::
+
+        if(genome.terrainGenome.terrainGlobalRockPasses != null) {  // if any globalrockPasses
+            for(int i = 0; i < genome.terrainGenome.terrainGlobalRockPasses.Count; i++) {
+                GlobalRockPass(genome.terrainGenome.terrainGlobalRockPasses[i]);
+            }
+        }
+        
+        if (genome.terrainGenome.terrainGlobalSedimentPasses != null) {  // if any globalrockPasses
+            for (int i = 0; i < genome.terrainGenome.terrainGlobalSedimentPasses.Count; i++) {
+                GlobalDebrisPass(genome.terrainGenome.terrainGlobalSedimentPasses[i]);
+            }
+        }       
 
 
-    public static Mesh GetTerrainMesh(EnvironmentGenome genome, int xResolution, int zResolution, float xCenter, float zCenter, float xSize, float zSize) {
+        ArenaAdjustments();
+
+        for (int i = 0; i < genome.terrainGenome.numRockSmoothPasses; i++) {
+            SmoothHeights();
+        }
+
+        CenterHeightTextures();
+
+        
+        //Debug.Log(MeasureHeights().ToString());
+    }
+    
+    private static void GlobalRockPass(TerrainGenome.GlobalRockPass pass) {
+
+        Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitModifyRockHeightGlobal"));
+        modifyHeightMat.SetPass(0);
+       
+        //modifyHeightMat.EnableKeyword("_USE_NEW_NOISE"); // absence uses procedural noise
+        //modifyHeightMat.EnableKeyword("_USE_MASK1_NOISE");
+        //modifyHeightMat.EnableKeyword("_USE_MASK2_NOISE");
+        //modifyHeightMat.EnableKeyword("_USE_FLOW_NOISE");
+        
+        // NEW HEIGHTS TEXTURE:::::
+        int numNoiseOctaves = pass.numNoiseOctavesHeight;
+        ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.heightSampleData.amplitude, pass.heightSampleData.frequency, pass.heightSampleData.offset, pass.heightSampleData.rotation, pass.heightSampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
+        modifyHeightMat.SetVector("_NewTexLevels", pass.heightLevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_NewTexFlowAmount", pass.heightFlowAmount);
+
+        // MASK 1 TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesMask1;
+        ComputeBuffer maskTex1SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex1SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.mask1SampleData.amplitude, pass.mask1SampleData.frequency, pass.mask1SampleData.offset, pass.mask1SampleData.rotation, pass.mask1SampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("maskTex1SampleParamsCBuffer", maskTex1SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex1Levels", pass.mask1LevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex1FlowAmount", pass.mask1FlowAmount);
+
+        // MASK 2 TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesMask2;
+        ComputeBuffer maskTex2SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex2SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.mask2SampleData.amplitude, pass.mask2SampleData.frequency, pass.mask2SampleData.offset, pass.mask2SampleData.rotation, pass.mask2SampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("maskTex2SampleParamsCBuffer", maskTex2SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex2Levels", pass.mask2LevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex2FlowAmount", pass.mask2FlowAmount);
+
+        // FLOW TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesFlow;
+        ComputeBuffer flowTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        flowTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.flowSampleData.amplitude, pass.flowSampleData.frequency, pass.flowSampleData.offset, pass.flowSampleData.rotation, pass.flowSampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("flowTexSampleParamsCBuffer", flowTexSampleParamsCBuffer);
+
+
+        for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i), -1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i)));
+            Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, modifyHeightMat);  // perform calculations on texture
+            Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
+        }
+
+        newTexSampleParamsCBuffer.Release();
+        maskTex1SampleParamsCBuffer.Release();
+        maskTex2SampleParamsCBuffer.Release();
+        flowTexSampleParamsCBuffer.Release();
+        
+    }
+    private static void GlobalDebrisPass(TerrainGenome.GlobalSedimentPass pass) {
+
+        Vector3 heights = MeasureHeights();
+
+
+        Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitModifyDebrisHeightGlobal"));
+        modifyHeightMat.SetPass(0);
+
+        modifyHeightMat.SetFloat("_MaxAltitudeSedimentDrape", Mathf.Lerp(heights.y, heights.x, pass.maxAltitudeSedimentDrape));  // percentage based so use as lerp driver
+        modifyHeightMat.SetFloat("_SedimentDrapeMagnitude", pass.sedimentDrapeMagnitude);
+        modifyHeightMat.SetFloat("_UniformSedimentHeight", pass.uniformSedimentHeight);
+        modifyHeightMat.SetFloat("_TalusAngle", pass.talusAngle);
+
+        // NEW HEIGHTS TEXTURE:::::
+        int numNoiseOctaves = pass.numNoiseOctavesHeight;
+        ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.heightSampleData.amplitude, pass.heightSampleData.frequency, pass.heightSampleData.offset, pass.heightSampleData.rotation, pass.heightSampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
+        modifyHeightMat.SetVector("_NewTexLevels", pass.heightLevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_NewTexFlowAmount", pass.heightFlowAmount);
+
+        // MASK 1 TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesMask1;
+        ComputeBuffer maskTex1SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex1SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.mask1SampleData.amplitude, pass.mask1SampleData.frequency, pass.mask1SampleData.offset, pass.mask1SampleData.rotation, pass.mask1SampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("maskTex1SampleParamsCBuffer", maskTex1SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex1Levels", pass.mask1LevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex1FlowAmount", pass.mask1FlowAmount);
+
+        // MASK 2 TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesMask2;
+        ComputeBuffer maskTex2SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex2SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.mask2SampleData.amplitude, pass.mask2SampleData.frequency, pass.mask2SampleData.offset, pass.mask2SampleData.rotation, pass.mask2SampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("maskTex2SampleParamsCBuffer", maskTex2SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex2Levels", pass.mask2LevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex2FlowAmount", pass.mask2FlowAmount);
+
+        // FLOW TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesFlow;
+        ComputeBuffer flowTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        flowTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.flowSampleData.amplitude, pass.flowSampleData.frequency, pass.flowSampleData.offset, pass.flowSampleData.rotation, pass.flowSampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("flowTexSampleParamsCBuffer", flowTexSampleParamsCBuffer);
+
+
+        for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i), -1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i)));
+            Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, modifyHeightMat);  // perform calculations on texture
+            Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
+        }
+
+        newTexSampleParamsCBuffer.Release();
+        maskTex1SampleParamsCBuffer.Release();
+        maskTex2SampleParamsCBuffer.Release();
+        flowTexSampleParamsCBuffer.Release();
+    }
+
+    private static void SmoothHeights() {
+        Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitSmooth"));
+        modifyHeightMat.SetPass(0);
+        modifyHeightMat.SetInt("_PixelsWidth", xResolution);
+        modifyHeightMat.SetInt("_PixelsHeight", yResolution);
+        
+        for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i), -1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i)));
+            Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, modifyHeightMat);  // perform calculations on texture
+            Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
+        }
+
+    }
+
+    private static Vector3 MeasureHeights() {
+        ComputeBuffer altitudeMeasurementsCBuffer = new ComputeBuffer(1, sizeof(float) * 3);
+        Vector3[] altitudeMeasurements = new Vector3[1];
+        altitudeMeasurements[0] = new Vector3(-100f, 100f, 0f);
+        altitudeMeasurementsCBuffer.SetData(altitudeMeasurements);
+
+        int measureHeightsKernelID = terrainConstructorGPUCompute.FindKernel("CSMeasureHeights");
+        terrainConstructorGPUCompute.SetTexture(measureHeightsKernelID, "heightTexture0", heightMapCascadeTextures[0]);   // Read-Only 
+        terrainConstructorGPUCompute.SetBuffer(measureHeightsKernelID, "altitudeMeasurementsCBuffer", altitudeMeasurementsCBuffer);
+        // Measure Stats:
+        terrainConstructorGPUCompute.Dispatch(measureHeightsKernelID, xResolution, yResolution, 1);
+
+        altitudeMeasurementsCBuffer.GetData(altitudeMeasurements);
+
+        altitudeMeasurementsCBuffer.Release();
+
+        altitudeMeasurements[0].z /= ((float)xResolution * (float)yResolution);
+        return altitudeMeasurements[0];
+    }
+
+    private static void ArenaAdjustments() {
+        Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitArenaAdjustments"));
+        modifyHeightMat.SetPass(0);
+        Graphics.Blit(heightMapCascadeTextures[3], temporaryRT, modifyHeightMat);  // perform calculations on texture
+        Graphics.Blit(temporaryRT, heightMapCascadeTextures[3]); // copy results back into main texture       
+
+    }
+
+    private static  GenomeNoiseOctaveData[] SetNoiseSamplerSettings(int numOctaves, Vector3 baseAmplitude, Vector3 baseFrequency, Vector3 baseOffset, float baseRotation, float ridgeNoise) {
+
+        GenomeNoiseOctaveData[] sampleParamsArray = new GenomeNoiseOctaveData[numOctaves];
+        for (int i = 0; i < sampleParamsArray.Length; i++) {
+            GenomeNoiseOctaveData genomeNoiseOctaveData;
+            genomeNoiseOctaveData.amplitude = baseAmplitude / Mathf.Pow(2, i);
+            genomeNoiseOctaveData.frequency = baseFrequency * Mathf.Pow(2, i);
+            genomeNoiseOctaveData.offset = new Vector3(0f, 0f, 0f) + baseOffset;
+            genomeNoiseOctaveData.rotation = baseRotation * i;
+            genomeNoiseOctaveData.ridgeNoise = ridgeNoise;
+            sampleParamsArray[i] = genomeNoiseOctaveData;
+        }
+        return sampleParamsArray;
+    }
+
+    private static void CenterHeightTextures() {
+        Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitCenterHeightTextures"));
+        modifyHeightMat.SetPass(0);
+        modifyHeightMat.SetTexture("_CenterTex", heightMapCascadeTextures[3]);
+
+        for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, modifyHeightMat);  // perform calculations on texture
+            Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture    
+        }   
+    }
+
+    private static void ClearCascadeHeightTextures() {
+        // Generate list of Triangle Indices (grouped into 3 per triangle):::
+        int clearRenderTexturesKernelID = terrainConstructorGPUCompute.FindKernel("CSClearRenderTextures");
+        terrainConstructorGPUCompute.SetTexture(clearRenderTexturesKernelID, "heightTextureWrite0", heightMapCascadeTextures[0]);   // Write-Only 
+        terrainConstructorGPUCompute.SetTexture(clearRenderTexturesKernelID, "heightTextureWrite1", heightMapCascadeTextures[1]); // 
+        terrainConstructorGPUCompute.SetTexture(clearRenderTexturesKernelID, "heightTextureWrite2", heightMapCascadeTextures[2]); //
+        terrainConstructorGPUCompute.SetTexture(clearRenderTexturesKernelID, "heightTextureWrite3", heightMapCascadeTextures[3]); // 
+        //terrainConstructorGPUCompute.SetBuffer(clearRenderTexturesKernelID, "terrainTriangleCBuffer", terrainTriangleCBuffer);
+
+        // GENERATE MESH DATA!!!!
+        terrainConstructorGPUCompute.Dispatch(clearRenderTexturesKernelID, heightMapCascadeTextures[0].width, heightMapCascadeTextures[0].height, 1);
+    }
+    
+    public static Mesh GetTerrainMesh(int xResolution, int zResolution, float xCenter, float zCenter, float xSize, float zSize) {
 
         
         if (terrainConstructorGPUCompute == null) {
-            terrainConstructorGPUCompute = new ComputeShader();
+            Debug.LogError("NO COMPUTE SHADER SET!!!!");
+           // terrainConstructorGPUCompute = new ComputeShader();
         }
-        //if (mainRenderTexture == null) {
-            //mainRenderTexture.Release();
-       /* mainRenderTexture = new RenderTexture(xResolution, zResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-        mainRenderTexture.wrapMode = TextureWrapMode.Repeat;
-        mainRenderTexture.filterMode = FilterMode.Point;
-        mainRenderTexture.enableRandomWrite = true;
-        mainRenderTexture.useMipMap = true;
-        mainRenderTexture.Create();
-        //}
-        //if (secondaryRenderTexture == null) {
-        secondaryRenderTexture = new RenderTexture(xResolution, zResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-        secondaryRenderTexture.wrapMode = TextureWrapMode.Repeat;
-        secondaryRenderTexture.filterMode = FilterMode.Point;
-        secondaryRenderTexture.enableRandomWrite = true;
-        secondaryRenderTexture.useMipMap = true;
-        secondaryRenderTexture.Create();
-        //}*/
-                
+
         if (terrainVertexCBuffer != null)
             terrainVertexCBuffer.Release();
         terrainVertexCBuffer = new ComputeBuffer(xResolution * zResolution, sizeof(float) * 3);
@@ -84,12 +308,6 @@ public static class TerrainConstructorGPU {
         terrainConstructorGPUCompute.SetInt("resolutionZ", zResolution);
         terrainConstructorGPUCompute.SetVector("_QuadBounds", new Vector4(xCenter - offset.x, xCenter + offset.x, zCenter - offset.z, zCenter + offset.z));
         terrainConstructorGPUCompute.SetVector("_GlobalBounds", new Vector4(-680f, 680f, -680f, 680f));
-        //terrainConstructorGPUCompute.SetFloat("xStart", xCenter - offset.x);
-        //terrainConstructorGPUCompute.SetFloat("xEnd", xCenter + offset.x);
-        //terrainConstructorGPUCompute.SetFloat("zStart", zCenter - offset.z);
-        //terrainConstructorGPUCompute.SetFloat("zEnd", zCenter + offset.z);
-
-
 
         // Creates Actual Mesh data by reading from existing main Height Texture!!!!::::::
         int generateMeshDataKernelID = terrainConstructorGPUCompute.FindKernel("CSGenerateMeshData");
@@ -114,9 +332,6 @@ public static class TerrainConstructorGPU {
         Mesh mesh = GenerateMesh();
 
         // CLEANUP!!
-        //mainRenderTexture.Release();
-        //secondaryRenderTexture.Release();
-        //terrainGenomeCBuffer.Release();
         terrainVertexCBuffer.Release();
         terrainUVCBuffer.Release();
         terrainNormalCBuffer.Release();
@@ -163,3 +378,4 @@ public static class TerrainConstructorGPU {
         return terrainMesh;
     }    
 }
+

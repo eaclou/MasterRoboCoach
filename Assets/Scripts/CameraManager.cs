@@ -25,7 +25,7 @@ public class CameraManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        cameraPosWide = new Vector3(0f, 15f, -30f);
+        cameraPosWide = new Vector3(0f, 20f, -30f);
         cameraRotWide = Quaternion.Euler(25f, 0f, 0f);
         cameraPosTop = new Vector3(0f, 40f, 0f);
         cameraRotTop = Quaternion.Euler(90f, 0f, 0f);

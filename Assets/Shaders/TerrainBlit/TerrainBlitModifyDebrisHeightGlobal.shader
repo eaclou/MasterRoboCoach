@@ -75,8 +75,10 @@
 			float4 _MaskTex2Levels;
 			float _MaskTex2FlowAmount;
 			//float4 _FlowTexLevels;
-			
-			float _SeaLevel;
+
+			float _MaxAltitudeSedimentDrape;  // as a component of the normalized height range
+			float _SedimentDrapeMagnitude;  // 0 to 1.   1 = _MaxAltitudeSedimentDrape is minimum global altitude, 0 = no deposit
+			float _UniformSedimentHeight;
 			float _TalusAngle;
 
 			//int _PixelsWidth;
@@ -219,16 +221,10 @@
 				mask2Value = min(max(mask2Value - _MaskTex2Levels.x, 0) / (_MaskTex2Levels.y - _MaskTex2Levels.x), 1);
 				//mask1Value = pow(mask1Value, 1.0 / _Mask1Gamma);  // no gamma for now
 				
-				float newDebrisHeight = newHeight.x * mask1Value.x * mask2Value.x;
+				//float newDebrisHeight = newHeight.x * mask1Value.x * mask2Value.x;
 
 				
-
-
-				
-				
-				//float seaLevel = 36.0;
-				
-				float amountToFill = max(0, _SeaLevel - (baseHeight.x * 0.85)); 
+				float amountToFill = max(0, (_MaxAltitudeSedimentDrape - baseHeight.x) * _SedimentDrapeMagnitude); 
 				
 				baseHeight.y += amountToFill;
 
@@ -237,20 +233,15 @@
 				float2 grad = float2(gradX, gradY);
 				float gradMag = length(grad);
 
-				float slopeMin = 20;
-				float slopeMax = 100;
+				//float slopeMin = 20;
+				//float slopeMax = 100;
 
-				float depositionAmount = min(0, gradMag - 0.25) * -1; //1.0 - smoothstep(slopeMin, slopeMax, gradMag);
+				float depositionAmount = min(0, gradMag - _TalusAngle) * -1; //1.0 - smoothstep(slopeMin, slopeMax, gradMag);
 
-				baseHeight.y += depositionAmount;
+				baseHeight.y += depositionAmount * _UniformSedimentHeight;
 
 				return baseHeight;
 				
-				// Operation:
-				// Addition:
-				//baseHeight.y += newRockHeight;
-
-				//return baseHeight;
 				
 			}
 

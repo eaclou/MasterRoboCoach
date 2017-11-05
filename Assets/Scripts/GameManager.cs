@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
 
+    public ComputeShader terrainConstructorGPUCompute;  // is this really the best way to do this??
+
     public bool isTraining = false;
 
     public UIManager uiManager;
@@ -37,6 +39,7 @@ public class GameManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        TerrainConstructorGPU.terrainConstructorGPUCompute = this.terrainConstructorGPUCompute;
         FirstTimeInitialization();
     }
 	

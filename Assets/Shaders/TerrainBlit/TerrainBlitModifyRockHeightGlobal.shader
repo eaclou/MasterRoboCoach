@@ -3,10 +3,10 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}  // Original Heights
-		_NewTex  ("Texture", 2D) = "black" {}
-		_MaskTex1 ("Texture", 2D) = "white" {}
-		_MaskTex2 ("Texture", 2D) = "white" {}
-		_FlowTex ("Texture", 2D) = "gray" {}
+		//_NewTex  ("Texture", 2D) = "black" {}
+		//_MaskTex1 ("Texture", 2D) = "white" {}
+		//_MaskTex2 ("Texture", 2D) = "white" {}
+		//_FlowTex ("Texture", 2D) = "gray" {}
 	}
 	SubShader
 	{
@@ -21,10 +21,10 @@
 			#pragma target 5.0
 
 			// Default to Textures, which should have no effect if they are not Set (default values)
-			#pragma shader_feature _USE_NEW_NOISE
-			#pragma shader_feature _USE_MASK1_NOISE
-			#pragma shader_feature _USE_MASK2_NOISE
-			#pragma shader_feature _USE_FLOW_NOISE
+			//#pragma shader_feature _USE_NEW_NOISE
+			//#pragma shader_feature _USE_MASK1_NOISE
+			//#pragma shader_feature _USE_MASK2_NOISE
+			//#pragma shader_feature _USE_FLOW_NOISE
 						
 			#include "UnityCG.cginc"
 			#include "Assets/Shaders/Inc/NoiseShared.cginc"
@@ -58,10 +58,10 @@
 			};
 
 			sampler2D _MainTex;
-			sampler2D _NewTex;
-			sampler2D _MaskTex1;
-			sampler2D _MaskTex2;
-			sampler2D _FlowTex;
+			//sampler2D _NewTex;
+			//sampler2D _MaskTex1;
+			//sampler2D _MaskTex2;
+			//sampler2D _FlowTex;
 
 			StructuredBuffer<GenomeNoiseOctaveData> newTexSampleParamsCBuffer;
 			StructuredBuffer<GenomeNoiseOctaveData> maskTex1SampleParamsCBuffer;
@@ -179,44 +179,44 @@
 				float2 coords = float2(i.uv.x * (_GridBounds.y - _GridBounds.x) + _GridBounds.x, i.uv.y * (_GridBounds.w - _GridBounds.z) + _GridBounds.z);
 
 				// FLOW MAP:
-				float4 flowSample = 0.5;
-				#if defined(_USE_FLOW_NOISE)
-					flowSample = GetNoiseSampleDerivative(flowTexSampleParamsCBuffer, coords);
-				#else
-					flowSample = GetTexSample(_FlowTex, flowTexSampleParamsCBuffer, coords);
-				#endif
+				float4 flowSample = 0.0;
+				//#if defined(_USE_FLOW_NOISE)
+				flowSample = GetNoiseSampleDerivative(flowTexSampleParamsCBuffer, coords);
+				//#else
+				//	flowSample = GetTexSample(_FlowTex, flowTexSampleParamsCBuffer, coords);
+				//#endif
 
 				// Apply flow uv warp:
 				float2 flowCoords = coords + flowSample.xz;
 
 				float4 newHeight = float4(0,0,0,0);
-				#if defined(_USE_NEW_NOISE)
-					newHeight = GetNoiseSample(newTexSampleParamsCBuffer, lerp(coords, flowCoords, _NewTexFlowAmount));
-				#else 
-					newHeight = GetTexSample(_NewTex, newTexSampleParamsCBuffer, lerp(coords, flowCoords, _NewTexFlowAmount));
-				#endif
+				//#if defined(_USE_NEW_NOISE)
+				newHeight = GetNoiseSample(newTexSampleParamsCBuffer, lerp(coords, flowCoords, _NewTexFlowAmount));
+				//#else 
+				//	newHeight = GetTexSample(_NewTex, newTexSampleParamsCBuffer, lerp(coords, flowCoords, _NewTexFlowAmount));
+				//#endif
 
 				// MASKS:::::
 				float4 mask1Value = float4(1,1,1,1);
-				#if defined(_USE_MASK1_NOISE)
-					mask1Value *= GetNoiseSample(maskTex1SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex1FlowAmount)) * 0.5 + 0.5;  // get in 0-1 range
-				#else 
-					mask1Value *= GetTexSample(_MaskTex1, maskTex1SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex1FlowAmount));
-				#endif				
+				//#if defined(_USE_MASK1_NOISE)
+				mask1Value *= GetNoiseSample(maskTex1SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex1FlowAmount)) * 0.5 + 0.5;  // get in 0-1 range
+				//#else 
+				//	mask1Value *= GetTexSample(_MaskTex1, maskTex1SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex1FlowAmount));
+				//#endif				
 				// Mask2
 				float4 mask2Value = float4(1,1,1,1);
-				#if defined(_USE_MASK2_NOISE)
+				//#if defined(_USE_MASK2_NOISE)
 					mask2Value *= GetNoiseSample(maskTex2SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex2FlowAmount)) * 0.5 + 0.5;  // get in 0-1 range
-				#else 
-					mask2Value *= GetTexSample(_MaskTex2, maskTex2SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex2FlowAmount));
-				#endif
+				//#else 
+				//	mask2Value *= GetTexSample(_MaskTex2, maskTex2SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex2FlowAmount));
+				//#endif
 
 				// LEVELS:
-				mask1Value = min(max(mask1Value - float4(1,1,1,1) * _MaskTex1Levels.x, float4(0,0,0,0)) / (_MaskTex1Levels.y - _MaskTex1Levels.x), float4(1,1,1,1));
-				mask2Value = min(max(mask2Value - _MaskTex2Levels.x, 0) / (_MaskTex2Levels.y - _MaskTex2Levels.x), 1);
+				//mask1Value = min(max(mask1Value - float4(1,1,1,1) * _MaskTex1Levels.x, float4(0,0,0,0)) / (_MaskTex1Levels.y - _MaskTex1Levels.x), float4(1,1,1,1));
+				//mask2Value = min(max(mask2Value - _MaskTex2Levels.x, 0) / (_MaskTex2Levels.y - _MaskTex2Levels.x), 1);
 				//mask1Value = pow(mask1Value, 1.0 / _Mask1Gamma);  // no gamma for now
 				
-				float newRockHeight = newHeight.x * mask1Value.x * mask2Value.x;
+				float newRockHeight = newHeight.x * saturate(mask1Value.x) * saturate(mask2Value.x);
 				
 				// Operation:
 				// Addition:

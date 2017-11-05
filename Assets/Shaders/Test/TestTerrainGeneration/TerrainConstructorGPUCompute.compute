@@ -15,18 +15,29 @@ struct TriangleIndexData {
 
 int resolutionX = 8;
 int resolutionZ = 8;
-//float xStart = 0;
-//float xEnd = 8;
-//float zStart = 0;
-//float zEnd = 8;
+
 float4 _QuadBounds;
 float4 _GlobalBounds;
 
+//float _MaxAltitude;
+//float _MinAltitude;
+//float _AvgAltitude;
+
 int _NumStrata;
+
+RWStructuredBuffer<float3> altitudeMeasurementsCBuffer;
+//groupshared float sharedMaxAltitude = -100;
+//groupshared float sharedMinAltitude = 100;
+//groupshared float sharedTotalAltitude = 0;
 
 //StructuredBuffer<GenomeNoiseOctaveData> terrainGenomeCBuffer;
 //RWTexture2D<float4> mainRenderTexture;
 //RWTexture2D<float4> strataRemapTexture;
+
+RWTexture2D<float4> heightTextureWrite0;
+RWTexture2D<float4> heightTextureWrite1;
+RWTexture2D<float4> heightTextureWrite2;
+RWTexture2D<float4> heightTextureWrite3;
 
 Texture2D<float4> heightTexture0;
 Texture2D<float4> heightTexture1;
@@ -118,30 +129,23 @@ void CSGenerateTriangleIndices (uint3 id : SV_DispatchThreadID)
 	terrainTriangleCBuffer[index1] = triangleIndexData1;
 }
 
-#pragma kernel CSFillStrataRemapTexture
+#pragma kernel CSClearRenderTextures
 [numthreads(1,1,1)]
-void CSFillStrataRemapTexture (uint3 id : SV_DispatchThreadID)
+void CSClearRenderTextures (uint3 id : SV_DispatchThreadID)
 {
-	float numStrataFloat = (float)_NumStrata;
-	float offset = Value1D(id.x, 4).x * 0.0 * (1.0 / (numStrataFloat - 1.0));
-	float remapValue = (float)id.x / (numStrataFloat - 1.0) + offset;
-	//strataRemapTexture[id.xy] = float4(remapValue,0,0,0);
-	
-	//strataRemapTexture[float2(0,0)] = float4(0,0,0,0);               // 0-->0
-	//strataRemapTexture[float2(_NumStrata - 1,0)] = float4(1,0,0,0);  // 1-->1
+	heightTextureWrite0[id.xy] = float4(0,0,0,0);
+	heightTextureWrite1[id.xy] = float4(0,0,0,0);
+	heightTextureWrite2[id.xy] = float4(0,0,0,0);
+	heightTextureWrite3[id.xy] = float4(0,0,0,0);
 }
 
-#pragma kernel CSGenerateStrataProperties
+
+#pragma kernel CSMeasureHeights
 [numthreads(1,1,1)]
-void CSGenerateStrataProperties (uint3 id : SV_DispatchThreadID)
+void CSMeasureHeights (uint3 id : SV_DispatchThreadID)
 {
+	float4 texSample = heightTexture0.SampleLevel(_PointClamp, (float)id.xy / 1024, 0);
 
-
-	//float numStrataFloat = (float)_NumStrata;
-	//float offset = Value1D(id.x, 4).x * 0.0 * (1.0 / (numStrataFloat - 1.0));
-	//float remapValue = (float)id.x / (numStrataFloat - 1.0) + offset;
-	//strataRemapTexture[id.xy] = float4(remapValue,0,0,0);
-	
-	//strataRemapTexture[float2(0,0)] = float4(0,0,0,0);               // 0-->0
-	//strataRemapTexture[float2(_NumStrata - 1,0)] = float4(1,0,0,0);  // 1-->1
+	//altitudeMeasurementsCBuffer[0] = float3(texSample.x,-40,10002);
+	altitudeMeasurementsCBuffer[0] = float3(max(altitudeMeasurementsCBuffer[0].x, texSample.x), min(altitudeMeasurementsCBuffer[0].y, texSample.x), altitudeMeasurementsCBuffer[0].z + texSample.x);
 }

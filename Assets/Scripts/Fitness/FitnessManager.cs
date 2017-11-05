@@ -102,7 +102,7 @@ public class FitnessManager {
     }
 
     public void ResetHistoricalData() {
-        Debug.Log("ResetHISTORICALDATA!");
+        //Debug.Log("ResetHISTORICALDATA!");
         historicalComponentRecordMinimums = new float[fitnessComponentDefinitions.Count];  // keeps track of all-time value range of each fitnessComponent
         for(int i = 0; i < historicalComponentRecordMinimums.Length; i++) {
             historicalComponentRecordMinimums[i] = float.PositiveInfinity;
@@ -208,7 +208,7 @@ public class FitnessManager {
         for(int i = 0; i < evalGroup.fitCompList.Count; i++) {
             groupCopy.fitCompList.Add(evalGroup.fitCompList[i]);  // ... but they share the actual FitComp objects as ref
         }
-        Debug.Log("AddNewFitCompEvalGroup FitnessEvalGroupArray? " + FitnessEvalGroupArray[genomeIndex].Count.ToString());
+        //Debug.Log("AddNewFitCompEvalGroup FitnessEvalGroupArray? " + FitnessEvalGroupArray[genomeIndex].Count.ToString());
         FitnessEvalGroupArray[genomeIndex].Add(groupCopy);
     }
 
@@ -401,7 +401,7 @@ public class FitnessManager {
         alltimeBaselineVersusAvgScoreRatiosList.Add(avgPopFinalRatioAlltime);
         // CURRENT RATIOS:
         curBaselineVersusAvgScoreRatiosList.Add(avgPopFinalRatioCurrent);
-        Debug.Log("curBaselineVersusAvgScoreRatiosList " + avgPopFinalRatioCurrent.ToString());
+        //Debug.Log("curBaselineVersusAvgScoreRatiosList " + avgPopFinalRatioCurrent.ToString());
 
         //=================================================================================================
         // FINAL PROCESSED SINGLE FLOAT SCORE::::
@@ -459,7 +459,7 @@ public class FitnessManager {
         for (int i = 0; i < processedFitnessScores.Length; i++) {
             fitnessRankText += "[" + rankedIndicesList[i].ToString() + "]: " + rankedFitnessList[i].ToString() + "\n";
         }
-        Debug.Log(fitnessRankText);
+        //Debug.Log(fitnessRankText);
 
 
 
@@ -533,17 +533,17 @@ public class FitnessManager {
                 float rawBaselineScore;
                 float normalizedBaselineScore;
                 if ((componentRecordMaximums[i][k] - componentRecordMinimums[i][k]) != 0) {
-                    Debug.Log("FitnessEvalGroupArray length: " + FitnessEvalGroupArray.Length.ToString() + ", index: " + bestIndividualIndex.ToString());
-                    Debug.Log("FitnessEvalGroupArray [bestIndividualIndex] count: " + FitnessEvalGroupArray[bestIndividualIndex].Count.ToString() + ", index: " + bestIndividualIndex.ToString());
-                    Debug.Log("FitnessEvalGroupArray [bestIndividualIndex][k].fitCompList count: " + FitnessEvalGroupArray[bestIndividualIndex][k].fitCompList.Count.ToString());
+                    //Debug.Log("FitnessEvalGroupArray length: " + FitnessEvalGroupArray.Length.ToString() + ", index: " + bestIndividualIndex.ToString());
+                    //Debug.Log("FitnessEvalGroupArray [bestIndividualIndex] count: " + FitnessEvalGroupArray[bestIndividualIndex].Count.ToString() + ", index: " + bestIndividualIndex.ToString());
+                    //Debug.Log("FitnessEvalGroupArray [bestIndividualIndex][k].fitCompList count: " + FitnessEvalGroupArray[bestIndividualIndex][k].fitCompList.Count.ToString());
                     rawBestIndividualScore = FitnessEvalGroupArray[bestIndividualIndex][k].fitCompList[i].rawScore;
                     normalizedBestIndividualScore = (rawBestIndividualScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
                     if (!FitnessEvalGroupArray[i][k].fitCompList[i].sourceDefinition.biggerIsBetter) {
                         normalizedBestIndividualScore = 1f - normalizedBestIndividualScore;  // 1=good, 0=bad
                     }
-                    Debug.Log("FitnessEvalGroupArray length: " + FitnessEvalGroupArray.Length.ToString() + ", index: " + worstIndividualIndex.ToString());
-                    Debug.Log("FitnessEvalGroupArray [worstIndividualIndex] count: " + FitnessEvalGroupArray[worstIndividualIndex].Count.ToString() + ", index: " + worstIndividualIndex.ToString());
-                    Debug.Log("FitnessEvalGroupArray [worstIndividualIndex][k].fitCompList count: " + FitnessEvalGroupArray[worstIndividualIndex][k].fitCompList.Count.ToString());
+                    //Debug.Log("FitnessEvalGroupArray length: " + FitnessEvalGroupArray.Length.ToString() + ", index: " + worstIndividualIndex.ToString());
+                    //Debug.Log("FitnessEvalGroupArray [worstIndividualIndex] count: " + FitnessEvalGroupArray[worstIndividualIndex].Count.ToString() + ", index: " + worstIndividualIndex.ToString());
+                    //Debug.Log("FitnessEvalGroupArray [worstIndividualIndex][k].fitCompList count: " + FitnessEvalGroupArray[worstIndividualIndex][k].fitCompList.Count.ToString());
 
                     rawWorstIndividualScore = FitnessEvalGroupArray[worstIndividualIndex][k].fitCompList[i].rawScore;
                     normalizedWorstIndividualScore = (rawWorstIndividualScore - componentRecordMinimums[i][k]) / (componentRecordMaximums[i][k] - componentRecordMinimums[i][k]);
@@ -566,13 +566,13 @@ public class FitnessManager {
                 bestIndividualComponentRatio += (normalizedBestIndividualScore + minRatioFloorAdd) / (normalizedBaselineScore + minRatioFloorAdd);
                 worstIndividualComponentRatio += (normalizedWorstIndividualScore + minRatioFloorAdd) / (normalizedBaselineScore + minRatioFloorAdd);
                 
-                Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " Trial: " + k.ToString() + ", rawBestIndividualScore " + rawBestIndividualScore.ToString() + " rawWorstIndividualScore " + rawWorstIndividualScore.ToString() + ", normalizedBestIndividualScore " + normalizedBestIndividualScore.ToString() + " normalizedWorstIndividualScore " + normalizedWorstIndividualScore.ToString() + " normalizedBaselineScore " + normalizedBaselineScore.ToString());
+                //Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " Trial: " + k.ToString() + ", rawBestIndividualScore " + rawBestIndividualScore.ToString() + " rawWorstIndividualScore " + rawWorstIndividualScore.ToString() + ", normalizedBestIndividualScore " + normalizedBestIndividualScore.ToString() + " normalizedWorstIndividualScore " + normalizedWorstIndividualScore.ToString() + " normalizedBaselineScore " + normalizedBaselineScore.ToString());
 
                 // Divide by number of Agents in each group:
                 //avgPopComponentScore += normalizedAvgPopScore;
                 //baselineComponentScore += normalizedBaselineScore;
             }
-            Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " bestIndividualFinalRatio " + ((bestIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString() + " worstIndividualComponentRatio " + ((worstIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString());
+            //Debug.Log(fitnessComponentDefinitions[i].type.ToString() + " bestIndividualFinalRatio " + ((bestIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString() + " worstIndividualComponentRatio " + ((worstIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i]).ToString());
             // divide by #Trials and multiply by normalized fitComp weight:
             bestIndividualFinalRatio += (bestIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i];
             worstIndividualFinalRatio += (worstIndividualComponentRatio / FitnessEvalGroupArray[0].Count) * componentWeightsNormalized[i];
@@ -581,7 +581,7 @@ public class FitnessManager {
         
         alltimeBaselineVersusMinScoreRatiosList.Add(worstIndividualFinalRatio);
         alltimeBaselineVersusMaxScoreRatiosList.Add(bestIndividualFinalRatio);
-        Debug.Log("worstIndividualFinalRatio= " + worstIndividualFinalRatio.ToString() + ", avgPopFinalRatio= " + alltimeBaselineVersusAvgScoreRatiosList[alltimeBaselineVersusMinScoreRatiosList.Count - 1].ToString() + ", bestIndividualFinalRatio= " + bestIndividualFinalRatio.ToString());
+        //Debug.Log("worstIndividualFinalRatio= " + worstIndividualFinalRatio.ToString() + ", avgPopFinalRatio= " + alltimeBaselineVersusAvgScoreRatiosList[alltimeBaselineVersusMinScoreRatiosList.Count - 1].ToString() + ", bestIndividualFinalRatio= " + bestIndividualFinalRatio.ToString());
         if (bestIndividualFinalRatio > alltimeMaxRatioValue) {
             alltimeMaxRatioValue = bestIndividualFinalRatio;
         }

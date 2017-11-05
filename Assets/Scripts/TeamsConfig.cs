@@ -65,7 +65,7 @@ public class TeamsConfig {
         EnvironmentGenome templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = (Resources.Load("Templates/Environments/TemplateTestDefault") as EnvironmentGenomeTemplate).templateGenome;
+                templateGenome = (Resources.Load("Templates/Environments/TemplateTestDefault2") as EnvironmentGenomeTemplate).templateGenome;
                 //templateGenome = ((EnvironmentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Environments/TemplateTestDefault.asset", typeof(EnvironmentGenomeTemplate))).templateGenome;
                 break;
             case Challenge.Type.Racing:
@@ -88,7 +88,7 @@ public class TeamsConfig {
         AgentBodyGenomeTemplate templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = Resources.Load("Templates/Agents/TemplateTripodA") as AgentBodyGenomeTemplate;
+                templateGenome = Resources.Load("Templates/Agents/TemplateGroundRollerA") as AgentBodyGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateTelevisionWalker.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:
