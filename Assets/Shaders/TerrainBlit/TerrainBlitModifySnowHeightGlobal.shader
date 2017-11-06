@@ -76,6 +76,10 @@
 			float _MaskTex2FlowAmount;
 			//float4 _FlowTexLevels;
 			
+			float _SnowLineStart;
+			float _SnowLineEnd;
+			float _SnowAmount;
+			float4 _SnowDirection;  // just use xy
 
 			//int _PixelsWidth;
 			//int _PixelsHeight;
@@ -222,14 +226,14 @@
 				float2 grad = float2(gradX, gradY);
 				float gradMag = length(grad);
 
-				float2 northDir = float2(0,1);
+				float2 northDir = _SnowDirection.xy;
 
-				float snowLineStart = 5.0;
-				float snowLineEnd = 90.0;
+				//float snowLineStart = 5.0;
+				//float snowLineEnd = 90.0;
 
-				float snowMask = smoothstep(snowLineStart, snowLineEnd, baseHeight.x + baseHeight.y);
+				float snowMask = smoothstep(_SnowLineStart, _SnowLineEnd, baseHeight.x + baseHeight.y);
 
-				snowMask *= saturate(dot(grad, northDir));
+				snowMask *= saturate(dot(grad, northDir) * _SnowAmount);
 
 				//if(baseHeight.x + baseHeight.y > snowLineEnd)
 				//	snowMask = 1.0;

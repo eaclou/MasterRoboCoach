@@ -226,7 +226,7 @@
 				
 				float amountToFill = max(0, (_MaxAltitudeSedimentDrape - baseHeight.x) * _SedimentDrapeMagnitude); 
 				
-				baseHeight.y += amountToFill;
+				//baseHeight.y += amountToFill;
 
 				float gradX = ddx(baseHeight.x + baseHeight.y);
 				float gradY = ddy(baseHeight.x + baseHeight.y);
@@ -236,9 +236,16 @@
 				//float slopeMin = 20;
 				//float slopeMax = 100;
 
+				
 				float depositionAmount = min(0, gradMag - _TalusAngle) * -1; //1.0 - smoothstep(slopeMin, slopeMax, gradMag);
 
+				//if(baseHeight.x < _MaxAltitudeSedimentDrape) {
+				baseHeight.y += amountToFill;
+				//}
+				//else {
 				baseHeight.y += depositionAmount * _UniformSedimentHeight;
+				//}
+				
 
 				return baseHeight;
 				

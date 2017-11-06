@@ -52,7 +52,8 @@
 			fixed4 frag (v2f i) : SV_Target
 			{	
 								
-				float centerAltitude = tex2D(_CenterTex, float2(0.5, 0.5));
+				float4 centerAltitudeSample = tex2D(_CenterTex, float2(0.5, 0.5));
+				float centerAltitude = centerAltitudeSample.x + centerAltitudeSample.y + centerAltitudeSample.z;
 				
 				float4 baseHeight = tex2D(_MainTex, i.uv);
 

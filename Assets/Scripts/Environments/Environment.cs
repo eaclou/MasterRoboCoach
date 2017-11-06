@@ -45,21 +45,36 @@ public class Environment : MonoBehaviour {
         Material mat = Resources.Load("Materials/Environments/terrainDefault", typeof(Material)) as Material;  //new Material(Shader.Find("Standard"));
         mat.color = new Color(genome.terrainGenome.color.x, genome.terrainGenome.color.y, genome.terrainGenome.color.z);
 
+        mat.SetColor("_PriHueRock", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        mat.SetColor("_SecHueRock", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        mat.SetColor("_PriHueSedi", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
+        mat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
+        mat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
+        mat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
+
+
         GameObject terrainManagerGO = new GameObject("terrainManager");
         terrainManagerGO.transform.parent = environmentRenderable.transform;
         terrainManagerGO.transform.localPosition = Vector3.zero;
         TerrainManager terrainManager = terrainManagerGO.AddComponent<TerrainManager>();
         //Debug.Log("TERRAIN BUILD!");
 
-        
+
 
         // Set Data on Constructor:
         //TerrainConstructorGPU.terrainConstructorGPUCompute = this.terrainConstructorGPUCompute; // set in GameManager Start()
         // Set Cascade Height Textures:
         //TerrainConstructorGPU.heightMapCascadeTextures = heightMapCascadeTextures;
-        TerrainConstructorGPU.GenerateTerrainTexturesFromGenome(genome);
-
+        //TerrainConstructorGPU.terrainDisplayMaterial = mat;
+        TerrainConstructorGPU.GenerateTerrainTexturesFromGenome(genome, true);        
         terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 17f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 17f), 6);
+
+        // Grab Material detail textures from TerrainConstructorGPU, then:
+        mat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
+        mat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
+        mat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
+
+
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");
         Mesh topology = GetTerrainMesh(genome, 100, 100, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
@@ -267,9 +282,9 @@ public class Environment : MonoBehaviour {
             // Need to set Terrain RenderTextureCascade and some other data before getting Collision Mesh:
             //TerrainConstructorGPU.GenerateTerrainTexturesFromGenome();
             // INITIALIZE TERRAIN-COMPUTE::
+            //TerrainConstructorGPU.terrainDisplayMaterial = mat;
+            TerrainConstructorGPU.GenerateTerrainTexturesFromGenome(genome, false);
             
-            TerrainConstructorGPU.GenerateTerrainTexturesFromGenome(genome);
-
             Mesh topology = TerrainConstructorGPU.GetTerrainMesh(32, 32, 0f, 0f, Challenge.GetChallengeArenaBounds(genome.challengeType).x, Challenge.GetChallengeArenaBounds(genome.challengeType).z);
             //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 

@@ -181,7 +181,8 @@
 				//_GridBounds
 				//float2 coords = float2(i.uv.x * (_GridBounds.y - _GridBounds.x) + _GridBounds.x, i.uv.y * (_GridBounds.w - _GridBounds.z) + _GridBounds.z);
 
-				float centerAltitude = tex2D(_MainTex, float2(0.5, 0.5));
+				float4 centerAltitudeSample = tex2D(_MainTex, float2(0.5, 0.5));
+				float centerAltitude = centerAltitudeSample.x + centerAltitudeSample.y + centerAltitudeSample.z;
 				
 				float4 baseHeight = tex2D(_MainTex, i.uv);
 

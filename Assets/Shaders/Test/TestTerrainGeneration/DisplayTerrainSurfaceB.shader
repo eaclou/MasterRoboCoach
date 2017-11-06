@@ -2,9 +2,20 @@
 	Properties {
 		_Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
+		_RockHeightDetailTex ("Rock Height Detail", 2D) = "white" {}
+		_SediHeightDetailTex ("Sedi Height Detail", 2D) = "white" {}
+		_SnowHeightDetailTex ("Snow Height Detail", 2D) = "white" {}
+		_BumpMap ("Bumpmap", 2D) = "bump" {}
 		//_RemapTex ("Remap Tex", 2D) = "gray" {}
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
+
+		_PriHueRock ("PriHueRock", Color) = (1,1,1,1)
+		_SecHueRock ("SecHueRock", Color) = (1,1,1,1)
+		_PriHueSedi ("PriHueSedi", Color) = (1,1,1,1)
+		_SecHueSedi ("SecHueSedi", Color) = (1,1,1,1)
+		_PriHueSnow ("PriHueSnow", Color) = (1,1,1,1)
+		_SecHueSnow ("SecHueSnow", Color) = (1,1,1,1)
 	}
 	SubShader {
 		Tags { "RenderType"="Opaque" }
@@ -24,11 +35,16 @@
 
 
 		sampler2D _MainTex;
+		sampler2D _BumpMap;
+		sampler2D _RockHeightDetailTex;
+		sampler2D _SediHeightDetailTex;
+		sampler2D _SnowHeightDetailTex;
 		//sampler2D _RemapTex;
 
 		struct v2f {
 			float4 vertex : POSITION;
 			float3 normal : NORMAL;
+			float4 tangent : TANGENT;
 			float2 texcoord : TEXCOORD0;
 			float2 texcoord1 : TEXCOORD1;
 			float2 texcoord2 : TEXCOORD2;
@@ -40,6 +56,7 @@
 
 		struct Input {
 			float2 uv_MainTex;
+			float2 uv_BumpMap;
 			float3 worldPos;
 			float4 color : COLOR;
 		};
@@ -53,9 +70,17 @@
 		float _MaxAltitude;
 		float _RemapOffset;
 		float _NumStrata;
+
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;
+
+		float4 _PriHueRock;
+		float4 _SecHueRock;
+		float4 _PriHueSedi;
+		float4 _SecHueSedi;
+		float4 _PriHueSnow;
+		float4 _SecHueSnow;
 
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -73,16 +98,19 @@
         #endif
 		
 
-		void vert (inout v2f v, out Input o) {			
+		void vert (inout v2f v, out Input o) {				
 			UNITY_INITIALIZE_OUTPUT(Input,o);
 		}
 
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 			// Albedo comes from a texture tinted by color
 			
-			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
+			fixed4 c = tex2D (_MainTex, -IN.uv_MainTex * 8) * _Color;
+			fixed4 sedimentTex = tex2D (_MainTex, IN.uv_MainTex * 1);
 			o.Albedo = c.rgb;
-			o.Albedo = IN.worldPos;
+			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
+			
+			//o.Albedo = IN.worldPos;
 			float3 strataColorNext;
 			float3 strataColorPrev;
 			float3 strataColor;
@@ -109,16 +137,58 @@
 			//o.Albedo = float3(1,1,1) * normalizedAltitude * strataColor * strataColor * strataColorNext; // REALLY WEIRD need to multiply by altitude to get strata Colors??????
 			//o.Albedo = lerp(o.Albedo, float3(0.9, 0.8, 0.7), 0.8);
 			//o.Albedo *= length(strataColor);// * strataHardness;
-			o.Albedo = float3(0.4, 0.4, 0.4); // * IN.color;
-			if(IN.color.y > 0) {
-				o.Albedo = lerp(o.Albedo, float3(1, 0.5, 0.25), smoothstep(0.01, 1, IN.color.y));
-			}
-			if(IN.color.z > 0) {
-				//o.Albedo = lerp(o.Albedo, float3(0.7, 0.8, 1), smoothstep(0.01, 0.08, IN.color.z));
-			}
-			//o.Albedo = float3(IN.color.y,0,0);
-			//o.Albedo = IN.color;
 
+			float4 rockDetailSample = tex2D (_RockHeightDetailTex, IN.uv_MainTex * 64);
+			float4 sediDetailSample = tex2D (_SediHeightDetailTex, IN.uv_MainTex * 256);
+			float4 snowDetailSample = tex2D (_SnowHeightDetailTex, IN.uv_MainTex * 64);
+
+			float gradDetailHeightRockX = ddx(rockDetailSample.x);
+			float gradDetailHeightRockY = ddy(rockDetailSample.x);
+			float gradMagRock = length(float2(gradDetailHeightRockX, gradDetailHeightRockY));
+			float3 detailNormalRock = cross(normalize(float3(0, 1, gradDetailHeightRockY)), normalize(float3(1, 0, gradDetailHeightRockX)));
+			
+			float gradDetailHeightSediX = ddx(sediDetailSample.x);
+			float gradDetailHeightSediY = ddy(sediDetailSample.x);
+			float gradMagSedi = length(float2(gradDetailHeightSediX, gradDetailHeightSediY));
+			float3 detailNormalSedi = cross(normalize(float3(0, 1, gradDetailHeightSediY)), normalize(float3(1, 0, gradDetailHeightSediX)));
+
+			float gradDetailHeightSnowX = ddx(snowDetailSample.x);
+			float gradDetailHeightSnowY = ddy(snowDetailSample.x);
+			float gradMagSnow = length(float2(gradDetailHeightSnowX, gradDetailHeightSnowY));
+			float3 detailNormalSnow = cross(normalize(float3(0, 1, gradDetailHeightSnowY)), normalize(float3(1, 0, gradDetailHeightSnowX)));
+			
+			//o.Normal = normalize(o.Normal + detailNormalRock * 0.25);
+			
+			float3 rockNml = lerp(o.Normal, normalize(o.Normal + detailNormalRock), 0.1);
+			o.Normal = rockNml;
+			
+			float3 rockHue = lerp(_SecHueRock.rgb, _PriHueRock.rgb, saturate(sin(IN.worldPos.y * 0.07431) * 0.5 + 0.5));
+			rockHue = lerp(rockHue, rockDetailSample.xyz, 0.0005);
+			o.Albedo = rockHue; // float3(1, 1, 1); // Rock
+
+			float3 sediNml = lerp(o.Normal, normalize(o.Normal + detailNormalSedi), 0.16);
+			float3 sediHue = lerp(_SecHueSedi.rgb, _PriHueSedi.rgb, saturate(cos(IN.worldPos.y * 0.1489) * 0.5 + 0.5));
+			sediHue = lerp(sediHue, sediDetailSample.xyz, 0.0005);
+			if(IN.color.y > 0) {
+				o.Albedo = lerp(o.Albedo, sediHue * saturate(sedimentTex.rgb + 0.5), smoothstep(0.25, 4, IN.color.y + 0.1));
+				o.Normal = lerp(o.Normal, sediNml, smoothstep(0.25, 4, IN.color.y));
+			}
+
+			float3 snowNml = lerp(o.Normal, normalize(o.Normal + detailNormalSnow), 0.2);
+			float3 snowHue = lerp(_SecHueSnow.rgb, _PriHueSnow.rgb, saturate(sin(IN.worldPos.y * 0.237) * 0.5 + 0.5));
+			snowHue = lerp(snowHue, snowDetailSample.xyz, 0.00025);
+			if(IN.color.z > 0) {
+				o.Albedo = lerp(o.Albedo, snowHue, smoothstep(0.1,0.25, IN.color.z));
+				o.Normal = lerp(o.Normal, snowNml, smoothstep(0.25, 4, IN.color.z));
+			}
+
+			//o.Normal = detailNormal;
+			
+			//o.Albedo = lerp(o.Albedo, rockDetailSample.xyz, 0.02);
+			//o.Albedo = float3(IN.color.y,0,0);
+			//o.Albedo.xy = IN.uv_MainTex;
+
+			//o.Albedo = _PriHueRock.rgb;
 			
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;

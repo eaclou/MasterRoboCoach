@@ -19,8 +19,13 @@ public static class TerrainConstructorGPU {
     public static RenderTexture[] heightMapCascadeTextures;
     public static RenderTexture temporaryRT;
 
-    public static int xResolution = 1024;
-    public static int yResolution = 1024;
+    public static RenderTexture detailTexRock;
+    public static RenderTexture detailTexSedi;
+    public static RenderTexture detailTexSnow;
+    //public static Material terrainDisplayMaterial;
+
+    public static int xResolution = 512;
+    public static int yResolution = 512;
 
     public struct TriangleIndexData {
         public int v1;
@@ -28,7 +33,7 @@ public static class TerrainConstructorGPU {
         public int v3;
     }
 
-    public static void GenerateTerrainTexturesFromGenome(EnvironmentGenome genome) {
+    public static void GenerateTerrainTexturesFromGenome(EnvironmentGenome genome, bool updateDetailTextures) {
         
 
         if(heightMapCascadeTextures == null) {
@@ -57,12 +62,40 @@ public static class TerrainConstructorGPU {
             temporaryRT.useMipMap = true;
             temporaryRT.Create();
         }
-               
+
+        if (detailTexRock == null) {
+            detailTexRock = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            detailTexRock.wrapMode = TextureWrapMode.Repeat;
+            detailTexRock.filterMode = FilterMode.Bilinear;
+            detailTexRock.enableRandomWrite = true;
+            detailTexRock.useMipMap = true;
+            detailTexRock.Create();
+        }
+        if (detailTexSedi == null) {
+            detailTexSedi = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            detailTexSedi.wrapMode = TextureWrapMode.Repeat;
+            detailTexSedi.filterMode = FilterMode.Bilinear;
+            detailTexSedi.enableRandomWrite = true;
+            detailTexSedi.useMipMap = true;
+            detailTexSedi.Create();
+        }
+        if (detailTexSnow == null) {
+            detailTexSnow = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            detailTexSnow.wrapMode = TextureWrapMode.Repeat;
+            detailTexSnow.filterMode = FilterMode.Bilinear;
+            detailTexSnow.enableRandomWrite = true;
+            detailTexSnow.useMipMap = true;
+            detailTexSnow.Create();
+        }
+
 
         //Debug.Log("CascadeRenderTexturesCreated!");
         // BLIT PASSES HERE::::::
+        //terrainDisplayMaterial = mat;
+        //Debug.Log(terrainDisplayMaterial.ToString());
 
-        if(genome.terrainGenome.terrainGlobalRockPasses != null) {  // if any globalrockPasses
+
+        if (genome.terrainGenome.terrainGlobalRockPasses != null) {  // if any globalrockPasses
             for(int i = 0; i < genome.terrainGenome.terrainGlobalRockPasses.Count; i++) {
                 GlobalRockPass(genome.terrainGenome.terrainGlobalRockPasses[i]);
             }
@@ -72,10 +105,15 @@ public static class TerrainConstructorGPU {
             for (int i = 0; i < genome.terrainGenome.terrainGlobalSedimentPasses.Count; i++) {
                 GlobalDebrisPass(genome.terrainGenome.terrainGlobalSedimentPasses[i]);
             }
-        }       
+        }
+        // SNOW:
+        if (genome.terrainGenome.terrainGlobalSnowPasses != null) {  // if any globalrockPasses
+            for (int i = 0; i < genome.terrainGenome.terrainGlobalSnowPasses.Count; i++) {
+                GlobalSnowPass(genome.terrainGenome.terrainGlobalSnowPasses[i]);
+            }
+        }
 
-
-        ArenaAdjustments();
+        //ArenaAdjustments();
 
         for (int i = 0; i < genome.terrainGenome.numRockSmoothPasses; i++) {
             SmoothHeights();
@@ -83,6 +121,11 @@ public static class TerrainConstructorGPU {
 
         CenterHeightTextures();
 
+        if(updateDetailTextures) {
+            Graphics.Blit(heightMapCascadeTextures[3], detailTexRock);  // 
+            Graphics.Blit(heightMapCascadeTextures[0], detailTexSedi);
+            Graphics.Blit(heightMapCascadeTextures[2], detailTexSnow);
+        }
         
         //Debug.Log(MeasureHeights().ToString());
     }
@@ -91,12 +134,26 @@ public static class TerrainConstructorGPU {
 
         Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitModifyRockHeightGlobal"));
         modifyHeightMat.SetPass(0);
-       
+
+        // _HEIGHT_ADD _HEIGHT_SUBTRACT _HEIGHT_MULTIPLY _HEIGHT_AVERAGE
+        if(pass.heightOperation == 0) {
+            modifyHeightMat.EnableKeyword("_HEIGHT_ADD");
+        }
+        else if (pass.heightOperation == 1) {
+            modifyHeightMat.EnableKeyword("_HEIGHT_SUBTRACT");
+        }
+        else if (pass.heightOperation == 2) {
+            modifyHeightMat.EnableKeyword("_HEIGHT_MULTIPLY");
+        }
+        else {
+            modifyHeightMat.EnableKeyword("_HEIGHT_AVERAGE");
+        }
+
         //modifyHeightMat.EnableKeyword("_USE_NEW_NOISE"); // absence uses procedural noise
         //modifyHeightMat.EnableKeyword("_USE_MASK1_NOISE");
         //modifyHeightMat.EnableKeyword("_USE_MASK2_NOISE");
         //modifyHeightMat.EnableKeyword("_USE_FLOW_NOISE");
-        
+
         // NEW HEIGHTS TEXTURE:::::
         int numNoiseOctaves = pass.numNoiseOctavesHeight;
         ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
@@ -152,6 +209,61 @@ public static class TerrainConstructorGPU {
         modifyHeightMat.SetFloat("_SedimentDrapeMagnitude", pass.sedimentDrapeMagnitude);
         modifyHeightMat.SetFloat("_UniformSedimentHeight", pass.uniformSedimentHeight);
         modifyHeightMat.SetFloat("_TalusAngle", pass.talusAngle);
+
+        // NEW HEIGHTS TEXTURE:::::
+        int numNoiseOctaves = pass.numNoiseOctavesHeight;
+        ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.heightSampleData.amplitude, pass.heightSampleData.frequency, pass.heightSampleData.offset, pass.heightSampleData.rotation, pass.heightSampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
+        modifyHeightMat.SetVector("_NewTexLevels", pass.heightLevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_NewTexFlowAmount", pass.heightFlowAmount);
+
+        // MASK 1 TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesMask1;
+        ComputeBuffer maskTex1SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex1SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.mask1SampleData.amplitude, pass.mask1SampleData.frequency, pass.mask1SampleData.offset, pass.mask1SampleData.rotation, pass.mask1SampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("maskTex1SampleParamsCBuffer", maskTex1SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex1Levels", pass.mask1LevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex1FlowAmount", pass.mask1FlowAmount);
+
+        // MASK 2 TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesMask2;
+        ComputeBuffer maskTex2SampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        maskTex2SampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.mask2SampleData.amplitude, pass.mask2SampleData.frequency, pass.mask2SampleData.offset, pass.mask2SampleData.rotation, pass.mask2SampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("maskTex2SampleParamsCBuffer", maskTex2SampleParamsCBuffer);
+        modifyHeightMat.SetVector("_MaskTex2Levels", pass.mask2LevelsAdjust);   // blackIn, whiteIn, blackOut, whiteOut
+        modifyHeightMat.SetFloat("_MaskTex2FlowAmount", pass.mask2FlowAmount);
+
+        // FLOW TEXTURE:::::
+        numNoiseOctaves = pass.numNoiseOctavesFlow;
+        ComputeBuffer flowTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        flowTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, pass.flowSampleData.amplitude, pass.flowSampleData.frequency, pass.flowSampleData.offset, pass.flowSampleData.rotation, pass.flowSampleData.ridgeNoise));
+        modifyHeightMat.SetBuffer("flowTexSampleParamsCBuffer", flowTexSampleParamsCBuffer);
+
+
+        for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i), -1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i)));
+            Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, modifyHeightMat);  // perform calculations on texture
+            Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
+        }
+
+        newTexSampleParamsCBuffer.Release();
+        maskTex1SampleParamsCBuffer.Release();
+        maskTex2SampleParamsCBuffer.Release();
+        flowTexSampleParamsCBuffer.Release();
+    }
+    private static void GlobalSnowPass(TerrainGenome.GlobalSnowPass pass) {
+
+        Vector3 heights = MeasureHeights();
+
+
+        Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitModifySnowHeightGlobal"));
+        modifyHeightMat.SetPass(0);
+
+        modifyHeightMat.SetFloat("_SnowLineStart", Mathf.Lerp(heights.y, heights.x, pass.snowLineStart)); // y=min, x=max // percentage based so use as lerp driver
+        modifyHeightMat.SetFloat("_SnowLineEnd", Mathf.Lerp(heights.y, heights.x, pass.snowLineEnd));  // percentage based so use as lerp driver
+        modifyHeightMat.SetFloat("_SnowAmount", pass.snowAmount);
+        modifyHeightMat.SetVector("_SnowDirection", new Vector4(pass.snowDirection.x, pass.snowDirection.y, 0f, 0f));
 
         // NEW HEIGHTS TEXTURE:::::
         int numNoiseOctaves = pass.numNoiseOctavesHeight;

@@ -183,9 +183,13 @@
 				float4 bc = tex2D(_MainTex, i.uv + float2(0, +s)); // Bottom Centre
 				float4 cr = tex2D(_MainTex, i.uv + float2(+s, 0)); // Centre Right
 
-				float newValue = (cl.x + tc.x + cc.x + bc.x + cr.x) * 0.2;
+				float newValueX = (cl.x + tc.x + cc.x + bc.x + cr.x) * 0.2;
+				float newValueY = (cl.y + tc.y + cc.y + bc.y + cr.y) * 0.2;
+				float newValueZ = (cl.z + tc.z + cc.z + bc.z + cr.z) * 0.2;
 
-				cc.x = newValue;
+				cc.x = newValueX;
+				cc.y = newValueY;
+				cc.z = newValueZ;
 
 				return cc;
 								

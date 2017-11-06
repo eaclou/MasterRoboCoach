@@ -25,6 +25,7 @@
 			//#pragma shader_feature _USE_MASK1_NOISE
 			//#pragma shader_feature _USE_MASK2_NOISE
 			//#pragma shader_feature _USE_FLOW_NOISE
+			#pragma shader_feature _HEIGHT_ADD _HEIGHT_SUBTRACT _HEIGHT_MULTIPLY _HEIGHT_AVERAGE
 						
 			#include "UnityCG.cginc"
 			#include "Assets/Shaders/Inc/NoiseShared.cginc"
@@ -187,7 +188,7 @@
 				//#endif
 
 				// Apply flow uv warp:
-				float2 flowCoords = coords + flowSample.xz;
+				float2 flowCoords = coords + flowSample.xz * 0.5;
 
 				float4 newHeight = float4(0,0,0,0);
 				//#if defined(_USE_NEW_NOISE)
@@ -197,30 +198,46 @@
 				//#endif
 
 				// MASKS:::::
-				float4 mask1Value = float4(1,1,1,1);
+				float mask1Value = 1;
 				//#if defined(_USE_MASK1_NOISE)
-				mask1Value *= GetNoiseSample(maskTex1SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex1FlowAmount)) * 0.5 + 0.5;  // get in 0-1 range
+				mask1Value *= GetNoiseSample(maskTex1SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex1FlowAmount)).x * 0.5 + 0.5;  // get in 0-1 range
 				//#else 
 				//	mask1Value *= GetTexSample(_MaskTex1, maskTex1SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex1FlowAmount));
 				//#endif				
 				// Mask2
-				float4 mask2Value = float4(1,1,1,1);
+				float mask2Value = 1;
 				//#if defined(_USE_MASK2_NOISE)
-					mask2Value *= GetNoiseSample(maskTex2SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex2FlowAmount)) * 0.5 + 0.5;  // get in 0-1 range
+					mask2Value *= GetNoiseSample(maskTex2SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex2FlowAmount)).x * 0.5 + 0.5;  // get in 0-1 range
 				//#else 
 				//	mask2Value *= GetTexSample(_MaskTex2, maskTex2SampleParamsCBuffer, lerp(coords, flowCoords, _MaskTex2FlowAmount));
 				//#endif
 
 				// LEVELS:
-				//mask1Value = min(max(mask1Value - float4(1,1,1,1) * _MaskTex1Levels.x, float4(0,0,0,0)) / (_MaskTex1Levels.y - _MaskTex1Levels.x), float4(1,1,1,1));
-				//mask2Value = min(max(mask2Value - _MaskTex2Levels.x, 0) / (_MaskTex2Levels.y - _MaskTex2Levels.x), 1);
+				mask1Value = min(max(mask1Value - _MaskTex1Levels.x, 0) / (_MaskTex1Levels.y - _MaskTex1Levels.x), 1);
+				mask1Value = mask1Value * ((_MaskTex1Levels.w - _MaskTex1Levels.z)) + _MaskTex1Levels.z;
+				mask2Value = min(max(mask2Value - _MaskTex2Levels.x, 0) / (_MaskTex2Levels.y - _MaskTex2Levels.x), 1);
+				mask2Value = mask2Value * ((_MaskTex2Levels.w - _MaskTex2Levels.z)) + _MaskTex2Levels.z;
 				//mask1Value = pow(mask1Value, 1.0 / _Mask1Gamma);  // no gamma for now
 				
 				float newRockHeight = newHeight.x * saturate(mask1Value.x) * saturate(mask2Value.x);
 				
 				// Operation:
+				#if defined(_HEIGHT_ADD)
 				// Addition:
 				baseHeight.x += newRockHeight;
+				#endif
+				#if defined(_HEIGHT_SUBTRACT)
+				// Subtraction:
+				baseHeight.x -= newRockHeight;
+				#endif
+				#if defined(_HEIGHT_MULTIPLY)
+				// Multiplication:
+				baseHeight.x *= newRockHeight;
+				#endif
+				#if defined(_HEIGHT_AVERAGE)
+				// Average:
+				baseHeight.x = (newRockHeight + baseHeight.x) * 0.5;
+				#endif
 
 				return baseHeight;
 				
