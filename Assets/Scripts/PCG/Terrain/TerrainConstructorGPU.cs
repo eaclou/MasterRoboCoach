@@ -6,6 +6,7 @@ using UnityEngine;
 public static class TerrainConstructorGPU {
 
     public static ComputeShader terrainConstructorGPUCompute;
+    public static  ComputeShader terrainInstanceCompute;
     //public static RenderTexture mainRenderTexture;
     //private static RenderTexture secondaryRenderTexture;
     //private static ComputeBuffer terrainGenomeCBuffer;

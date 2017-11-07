@@ -69,8 +69,8 @@ public class TestComputeSharedBufferA : MonoBehaviour {
             UpdateBuffers();
 
         // Pad Input
-        if (Input.GetAxisRaw("Horizontal") != 0.0f)
-            indirectInstanceCount = (int)Mathf.Clamp(indirectInstanceCount + Input.GetAxis("Horizontal") * 40, 1.0f, 50000.0f);
+        //if (Input.GetAxisRaw("Horizontal") != 0.0f)
+        //    indirectInstanceCount = (int)Mathf.Clamp(indirectInstanceCount + Input.GetAxis("Horizontal") * 40, 1.0f, 50000.0f);
 
         //Render:
         Graphics.DrawMeshInstancedIndirect(indirectInstanceMesh, 0, indirectInstanceMaterial, new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f)), indirectArgsBuffer);

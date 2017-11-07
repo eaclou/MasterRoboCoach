@@ -74,6 +74,22 @@ public class Environment : MonoBehaviour {
         mat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
         mat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
 
+        // Grab Debug Mesh ( Eventually Grab 3DMC mesh from GPUConstructor)
+        GameObject DebugCubeMeshGO = Instantiate(Resources.Load("Meshes/DebugCubeMesh")) as GameObject;
+        Mesh debugCubeMesh = DebugCubeMeshGO.GetComponent<MeshFilter>().sharedMesh;
+        if(debugCubeMesh == null) {
+            Debug.LogError("NO DEBUG CUBE MESH FOUND!");
+        }
+        Material pebbleMat = Resources.Load("Materials/Environments/indirectInstancePebbleMat", typeof(Material)) as Material;
+        pebbleMat.SetPass(0);
+        pebbleMat.SetColor("_BaseColorPrimary", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
+        pebbleMat.SetColor("_BaseColorSecondary", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
+        Material rockMat = Resources.Load("Materials/Environments/indirectInstanceRockMat", typeof(Material)) as Material;
+        rockMat.SetPass(0);
+        rockMat.SetColor("_BaseColorPrimary", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        rockMat.SetColor("_BaseColorSecondary", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        // Grab reference to ComputeShader set on TerrainConstructorGPU (by gameManager through inspector)
+        environmentRenderable.InitializeInstancedGeometry(debugCubeMesh, pebbleMat, debugCubeMesh, rockMat, TerrainConstructorGPU.terrainInstanceCompute);
 
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");
