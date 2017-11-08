@@ -74,22 +74,46 @@ public class Environment : MonoBehaviour {
         mat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
         mat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
 
-        // Grab Debug Mesh ( Eventually Grab 3DMC mesh from GPUConstructor)
-        GameObject DebugCubeMeshGO = Instantiate(Resources.Load("Meshes/DebugCubeMesh")) as GameObject;
-        Mesh debugCubeMesh = DebugCubeMeshGO.GetComponent<MeshFilter>().sharedMesh;
-        if(debugCubeMesh == null) {
-            Debug.LogError("NO DEBUG CUBE MESH FOUND!");
-        }
+        // Grab Debug Mesh ( Eventually Grab 3DMC mesh from GPUConstructor)        
         Material pebbleMat = Resources.Load("Materials/Environments/indirectInstancePebbleMat", typeof(Material)) as Material;
         pebbleMat.SetPass(0);
         pebbleMat.SetColor("_BaseColorPrimary", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
         pebbleMat.SetColor("_BaseColorSecondary", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
         Material rockMat = Resources.Load("Materials/Environments/indirectInstanceRockMat", typeof(Material)) as Material;
         rockMat.SetPass(0);
-        rockMat.SetColor("_BaseColorPrimary", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
-        rockMat.SetColor("_BaseColorSecondary", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        rockMat.SetColor("_PriHueRock", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        rockMat.SetColor("_SecHueRock", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        rockMat.SetColor("_PriHueSedi", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
+        rockMat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
+        rockMat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
+        rockMat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
+        rockMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTextures[0]);
+        rockMat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
+        rockMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
+        rockMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
+
+        // Need to create a new material or it all goes tits up
+        //Material rockReliefArenaMat = new Material(Shader.Find("Instanced/indirectInstanceRockMat"));
+        //Material rockReliefArenaMat = Resources.Load("Materials/Environments/indirectInstanceRockMat", typeof(Material)) as Material;
+        Material rockReliefArenaMat = Resources.Load("Materials/Environments/indirectInstanceRockReliefArenaMat", typeof(Material)) as Material;
+        rockReliefArenaMat.SetPass(0);
+        rockReliefArenaMat.SetColor("_BaseColorPrimary", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        rockReliefArenaMat.SetColor("_BaseColorSecondary", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+
+        Material rockCliffsMat = Resources.Load("Materials/Environments/indirectInstanceRockCliffsMat", typeof(Material)) as Material;
+        rockCliffsMat.SetPass(0);
+        rockCliffsMat.SetColor("_PriHueRock", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        rockCliffsMat.SetColor("_SecHueRock", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        rockCliffsMat.SetColor("_PriHueSedi", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
+        rockCliffsMat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
+        rockCliffsMat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
+        rockCliffsMat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
+        rockCliffsMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTextures[0]);
+        rockCliffsMat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
+        rockCliffsMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
+        rockCliffsMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
         // Grab reference to ComputeShader set on TerrainConstructorGPU (by gameManager through inspector)
-        environmentRenderable.InitializeInstancedGeometry(debugCubeMesh, pebbleMat, debugCubeMesh, rockMat, TerrainConstructorGPU.terrainInstanceCompute);
+        environmentRenderable.InitializeInstancedGeometry(TerrainConstructorGPU.rockAMesh2, pebbleMat, TerrainConstructorGPU.rockAMesh1, rockMat, TerrainConstructorGPU.rockAMesh1, rockReliefArenaMat, TerrainConstructorGPU.rockAMesh1, rockCliffsMat, TerrainConstructorGPU.terrainInstanceCompute);
 
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");

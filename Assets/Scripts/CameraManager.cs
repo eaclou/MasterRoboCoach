@@ -53,7 +53,7 @@ public class CameraManager : MonoBehaviour {
         this.focusPoint = focusPos;
         if (currentCameraMode == 0) {  // wide
             targetCamGroupPosition = Vector3.zero;
-            targetCamGroupRotation = Quaternion.identity;
+            //targetCamGroupRotation = Quaternion.identity;
             targetMainCamPosition = cameraPosWide;
             targetMainCamRotation = cameraRotWide;
 
@@ -64,7 +64,7 @@ public class CameraManager : MonoBehaviour {
         }
         else if (currentCameraMode == 1) {  // topdown
             targetCamGroupPosition = Vector3.zero;
-            targetCamGroupRotation = Quaternion.identity;
+            //targetCamGroupRotation = Quaternion.identity;
             targetMainCamPosition = cameraPosTop;
             targetMainCamRotation = cameraRotTop;
 
@@ -92,7 +92,7 @@ public class CameraManager : MonoBehaviour {
                 //Debug.Log("zero!");
             }
             
-            targetCamGroupRotation = Quaternion.LookRotation(focusPointAvgVel.normalized, new Vector3(0f, 1f, 0f));
+            //targetCamGroupRotation = Quaternion.LookRotation(focusPointAvgVel.normalized, new Vector3(0f, 1f, 0f));
 
 
             //mainCamGroup.transform.position = focusPoint;            

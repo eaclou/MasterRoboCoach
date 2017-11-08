@@ -1,4 +1,4 @@
-﻿Shader "Instanced/IndirectInstanceRockShader" {
+﻿Shader "Instanced/IndirectInstanceRockCliffsShader" {
     Properties {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
 		_HeightTex ("Height Tex", 2D) = "white" {}
@@ -38,8 +38,6 @@
 		float4 _SecHueSedi;
 		float4 _PriHueSnow;
 		float4 _SecHueSnow;
-		//float4 _BaseColorPrimary;
-		//float4 _BaseColorSecondary;
 
         struct Input {
             float2 uv_MainTex;
@@ -73,23 +71,7 @@
         void setup()
         {
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            //TransformData data = instancedRocksCBuffer[unity_InstanceID];
-
-			//unity_ObjectToWorld._11_21_31_41 = float4(1, 0, 0, 0);
-			//unity_ObjectToWorld._12_22_32_42 = float4(0, 1, 0, 0);
-			//unity_ObjectToWorld._13_23_33_43 = float4(0, 0, 1, 0);
-			//unity_ObjectToWorld._14_24_34_44 = float4(matricesCBuffer[unity_InstanceID]._14_24_34_44.xyz, 1); //float4(matricesCBuffer[unity_InstanceID]._11_21_31_41.x, matricesCBuffer[unity_InstanceID]._11_21_31_41.y, matricesCBuffer[unity_InstanceID]._11_21_31_41.w, 1);		
-			
-			/*float rx = data.rotation.x;
-			float ry = data.rotation.y;
-			float rz = data.rotation.z;
-			float4x4 rotationMatrix = float4x4(  // ZXY:
-				cos(rz)*cos(ry)-sin(rz)*cos(rx)*cos(ry)-sin(rz)*sin(rx)*sin(ry), -sin(rz)*cos(rx), cos(rz)*sin(ry)-sin(rz)*cos(rx)*sin(ry)+sin(rz)*sin(rx)*cos(ry), 0,
-				sin(rz)*cos(ry)-cos(rx)*sin(ry), cos(rz)*cos(rx), sin(rz)*sin(ry)-cos(rz)*sin(rx)*cos(ry), 0,
-				-cos(rx)*sin(ry), sin(rx), cos(rx)*cos(ry), 0,
-				0, 0, 0, 1);*/
-			//unity_ObjectToWorld = mul(unity_ObjectToWorld, rotationMatrix);  // apply rotation
-
+			// Transformation Matrices
 			unity_ObjectToWorld = matricesCBuffer[unity_InstanceID];
             unity_WorldToObject = invMatricesCBuffer[unity_InstanceID];
         #endif
@@ -103,14 +85,13 @@
 			float randColorLerp = 0;
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 			//col.gb = (float)(unity_InstanceID % 256) / 255.0f;
-			col = matricesCBuffer[unity_InstanceID]._11_21_31_41;	
+			//col = matricesCBuffer[unity_InstanceID]._11_21_31_41;	
 			//randColorLerp = rand(col.xz);
 			//col = col.xxx1;
 #else
 			//col.gb = float4(0, 0, 1, 1);
-			col = float4(0, 0, 1, 1);
+			//col = float4(0, 0, 1, 1);
 #endif
-			
 			float2 terrainUV = (IN.worldPos.xz / 680) * 0.5;
 
 			float3 terrainHeights = tex2D(_HeightTex, terrainUV);
@@ -134,11 +115,9 @@
 				o.Albedo = lerp(o.Albedo, snowHue, smoothstep(0.1,0.25, terrainHeights.z));
 			}
 
-			//o.Albedo.xy = terrainUV;
-			//o.Albedo.z = 0;
 			//float3 hue = float3(rand(col.xy), rand(col.yz), rand(col.zw));
             //fixed4 c = tex2D (_MainTex, IN.uv_MainTex);			
-            //o.Albedo = c.rgb * lerp(_PriHueRock, _SecHueRock, 0.5); //float3(c.r * hue.x, c.y * hue.y, c.z * hue.z);
+            //o.Albedo = c.rgb * lerp(_BaseColorPrimary, _BaseColorSecondary, randColorLerp) * 1; //float3(c.r * hue.x, c.y * hue.y, c.z * hue.z);
 			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;

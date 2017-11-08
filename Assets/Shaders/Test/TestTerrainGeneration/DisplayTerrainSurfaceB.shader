@@ -97,6 +97,13 @@
         StructuredBuffer<RockStrataData> rockStrataDataCBuffer;
         #endif
 		
+		float3 GetRockHue(float3 primaryHue, float3 secondaryHue, float altitude, float3 rockDetailSample) {
+			float3 hue = lerp(secondaryHue, primaryHue, saturate(sin(altitude * 0.07431) * 0.5 + 0.5));
+			hue = lerp(hue, rockDetailSample, 0.015);
+			return hue;
+			//float3 rockHue = lerp(_SecHueRock.rgb, _PriHueRock.rgb, saturate(sin(IN.worldPos.y * 0.07431) * 0.5 + 0.5));
+			//rockHue = lerp(rockHue, rockDetailSample.xyz, 0.015);
+		}
 
 		void vert (inout v2f v, out Input o) {				
 			UNITY_INITIALIZE_OUTPUT(Input,o);
@@ -105,9 +112,9 @@
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 			// Albedo comes from a texture tinted by color
 			
-			fixed4 c = tex2D (_MainTex, -IN.uv_MainTex * 8) * _Color;
+			//fixed4 c = tex2D (_MainTex, -IN.uv_MainTex * 1) * _Color;
 			fixed4 sedimentTex = tex2D (_MainTex, IN.uv_MainTex * 1);
-			o.Albedo = c.rgb;
+			//o.Albedo = c.rgb;
 			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
 			
 			//o.Albedo = IN.worldPos;
@@ -138,9 +145,9 @@
 			//o.Albedo = lerp(o.Albedo, float3(0.9, 0.8, 0.7), 0.8);
 			//o.Albedo *= length(strataColor);// * strataHardness;
 
-			float4 rockDetailSample = tex2D (_RockHeightDetailTex, IN.uv_MainTex * 64);
-			float4 sediDetailSample = tex2D (_SediHeightDetailTex, IN.uv_MainTex * 256);
-			float4 snowDetailSample = tex2D (_SnowHeightDetailTex, IN.uv_MainTex * 64);
+			float4 rockDetailSample = tex2D (_RockHeightDetailTex, IN.uv_MainTex * 32 + 0.5);
+			float4 sediDetailSample = tex2D (_SediHeightDetailTex, IN.uv_MainTex * 128 + 0.5);
+			float4 snowDetailSample = tex2D (_SnowHeightDetailTex, IN.uv_MainTex * 32 + 0.5);
 
 			float gradDetailHeightRockX = ddx(rockDetailSample.x);
 			float gradDetailHeightRockY = ddy(rockDetailSample.x);
@@ -159,16 +166,17 @@
 			
 			//o.Normal = normalize(o.Normal + detailNormalRock * 0.25);
 			
-			float3 rockNml = lerp(o.Normal, normalize(o.Normal + detailNormalRock), 0.1);
+			float3 rockNml = lerp(o.Normal, normalize(o.Normal + detailNormalRock), 0.2);
 			o.Normal = rockNml;
 			
+			//float3 rockHue = GetRockHue(_PriHueRock.rgb, _SecHueRock.rgb, IN.worldPos.y, rockDetailSample.xyz);
 			float3 rockHue = lerp(_SecHueRock.rgb, _PriHueRock.rgb, saturate(sin(IN.worldPos.y * 0.07431) * 0.5 + 0.5));
-			rockHue = lerp(rockHue, rockDetailSample.xyz, 0.0005);
+			rockHue = lerp(rockHue, rockDetailSample.xyz, 0.015);
 			o.Albedo = rockHue; // float3(1, 1, 1); // Rock
 
 			float3 sediNml = lerp(o.Normal, normalize(o.Normal + detailNormalSedi), 0.16);
 			float3 sediHue = lerp(_SecHueSedi.rgb, _PriHueSedi.rgb, saturate(cos(IN.worldPos.y * 0.1489) * 0.5 + 0.5));
-			sediHue = lerp(sediHue, sediDetailSample.xyz, 0.0005);
+			sediHue = lerp(sediHue, sediDetailSample.xyz, 0.015);
 			if(IN.color.y > 0) {
 				o.Albedo = lerp(o.Albedo, sediHue * saturate(sedimentTex.rgb + 0.5), smoothstep(0.25, 4, IN.color.y + 0.1));
 				o.Normal = lerp(o.Normal, sediNml, smoothstep(0.25, 4, IN.color.y));
@@ -193,7 +201,7 @@
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
-			o.Alpha = c.a;
+			o.Alpha = 1;
 			
 		}
 		

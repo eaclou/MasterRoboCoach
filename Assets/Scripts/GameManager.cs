@@ -7,6 +7,10 @@ public class GameManager : MonoBehaviour {
     public ComputeShader terrainConstructorGPUCompute;  // is this really the best way to do this??
     public ComputeShader terrainInstanceCompute;  // is this really the best way to do this??
 
+    public Mesh rockAMesh0;
+    public Mesh rockAMesh1;
+    public Mesh rockAMesh2;
+
     public bool isTraining = false;
 
     public UIManager uiManager;
@@ -42,6 +46,9 @@ public class GameManager : MonoBehaviour {
     void Start () {
         TerrainConstructorGPU.terrainConstructorGPUCompute = this.terrainConstructorGPUCompute;
         TerrainConstructorGPU.terrainInstanceCompute = this.terrainInstanceCompute;
+        TerrainConstructorGPU.rockAMesh0 = this.rockAMesh0;
+        TerrainConstructorGPU.rockAMesh1 = this.rockAMesh1;
+        TerrainConstructorGPU.rockAMesh2 = this.rockAMesh2;
         FirstTimeInitialization();
     }
 	

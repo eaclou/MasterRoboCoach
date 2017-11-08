@@ -7,6 +7,10 @@ public static class TerrainConstructorGPU {
 
     public static ComputeShader terrainConstructorGPUCompute;
     public static  ComputeShader terrainInstanceCompute;
+
+    public static Mesh rockAMesh0;
+    public static Mesh rockAMesh1;
+    public static Mesh rockAMesh2;
     //public static RenderTexture mainRenderTexture;
     //private static RenderTexture secondaryRenderTexture;
     //private static ComputeBuffer terrainGenomeCBuffer;
@@ -123,6 +127,7 @@ public static class TerrainConstructorGPU {
         CenterHeightTextures();
 
         if(updateDetailTextures) {
+            Debug.Log("updateDetailTextures");
             Graphics.Blit(heightMapCascadeTextures[3], detailTexRock);  // 
             Graphics.Blit(heightMapCascadeTextures[0], detailTexSedi);
             Graphics.Blit(heightMapCascadeTextures[2], detailTexSnow);

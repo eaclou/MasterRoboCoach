@@ -1,4 +1,4 @@
-﻿Shader "Instanced/IndirectInstancePebbleShader" {
+﻿Shader "Instanced/IndirectInstanceRockReliefArenaShader" {
     Properties {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
@@ -24,16 +24,10 @@
             float2 uv_MainTex;
 			float3 color;
         };
-
-		struct TransformData {
-			float4 worldPos;
-			float3 scale;
-			float4 rotation;
-		};
-
-		
+				
     #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-        StructuredBuffer<TransformData> instancedPebblesCBuffer;
+        StructuredBuffer<float4x4> matricesCBuffer;
+		StructuredBuffer<float4x4> invMatricesCBuffer;
     #endif
 
         void rotate2D(inout float2 v, float r)
@@ -56,36 +50,25 @@
         void setup()
         {
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            TransformData data = instancedPebblesCBuffer[unity_InstanceID];
+            //TransformData data = instancedRocksCBuffer[unity_InstanceID];
+
+			//unity_ObjectToWorld._11_21_31_41 = float4(1, 0, 0, 0);
+			//unity_ObjectToWorld._12_22_32_42 = float4(0, 1, 0, 0);
+			//unity_ObjectToWorld._13_23_33_43 = float4(0, 0, 1, 0);
+			//unity_ObjectToWorld._14_24_34_44 = float4(matricesCBuffer[unity_InstanceID]._14_24_34_44.xyz, 1); //float4(matricesCBuffer[unity_InstanceID]._11_21_31_41.x, matricesCBuffer[unity_InstanceID]._11_21_31_41.y, matricesCBuffer[unity_InstanceID]._11_21_31_41.w, 1);		
 			
-			//float4x3 dataM;
-			//dataM.transform._11_21_31  ??????
+			/*float rx = data.rotation.x;
+			float ry = data.rotation.y;
+			float rz = data.rotation.z;
+			float4x4 rotationMatrix = float4x4(  // ZXY:
+				cos(rz)*cos(ry)-sin(rz)*cos(rx)*cos(ry)-sin(rz)*sin(rx)*sin(ry), -sin(rz)*cos(rx), cos(rz)*sin(ry)-sin(rz)*cos(rx)*sin(ry)+sin(rz)*sin(rx)*cos(ry), 0,
+				sin(rz)*cos(ry)-cos(rx)*sin(ry), cos(rz)*cos(rx), sin(rz)*sin(ry)-cos(rz)*sin(rx)*cos(ry), 0,
+				-cos(rx)*sin(ry), sin(rx), cos(rx)*cos(ry), 0,
+				0, 0, 0, 1);*/
+			//unity_ObjectToWorld = mul(unity_ObjectToWorld, rotationMatrix);  // apply rotation
 
-            //float rotation = data.w * data.w * _Time.y * 0.5f;
-            //rotate2D(data.xz, rotation);
-			float3 wPosition = data.worldPos.xyz;
-			//wPosition = qtransform(data.rotation, wPosition);
-
-			float3 tempScale = float3(0.1,0.1,0.1);
-            unity_ObjectToWorld._11_21_31_41 = float4(data.scale.x, 0, 0, 0);
-            unity_ObjectToWorld._12_22_32_42 = float4(0, data.scale.x, 0, 0);
-            unity_ObjectToWorld._13_23_33_43 = float4(0, 0, data.scale.x, 0);
-            unity_ObjectToWorld._14_24_34_44 = float4(wPosition, 1);
-
-			// rotation
-			float rx = data.rotation.x * 0.6;
-			float ry = data.rotation.y * 2;
-			float rz = data.rotation.z * 0.6;
-            float4x4 rotationMatrix = float4x4(  // XYZ:
-				cos(ry)*cos(rz), -cos(ry)*sin(rz), sin(ry), 0,
-				cos(rx)*sin(rz)+sin(rx)*sin(ry)*cos(rz), cos(rx)*cos(rz)-sin(rx)*sin(ry)*sin(rz), -sin(rx)*cos(ry), 0,
-				sin(rx)*sin(rz)-cos(rx)*sin(ry)*cos(rz), sin(rx)*cos(rz)+cos(rx)*sin(ry)*sin(rz), cos(rx)*cos(ry), 0,
-				0, 0, 0, 1);
-            unity_ObjectToWorld = mul(unity_ObjectToWorld, rotationMatrix);
-
-            unity_WorldToObject = unity_ObjectToWorld;
-            unity_WorldToObject._14_24_34 *= -1;
-            unity_WorldToObject._11_22_33 = 1.0f / unity_WorldToObject._11_22_33;
+			unity_ObjectToWorld = matricesCBuffer[unity_InstanceID];
+            unity_WorldToObject = invMatricesCBuffer[unity_InstanceID];
         #endif
         }
 
@@ -97,7 +80,7 @@
 			float randColorLerp = 0;
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 			//col.gb = (float)(unity_InstanceID % 256) / 255.0f;
-			col = instancedPebblesCBuffer[unity_InstanceID].worldPos;	
+			col = matricesCBuffer[unity_InstanceID]._11_21_31_41;	
 			randColorLerp = rand(col.xz);
 			//col = col.xxx1;
 #else
