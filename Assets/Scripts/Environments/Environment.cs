@@ -57,7 +57,7 @@ public class Environment : MonoBehaviour {
         terrainManagerGO.transform.parent = environmentRenderable.transform;
         terrainManagerGO.transform.localPosition = Vector3.zero;
         TerrainManager terrainManager = terrainManagerGO.AddComponent<TerrainManager>();
-        //Debug.Log("TERRAIN BUILD!");
+        Debug.Log("TERRAIN AddRenderableContent!");
 
 
 
@@ -87,7 +87,7 @@ public class Environment : MonoBehaviour {
         rockMat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
         rockMat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
         rockMat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
-        rockMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTextures[0]);
+        rockMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
         rockMat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
         rockMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
         rockMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
@@ -108,12 +108,27 @@ public class Environment : MonoBehaviour {
         rockCliffsMat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
         rockCliffsMat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
         rockCliffsMat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
-        rockCliffsMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTextures[0]);
+        rockCliffsMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
         rockCliffsMat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
         rockCliffsMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
         rockCliffsMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
+
+        // CLUSTERS:::::
+        Material vistaRockClusterMat = Resources.Load("Materials/Environments/indirectInstanceVistaRockClusterMat", typeof(Material)) as Material;
+        vistaRockClusterMat.SetPass(0);
+        vistaRockClusterMat.SetColor("_PriHueRock", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        vistaRockClusterMat.SetColor("_SecHueRock", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        vistaRockClusterMat.SetColor("_PriHueSedi", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
+        vistaRockClusterMat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
+        vistaRockClusterMat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
+        vistaRockClusterMat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
+        vistaRockClusterMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+        vistaRockClusterMat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
+        vistaRockClusterMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
+        vistaRockClusterMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
+
         // Grab reference to ComputeShader set on TerrainConstructorGPU (by gameManager through inspector)
-        environmentRenderable.InitializeInstancedGeometry(TerrainConstructorGPU.rockAMesh2, pebbleMat, TerrainConstructorGPU.rockAMesh1, rockMat, TerrainConstructorGPU.rockAMesh1, rockReliefArenaMat, TerrainConstructorGPU.rockAMesh1, rockCliffsMat, TerrainConstructorGPU.terrainInstanceCompute);
+        environmentRenderable.InitializeInstancedGeometry(TerrainConstructorGPU.rockAMesh2, pebbleMat, TerrainConstructorGPU.rockAMesh1, rockMat, TerrainConstructorGPU.rockAMesh1, rockReliefArenaMat, TerrainConstructorGPU.rockAMesh1, rockCliffsMat, TerrainConstructorGPU.rockAMesh0, vistaRockClusterMat, TerrainConstructorGPU.terrainInstanceCompute);
 
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");

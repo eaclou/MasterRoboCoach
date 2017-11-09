@@ -146,7 +146,7 @@
 			//o.Albedo *= length(strataColor);// * strataHardness;
 
 			float4 rockDetailSample = tex2D (_RockHeightDetailTex, IN.uv_MainTex * 32 + 0.5);
-			float4 sediDetailSample = tex2D (_SediHeightDetailTex, IN.uv_MainTex * 128 + 0.5);
+			float4 sediDetailSample = tex2D (_SediHeightDetailTex, IN.uv_MainTex * 64 + 0.5);
 			float4 snowDetailSample = tex2D (_SnowHeightDetailTex, IN.uv_MainTex * 32 + 0.5);
 
 			float gradDetailHeightRockX = ddx(rockDetailSample.x);
@@ -196,7 +196,7 @@
 			//o.Albedo = float3(IN.color.y,0,0);
 			//o.Albedo.xy = IN.uv_MainTex;
 
-			//o.Albedo = _PriHueRock.rgb;
+			//o.Albedo = sediDetailSample.rgb;
 			
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;

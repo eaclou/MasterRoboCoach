@@ -22,6 +22,7 @@ public static class TerrainConstructorGPU {
     private static ComputeBuffer terrainTriangleCBuffer;
 
     public static RenderTexture[] heightMapCascadeTextures;
+    public static RenderTexture[] heightMapCascadeTexturesRender;
     public static RenderTexture temporaryRT;
 
     public static RenderTexture detailTexRock;
@@ -127,10 +128,39 @@ public static class TerrainConstructorGPU {
         CenterHeightTextures();
 
         if(updateDetailTextures) {
+            if (heightMapCascadeTexturesRender == null) {
+                heightMapCascadeTexturesRender = new RenderTexture[4];
+                // Initialize Cascade Textures
+                for (int i = 0; i < heightMapCascadeTexturesRender.Length; i++) {
+                    RenderTexture renderTexture = new RenderTexture(xResolution, yResolution, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Default);
+                    renderTexture.wrapMode = TextureWrapMode.Clamp;
+                    renderTexture.filterMode = FilterMode.Bilinear;
+                    renderTexture.enableRandomWrite = true;
+                    renderTexture.useMipMap = true;
+                    renderTexture.Create();
+
+                    heightMapCascadeTexturesRender[i] = renderTexture;
+
+                    
+                }
+            }
+
+            for (int i = 0; i < heightMapCascadeTexturesRender.Length; i++) {
+                Graphics.Blit(heightMapCascadeTextures[i], heightMapCascadeTexturesRender[i]);
+            }
+
+
+            Material makeTileableXMat = new Material(Shader.Find("TerrainBlit/TerrainBlitMakeTileableX"));
+            makeTileableXMat.SetPass(0);
+            Material makeTileableYMat = new Material(Shader.Find("TerrainBlit/TerrainBlitMakeTileableY"));
+            makeTileableYMat.SetPass(0);
             Debug.Log("updateDetailTextures");
-            Graphics.Blit(heightMapCascadeTextures[3], detailTexRock);  // 
-            Graphics.Blit(heightMapCascadeTextures[0], detailTexSedi);
-            Graphics.Blit(heightMapCascadeTextures[2], detailTexSnow);
+            Graphics.Blit(heightMapCascadeTextures[3], temporaryRT, makeTileableXMat);  // 
+            Graphics.Blit(temporaryRT, detailTexRock, makeTileableYMat);
+            Graphics.Blit(heightMapCascadeTextures[0], temporaryRT, makeTileableXMat);
+            Graphics.Blit(temporaryRT, detailTexSedi, makeTileableYMat);
+            Graphics.Blit(heightMapCascadeTextures[2], temporaryRT, makeTileableXMat);
+            Graphics.Blit(temporaryRT, detailTexSnow, makeTileableYMat);
         }
         
         //Debug.Log(MeasureHeights().ToString());

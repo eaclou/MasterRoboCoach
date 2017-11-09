@@ -8,12 +8,19 @@ struct TransformData {
     float4 rotation;
 };
 
+struct RockClusterData {
+	float3 centerPos;
+};
+
 float4 _QuadBounds;
 float4 _GlobalBounds;
 int _NumPebblesSide;
 int _NumRocksSide;
 int _NumRocksReliefArenaSide;
 int _NumRocksCliffsSide;
+int _MaxClustersPerSide;
+int _NumRockClusters;
+int _NumRockInstancesPerCluster;
 
 RWStructuredBuffer<TransformData> instancedPebblesCBuffer;
 
@@ -25,6 +32,12 @@ RWStructuredBuffer<float4x4> instancedRocksReliefArenaInvMatrixCBuffer;
 
 RWStructuredBuffer<float4x4> instancedRocksCliffsMatrixCBuffer;
 RWStructuredBuffer<float4x4> instancedRocksCliffsInvMatrixCBuffer;
+
+// CLUSTERS:::
+AppendStructuredBuffer<RockClusterData> appendRocksClusterCoreCBuffer;
+StructuredBuffer<RockClusterData> rocksClusterCoreCBuffer;
+RWStructuredBuffer<float4x4> vistaRocksClusterMatrixCBuffer;
+RWStructuredBuffer<float4x4> vistaRocksClusterInvMatrixCBuffer;
 
 Texture2D heightTexture0;
 Texture2D heightTexture1;
@@ -131,17 +144,22 @@ float4x4 inverse(float4x4 input)
 void CSInitializeInstanceRocksData (uint3 id : SV_DispatchThreadID)
 {
 	float baseScale = 0.05;
-	float gridSize = 100;
+	float gridSize = 400;
 
 	// Figure out x,z coordinates
 	float numRocksSide = (float)_NumRocksSide;
 	float2 horizontalPos = float2((float)id.x - (numRocksSide / 2), (float)id.y - (numRocksSide / 2)) * (gridSize / numRocksSide);
 
 	// RandomOffset:
-	float maxOffsetValue = (gridSize / numRocksSide) / 2 * 8;
+	float maxOffsetValue = (gridSize / numRocksSide) / 2 * 16;
 	float3 noiseSample = Value2D(horizontalPos, 2.6);
 	float2 posOffset = noiseSample.yz * maxOffsetValue + rand(horizontalPos);
 	horizontalPos += posOffset;
+
+	float minDistance = 46;
+	float dist = length(horizontalPos);
+	float tooClose = saturate(dist - minDistance);
+
 	
 	float taxiDistance = max(abs(horizontalPos.x / 680), abs(horizontalPos.y / 680)) + 0.000001;  // 0 - 1  // can't equal 0
 	float log = max(0, abs(log2(1.0 / taxiDistance)) - 1.0);  // hacky magic to figure out how many subdivisions at this location
@@ -174,13 +192,13 @@ void CSInitializeInstanceRocksData (uint3 id : SV_DispatchThreadID)
 	float sx = rand(horizontalPos - 197.8765);
 	float sy = rand(horizontalPos - 7497.238);
 	float sz = rand(horizontalPos - 1200.321);
-	float3 randScale = (((float3(sx, sy, sz) * 24) * baseScale + float3(baseScale,baseScale,baseScale))); // * gradMag;
+	float3 randScale = (((float3(sx, sy, sz) * 24) * baseScale + float3(baseScale,baseScale,baseScale))) * tooClose; // * gradMag;
 
 	int index = id.x * _NumRocksSide + id.y;
 
 	float4x4 translationMatrix = {
 		1,0,0,horizontalPos.x,
-		0,1,0,sampleValue.x,
+		0,1,0,sampleValue.x + sampleValue.y * 0.8,
 		0,0,1,horizontalPos.y,
 		0,0,0,1
 	};
@@ -419,4 +437,150 @@ void CSInitializeInstanceRocksCliffsData (uint3 id : SV_DispatchThreadID)
 	instancedRocksCliffsMatrixCBuffer[index] = mObjectToWorld;
 	float4x4 mWorldToObject = inverse(mObjectToWorld);
 	instancedRocksCliffsInvMatrixCBuffer[index] = mWorldToObject;
+}
+
+float4x4 GetTransformationMatrix(float3 position, float3 rotation, float3 scale) {
+	float4x4 translationMatrix = {
+		1,0,0,position.x,
+		0,1,0,position.y,
+		0,0,1,position.z,
+		0,0,0,1
+	};
+	// Scale:
+	float4x4 scaleMatrix = {
+		scale.x,0,0,0,
+		0,scale.y,0,0,
+		0,0,scale.z,0,
+		0,0,0,1
+	};
+	float rx = rotation.x;
+	float ry = rotation.y;
+	float rz = rotation.z;
+	// rotation
+    float4x4 rotationMatrix = float4x4(  // XYZ:
+        cos(ry)*cos(rz), -cos(ry)*sin(rz), sin(ry), 0,
+        cos(rx)*sin(rz)+sin(rx)*sin(ry)*cos(rz), cos(rx)*cos(rz)-sin(rx)*sin(ry)*sin(rz), -sin(rx)*cos(ry), 0,
+        sin(rx)*sin(rz)-cos(rx)*sin(ry)*cos(rz), sin(rx)*cos(rz)+cos(rx)*sin(ry)*sin(rz), cos(rx)*cos(ry), 0,
+        0, 0, 0, 1);
+
+	float4x4 mObjectToWorld = mul(translationMatrix, scaleMatrix);
+	mObjectToWorld = mul(mObjectToWorld, rotationMatrix);
+
+	return mObjectToWorld;
+}
+
+
+#pragma kernel CSGenerateRockClusters
+[numthreads(32,32,1)]
+void CSGenerateRockClusters (uint3 id : SV_DispatchThreadID)
+{
+	float baseScale = 1;
+	float gridSize = 800;	
+
+	// Figure out x,z coordinates
+	float maxClustersPerSide = (float)_MaxClustersPerSide;
+	float2 horizontalPos = float2((float)id.x - (maxClustersPerSide / 2), (float)id.y - (maxClustersPerSide / 2)) * (gridSize / maxClustersPerSide);
+	
+	// RandomOffset:
+	float maxOffsetValue = (gridSize / maxClustersPerSide) / 2 * 5;
+	float3 noiseSample = Value2D(horizontalPos, 0.026);
+	float2 posOffset = noiseSample.yz * maxOffsetValue + rand(horizontalPos);
+	horizontalPos += posOffset;
+
+	float taxiDistance = max(abs(horizontalPos.x / 680), abs(horizontalPos.y / 680)) + 0.000001;  // 0 - 1  // can't equal 0
+	float log = max(0, abs(log2(1.0 / taxiDistance)) - 1.0);  // hacky magic to figure out how many subdivisions at this location
+	float2 globalRange = float2(_GlobalBounds.y - _GlobalBounds.x, _GlobalBounds.w - _GlobalBounds.z);
+	float2 uv0 = horizontalPos / 680 * 0.5 + 0.5;
+	float2 uv1 = uv0 * 2 - 0.5;
+	float2 uv2 = uv1 * 2 - 0.5;
+	float2 uv3 = uv2 * 2 - 0.5;
+	// look up height texture
+	// Better way to do this with TextureArrays, 3D RenderTexture or something else so I can use an index, but fuck it for now:
+	float4 textureSample0 =  heightTexture0.SampleLevel(_LinearClamp, uv0, 0);
+	float4 textureSample1 =  heightTexture1.SampleLevel(_LinearClamp, uv1, 0);
+	float4 textureSample2 =  heightTexture2.SampleLevel(_LinearClamp, uv2, 0);
+	float4 textureSample3 =  heightTexture3.SampleLevel(_LinearClamp, uv3, 0);
+	float weight0 = (1.0 - saturate(log - 0));
+	float weight1 = frac(1.0 - saturate(log - 1)) + frac(saturate(log - 0));
+	float weight2 = frac(1.0 - saturate(log - 2)) + frac(saturate(log - 1));
+	float weight3 = saturate(log - 2);
+
+	float4 sampleValue = textureSample0 * weight0 + textureSample1 * weight1 + textureSample2 * weight2 + textureSample3 * weight3;
+		
+
+	float altitude = sampleValue.x + sampleValue.y + sampleValue.z;
+	
+	float minDistance = 64;
+	float dist = length(horizontalPos);
+	float tooClose = saturate(dist - minDistance);
+
+	float3 testPosition = float3(horizontalPos.x, altitude, horizontalPos.y);
+	RockClusterData data;
+	data.centerPos = testPosition;
+	if(altitude > 2.5 && tooClose > 0) {
+		appendRocksClusterCoreCBuffer.Append(data);
+	}	
+}
+
+#pragma kernel CSGenerateVistaClusterRocks
+[numthreads(1,1,1)]
+void CSGenerateVistaClusterRocks (uint3 id : SV_DispatchThreadID)
+{
+	int clusterIndex = id.x;
+
+	//int _NumRockClusters;
+	int rockIndex = id.x * _NumRockInstancesPerCluster + id.y;
+		
+	float3 worldPos = rocksClusterCoreCBuffer[clusterIndex].centerPos;
+
+	float maxOffsetDist = 20;
+	float2 horizontalOffset = float2(rand(id.xy) * 2 - 1, rand(id.yy) * 2 - 1) * maxOffsetDist;
+	worldPos.x += horizontalOffset.x;
+	worldPos.z += horizontalOffset.y;
+
+	float taxiDistance = max(abs(worldPos.x / 680), abs(worldPos.z / 680)) + 0.000001;  // 0 - 1  // can't equal 0
+	float log = max(0, abs(log2(1.0 / taxiDistance)) - 1.0);  // hacky magic to figure out how many subdivisions at this location
+	float2 globalRange = float2(_GlobalBounds.y - _GlobalBounds.x, _GlobalBounds.w - _GlobalBounds.z);
+	float2 uv0 = worldPos.xz / 680 * 0.5 + 0.5;
+	float2 uv1 = uv0 * 2 - 0.5;
+	float2 uv2 = uv1 * 2 - 0.5;
+	float2 uv3 = uv2 * 2 - 0.5;
+	// look up height texture
+	// Better way to do this with TextureArrays, 3D RenderTexture or something else so I can use an index, but fuck it for now:
+	float4 textureSample0 =  heightTexture0.SampleLevel(_LinearClamp, uv0, 0);
+	float4 textureSample1 =  heightTexture1.SampleLevel(_LinearClamp, uv1, 0);
+	float4 textureSample2 =  heightTexture2.SampleLevel(_LinearClamp, uv2, 0);
+	float4 textureSample3 =  heightTexture3.SampleLevel(_LinearClamp, uv3, 0);
+	float weight0 = (1.0 - saturate(log - 0));
+	float weight1 = frac(1.0 - saturate(log - 1)) + frac(saturate(log - 0));
+	float weight2 = frac(1.0 - saturate(log - 2)) + frac(saturate(log - 1));
+	float weight3 = saturate(log - 2);
+
+	float4 sampleValue = textureSample0 * weight0 + textureSample1 * weight1 + textureSample2 * weight2 + textureSample3 * weight3;
+
+	worldPos.y = sampleValue.x + sampleValue.y;
+
+	//Random Rotation
+	float rx = rand(id.xy);
+	float ry = rand(id.xy + 10.1) * 6.28 - 3.14;
+	float rz = rand(id.xy + 23.97);
+
+	//RandomScale
+	//float distToClusterCenter = length(worldPos.xz - rocksClusterCoreCBuffer[clusterIndex].centerPos.xz) * 0.25;
+	float random01 = rand(id.yy * 11.498);
+	float distribution = saturate(pow(random01, 4) - 0.4);
+	//float scaleModifier = clamp(1.0 / distToClusterCenter, 0.1, 1);
+	//scaleModifier = clamp(pow(scaleModifier, 2), 0.1, 1);
+	float sx = rand(id.xy - 197.8765);
+	float sy = rand(id.xy - 7497.238);
+	float sz = rand(id.xy - 1200.321);
+	float baseScale = lerp(1, 8, distribution);
+	float3 randScale = float3(lerp(baseScale * 0.5, baseScale * 2, sx), lerp(baseScale * 0.25, baseScale * 2.5, sy), lerp(baseScale * 0.5, baseScale * 2, sz));
+
+
+	float4x4 mObjectToWorld = GetTransformationMatrix(worldPos, float3(rx,ry,rz), randScale);
+
+	vistaRocksClusterMatrixCBuffer[rockIndex] = mObjectToWorld;
+	float4x4 mWorldToObject = inverse(mObjectToWorld);
+	vistaRocksClusterInvMatrixCBuffer[rockIndex] = mWorldToObject;
 }

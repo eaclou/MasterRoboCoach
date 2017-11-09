@@ -55,11 +55,15 @@ public class EnvironmentRenderable : MonoBehaviour {
     public Material vistaRockClusterMaterial;
     public Mesh vistaRockClusterMesh;
     // AppendBuffer?
-    private ComputeBuffer vistaRocksClusterCBuffer;
+    public int maxClustersPerSide = 32;
+    public int numRockInstancesPerCluster = 32;
+    private ComputeBuffer vistaRocksClusterMatrixCBuffer;    
     private ComputeBuffer vistaRocksClusterInvMatrixCBuffer;
+    private ComputeBuffer argsVistaRocksClusterCBuffer;
+    private uint[] argsVistaRocksCluster = new uint[5] { 0, 0, 0, 0, 0 };
     private ComputeBuffer appendRocksClusterCoreCBuffer; // just the origin of each rock cluster
-    private ComputeBuffer argsRocksClusterCoreCBuffer;
-    private uint[] argsCore = new uint[5] { 0, 0, 0, 0, 0 };
+    private ComputeBuffer indirectArgsRocksClusterCoreCBuffer;
+    private uint[] indirectArgsRocksClusterCore = new uint[5] { 0, 0, 0, 0, 0 };
     //public Matrix4x4[] instancedPebblesMatrixArray;
 
     public struct TransformData {
@@ -98,13 +102,18 @@ public class EnvironmentRenderable : MonoBehaviour {
             UnityEngine.Rendering.ShadowCastingMode castShadows = UnityEngine.Rendering.ShadowCastingMode.Off;
             Graphics.DrawMeshInstancedIndirect(instanceRockCliffsMesh, 0, instanceRockCliffsMaterial, new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f)), indirectArgsRocksCliffsCBuffer, 0, null, castShadows, true);
         }
+
+        if (vistaRocksClusterMatrixCBuffer != null && vistaRockClusterMesh != null) {
+            UnityEngine.Rendering.ShadowCastingMode castShadows = UnityEngine.Rendering.ShadowCastingMode.On;
+            Graphics.DrawMeshInstancedIndirect(vistaRockClusterMesh, 0, vistaRockClusterMaterial, new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f)), argsVistaRocksClusterCBuffer, 0, null, castShadows, true);
+        }
     }
 
     private void OnRenderObject() {
         
     }
 
-    public void InitializeInstancedGeometry(Mesh instancePebbleMesh, Material instancePebbleMaterial, Mesh instanceRockMesh, Material instanceRockMaterial, Mesh instanceRockReliefArenaMesh, Material instanceRockReliefArenaMaterial, Mesh instanceRockCliffsMesh, Material instanceRockCliffsMaterial, ComputeShader instanceComputeShader) {
+    public void InitializeInstancedGeometry(Mesh instancePebbleMesh, Material instancePebbleMaterial, Mesh instanceRockMesh, Material instanceRockMaterial, Mesh instanceRockReliefArenaMesh, Material instanceRockReliefArenaMaterial, Mesh instanceRockCliffsMesh, Material instanceRockCliffsMaterial, Mesh vistaRockClusterMesh, Material vistaRockClusterMaterial, ComputeShader instanceComputeShader) {
         this.instancePebbleMaterial = instancePebbleMaterial;
         this.instancePebbleMesh = instancePebbleMesh;
         this.instanceRockMaterial = instanceRockMaterial;
@@ -113,6 +122,8 @@ public class EnvironmentRenderable : MonoBehaviour {
         this.instanceRockReliefArenaMesh = instanceRockReliefArenaMesh;
         this.instanceRockCliffsMaterial = instanceRockCliffsMaterial;
         this.instanceRockCliffsMesh = instanceRockCliffsMesh;
+        this.vistaRockClusterMaterial = vistaRockClusterMaterial;
+        this.vistaRockClusterMesh = vistaRockClusterMesh;
 
         // PEBBLES:
         #region Pebbles
@@ -129,7 +140,7 @@ public class EnvironmentRenderable : MonoBehaviour {
         instanceComputeShader.SetInt("_NumPebblesSide", numPebblesSide);
         int initializeInstancePebblesKernelID = instanceComputeShader.FindKernel("CSInitializeInstancePebblesData");
         instanceComputeShader.SetBuffer(initializeInstancePebblesKernelID, "instancedPebblesCBuffer", instancedPebblesCBuffer);
-        instanceComputeShader.SetTexture(initializeInstancePebblesKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTextures[3]);        
+        instanceComputeShader.SetTexture(initializeInstancePebblesKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTexturesRender[3]);        
         instanceComputeShader.Dispatch(initializeInstancePebblesKernelID, numPebblesSide / 32, numPebblesSide / 32, 1);
         //Debug.Log("numPebbles: " + instancedPebblesCBuffer.count.ToString());
         
@@ -164,10 +175,10 @@ public class EnvironmentRenderable : MonoBehaviour {
         int initializeInstanceRocksKernelID = instanceComputeShader.FindKernel("CSInitializeInstanceRocksData");
         instanceComputeShader.SetBuffer(initializeInstanceRocksKernelID, "instancedRocksMatricesCBuffer", instancedRocksCBuffer);
         instanceComputeShader.SetBuffer(initializeInstanceRocksKernelID, "instancedRocksInvMatrixCBuffer", instancedRocksInvMatrixCBuffer);
-        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTextures[0]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTextures[1]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTextures[2]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTextures[3]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTexturesRender[1]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTexturesRender[2]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTexturesRender[3]);
         instanceComputeShader.Dispatch(initializeInstanceRocksKernelID, numRocksSide / 32, numRocksSide / 32, 1);
         //Debug.Log("numRocks: " + instancedRocksCBuffer.count.ToString());
         // Initialize positions and orientations and shit:  // all zeros for now
@@ -201,10 +212,10 @@ public class EnvironmentRenderable : MonoBehaviour {
         int initializeInstanceRocksReliefArenaKernelID = instanceComputeShader.FindKernel("CSInitializeInstanceRocksReliefArenaData");
         instanceComputeShader.SetBuffer(initializeInstanceRocksReliefArenaKernelID, "instancedRocksReliefArenaMatricesCBuffer", instancedRocksReliefArenaCBuffer);
         instanceComputeShader.SetBuffer(initializeInstanceRocksReliefArenaKernelID, "instancedRocksReliefArenaInvMatrixCBuffer", instancedRocksReliefArenaInvMatrixCBuffer);
-        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTextures[0]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTextures[1]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTextures[2]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTextures[3]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTexturesRender[1]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTexturesRender[2]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksReliefArenaKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTexturesRender[3]);
         instanceComputeShader.Dispatch(initializeInstanceRocksReliefArenaKernelID, numRocksReliefArenaSide / 32, numRocksReliefArenaSide / 32, 1);
         //Debug.Log("numRocks: " + instancedRocksCBuffer.count.ToString());
         //Matrix4x4[] matrixArray = new Matrix4x4[instancedRocksReliefArenaInvMatrixCBuffer.count];
@@ -241,10 +252,10 @@ public class EnvironmentRenderable : MonoBehaviour {
         int initializeInstanceRocksCliffsKernelID = instanceComputeShader.FindKernel("CSInitializeInstanceRocksCliffsData");
         instanceComputeShader.SetBuffer(initializeInstanceRocksCliffsKernelID, "instancedRocksCliffsMatrixCBuffer", instancedRocksCliffsMatrixCBuffer);
         instanceComputeShader.SetBuffer(initializeInstanceRocksCliffsKernelID, "instancedRocksCliffsInvMatrixCBuffer", instancedRocksCliffsInvMatrixCBuffer);
-        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTextures[0]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTextures[1]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTextures[2]);
-        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTextures[3]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTexturesRender[1]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTexturesRender[2]);
+        instanceComputeShader.SetTexture(initializeInstanceRocksCliffsKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTexturesRender[3]);
         instanceComputeShader.Dispatch(initializeInstanceRocksCliffsKernelID, numRocksCliffsSide / 32, numRocksCliffsSide / 32, 1);
         
         // indirect args
@@ -253,6 +264,82 @@ public class EnvironmentRenderable : MonoBehaviour {
         indirectArgsRocksCliffs[0] = numIndicesRockCliffs;
         indirectArgsRocksCliffs[1] = (uint)numRocksCliffsSide * (uint)numRocksCliffsSide;
         indirectArgsRocksCliffsCBuffer.SetData(indirectArgsRocksCliffs);
+        #endregion
+
+
+        #region VISTA ROCK CLUSTERS!!!! WOOOOOOOO
+        // ROCKS CLUSTERS!!!!!!:
+        if (appendRocksClusterCoreCBuffer != null)
+            appendRocksClusterCoreCBuffer.Release();
+        indirectArgsRocksClusterCoreCBuffer = new ComputeBuffer(1, indirectArgsRocksClusterCore.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        appendRocksClusterCoreCBuffer = new ComputeBuffer(maxClustersPerSide * maxClustersPerSide, sizeof(float) * 3, ComputeBufferType.Append);
+        appendRocksClusterCoreCBuffer.SetCounterValue(0);
+
+        
+        // Set Shader Params:
+        instanceComputeShader.SetInt("_MaxClustersPerSide", maxClustersPerSide);
+        instanceComputeShader.SetVector("_QuadBounds", new Vector4(-85f, 85f, -85f, 85f));  // worldspace size of smallest heightTexture Region
+        instanceComputeShader.SetVector("_GlobalBounds", new Vector4(-680f, 680f, -680f, 680f));
+        int generateRockClustersKernelID = instanceComputeShader.FindKernel("CSGenerateRockClusters");
+        instanceComputeShader.SetTexture(generateRockClustersKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+        instanceComputeShader.SetTexture(generateRockClustersKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTexturesRender[1]);
+        instanceComputeShader.SetTexture(generateRockClustersKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTexturesRender[2]);
+        instanceComputeShader.SetTexture(generateRockClustersKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTexturesRender[3]);
+        instanceComputeShader.SetBuffer(generateRockClustersKernelID, "appendRocksClusterCoreCBuffer", appendRocksClusterCoreCBuffer);
+        // Search through height-map texture for suitable rock cluster locations:
+        // DISPATCH HERE:
+        instanceComputeShader.Dispatch(generateRockClustersKernelID, maxClustersPerSide / 32, maxClustersPerSide / 32, 1); // create all triangles from Neurons
+
+        indirectArgsRocksClusterCore[0] = 0; // set later by counter;// 3;  // 3 vertices to start
+        indirectArgsRocksClusterCore[1] = 1;  // 1 instance/copy
+        indirectArgsRocksClusterCoreCBuffer.SetData(indirectArgsRocksClusterCore);
+        ComputeBuffer.CopyCount(appendRocksClusterCoreCBuffer, indirectArgsRocksClusterCoreCBuffer, 0);
+        indirectArgsRocksClusterCoreCBuffer.GetData(indirectArgsRocksClusterCore);
+        int numRockClusters = (int)indirectArgsRocksClusterCore[0];
+        Debug.Log("Rock Cluster Count: " + numRockClusters.ToString());
+
+        // OK! now that we have cluster locations and data inside appendRocksClusterCoreCBuffer, create individual rock insatnce data based on those:
+        if(numRockClusters > 0) {
+            if (vistaRocksClusterMatrixCBuffer != null) {
+                vistaRocksClusterMatrixCBuffer.Release();
+            }
+            vistaRocksClusterMatrixCBuffer = new ComputeBuffer(numRockClusters * numRockInstancesPerCluster, sizeof(float) * 16);
+
+            if (vistaRocksClusterInvMatrixCBuffer != null) {
+                vistaRocksClusterInvMatrixCBuffer.Release();
+            }
+            vistaRocksClusterInvMatrixCBuffer = new ComputeBuffer(numRockClusters * numRockInstancesPerCluster, sizeof(float) * 16);
+            //CSGenerateVistaClusterRocks
+            //_NumRockInstancesPerCluster
+
+            instanceComputeShader.SetInt("_NumRockClusters", numRockClusters);
+            instanceComputeShader.SetInt("_NumRockInstancesPerCluster", numRockInstancesPerCluster);
+            this.vistaRockClusterMaterial.SetPass(0);
+            this.vistaRockClusterMaterial.SetBuffer("matricesCBuffer", vistaRocksClusterMatrixCBuffer);
+            this.vistaRockClusterMaterial.SetBuffer("invMatricesCBuffer", vistaRocksClusterInvMatrixCBuffer);
+
+            instanceComputeShader.SetVector("_QuadBounds", new Vector4(-85f, 85f, -85f, 85f));  // worldspace size of smallest heightTexture Region
+            instanceComputeShader.SetVector("_GlobalBounds", new Vector4(-680f, 680f, -680f, 680f));
+            int generateVistaClusterRocksKernelID = instanceComputeShader.FindKernel("CSGenerateVistaClusterRocks");
+            instanceComputeShader.SetTexture(generateVistaClusterRocksKernelID, "heightTexture0", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+            instanceComputeShader.SetTexture(generateVistaClusterRocksKernelID, "heightTexture1", TerrainConstructorGPU.heightMapCascadeTexturesRender[1]);
+            instanceComputeShader.SetTexture(generateVistaClusterRocksKernelID, "heightTexture2", TerrainConstructorGPU.heightMapCascadeTexturesRender[2]);
+            instanceComputeShader.SetTexture(generateVistaClusterRocksKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTexturesRender[3]);
+            instanceComputeShader.SetBuffer(generateVistaClusterRocksKernelID, "rocksClusterCoreCBuffer", appendRocksClusterCoreCBuffer);
+            instanceComputeShader.SetBuffer(generateVistaClusterRocksKernelID, "vistaRocksClusterMatrixCBuffer", vistaRocksClusterMatrixCBuffer);
+            instanceComputeShader.SetBuffer(generateVistaClusterRocksKernelID, "vistaRocksClusterInvMatrixCBuffer", vistaRocksClusterInvMatrixCBuffer);
+            // Search through height-map texture for suitable rock cluster locations:
+            // DISPATCH HERE:
+            instanceComputeShader.Dispatch(generateVistaClusterRocksKernelID, numRockClusters, numRockInstancesPerCluster, 1); // create all triangles from Neurons
+
+            // indirect args
+            argsVistaRocksClusterCBuffer = new ComputeBuffer(1, argsVistaRocksCluster.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+            uint numIndicesVistaRockCluster = (vistaRockClusterMesh != null) ? (uint)vistaRockClusterMesh.GetIndexCount(0) : 0;
+            argsVistaRocksCluster[0] = numIndicesVistaRockCluster;
+            argsVistaRocksCluster[1] = (uint)numRockClusters * (uint)numRockInstancesPerCluster;
+            argsVistaRocksClusterCBuffer.SetData(argsVistaRocksCluster);
+        }
+        
         #endregion
     }
 
@@ -289,6 +376,22 @@ public class EnvironmentRenderable : MonoBehaviour {
         }
         if (indirectArgsRocksCliffsCBuffer != null) {
             indirectArgsRocksCliffsCBuffer.Release();
+        }
+        // CLUSTERS!!!
+        if (vistaRocksClusterMatrixCBuffer != null) {
+            vistaRocksClusterMatrixCBuffer.Release();
+        }
+        if (vistaRocksClusterInvMatrixCBuffer != null) {
+            vistaRocksClusterInvMatrixCBuffer.Release();
+        }
+        if (argsVistaRocksClusterCBuffer != null) {
+            argsVistaRocksClusterCBuffer.Release();
+        }
+        if (appendRocksClusterCoreCBuffer != null) {
+            appendRocksClusterCoreCBuffer.Release();
+        }
+        if (indirectArgsRocksClusterCoreCBuffer != null) {
+            indirectArgsRocksClusterCoreCBuffer.Release();
         }
     }
 }
