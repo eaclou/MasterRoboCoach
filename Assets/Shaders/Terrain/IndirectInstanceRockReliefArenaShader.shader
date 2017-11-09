@@ -1,10 +1,20 @@
 ﻿Shader "Instanced/IndirectInstanceRockReliefArenaShader" {
     Properties {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
+		_HeightTex ("Height Tex", 2D) = "white" {}
+		_RockHeightDetailTex ("Rock Height Detail", 2D) = "white" {}
+		_SediHeightDetailTex ("Sedi Height Detail", 2D) = "white" {}
+		_SnowHeightDetailTex ("Snow Height Detail", 2D) = "white" {}
+		_BumpMap ("Bumpmap", 2D) = "bump" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
-		_BaseColorPrimary ("_BaseColorPrimary", Color) = (1,1,1,1)
-		_BaseColorSecondary ("_BaseColorSecondary", Color) = (1,1,1,1)
+
+		_PriHueRock ("PriHueRock", Color) = (1,1,1,1)
+		_SecHueRock ("SecHueRock", Color) = (1,1,1,1)
+		_PriHueSedi ("PriHueSedi", Color) = (1,1,1,1)
+		_SecHueSedi ("SecHueSedi", Color) = (1,1,1,1)
+		_PriHueSnow ("PriHueSnow", Color) = (1,1,1,1)
+		_SecHueSnow ("SecHueSnow", Color) = (1,1,1,1)
     }
     SubShader {
         Tags { "RenderType"="Opaque" }
@@ -17,11 +27,23 @@
         #pragma instancing_options procedural:setup
 
         sampler2D _MainTex;
-		float4 _BaseColorPrimary;
-		float4 _BaseColorSecondary;
+		sampler2D _HeightTex;
+		sampler2D _BumpMap;
+		sampler2D _BumpMap_ST;
+		sampler2D _RockHeightDetailTex;
+		sampler2D _SediHeightDetailTex;
+		sampler2D _SnowHeightDetailTex;
+		float4 _PriHueRock;
+		float4 _SecHueRock;
+		float4 _PriHueSedi;
+		float4 _SecHueSedi;
+		float4 _PriHueSnow;
+		float4 _SecHueSnow;
 
         struct Input {
             float2 uv_MainTex;
+			float2 uv_BumpMap;
+			float3 worldPos;
 			float3 color;
         };
 				
@@ -88,12 +110,60 @@
 			col = float4(0, 0, 1, 1);
 #endif
 
-			//float3 hue = float3(rand(col.xy), rand(col.yz), rand(col.zw));
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex);			
-            o.Albedo = c.rgb * lerp(_BaseColorPrimary, _BaseColorSecondary, randColorLerp); //float3(c.r * hue.x, c.y * hue.y, c.z * hue.z);
+			float2 terrainUV = (IN.worldPos.xz / 680) * 0.5;
+
+			float4 terrainHeights = tex2D(_HeightTex, terrainUV);
+			
+			float4 rockDetailSample = tex2D (_RockHeightDetailTex, terrainUV * 32 + 0.5);
+			float4 sediDetailSample = tex2D (_SediHeightDetailTex, terrainUV * 64 + 0.5);
+			float4 snowDetailSample = tex2D (_SnowHeightDetailTex, terrainUV * 32 + 0.5);
+
+			float gradDetailHeightRockX = ddx(rockDetailSample.x);
+			float gradDetailHeightRockY = ddy(rockDetailSample.x);
+			float gradMagRock = length(float2(gradDetailHeightRockX, gradDetailHeightRockY));
+			float3 detailNormalRock = cross(normalize(float3(0, 1, gradDetailHeightRockY)), normalize(float3(1, 0, gradDetailHeightRockX)));
+			
+			float gradDetailHeightSediX = ddx(sediDetailSample.x);
+			float gradDetailHeightSediY = ddy(sediDetailSample.x);
+			float gradMagSedi = length(float2(gradDetailHeightSediX, gradDetailHeightSediY));
+			float3 detailNormalSedi = cross(normalize(float3(0, 1, gradDetailHeightSediY)), normalize(float3(1, 0, gradDetailHeightSediX)));
+
+			float gradDetailHeightSnowX = ddx(snowDetailSample.x);
+			float gradDetailHeightSnowY = ddy(snowDetailSample.x);
+			float gradMagSnow = length(float2(gradDetailHeightSnowX, gradDetailHeightSnowY));
+			float3 detailNormalSnow = cross(normalize(float3(0, 1, gradDetailHeightSnowY)), normalize(float3(1, 0, gradDetailHeightSnowX)));
+			
+			//o.Normal = normalize(o.Normal + detailNormalRock * 0.25);
+			float3 nmlMapNormals = UnpackNormal (tex2D (_BumpMap, terrainUV * 256));
+			o.Normal = nmlMapNormals;
+			float3 rockNml = lerp(o.Normal, normalize(o.Normal + detailNormalRock), 0.2);
+			//o.Normal = rockNml;
+			
+			//float3 rockHue = GetRockHue(_PriHueRock.rgb, _SecHueRock.rgb, IN.worldPos.y, rockDetailSample.xyz);
+			float3 rockHue = lerp(_SecHueRock.rgb, _PriHueRock.rgb, saturate(sin(IN.worldPos.y * 0.07431) * 0.5 + 0.5));
+			rockHue = lerp(rockHue, rockDetailSample.xyz, 0.015);
+			o.Albedo = rockHue; // float3(1, 1, 1); // Rock
+
+			float3 sediNml = lerp(o.Normal, normalize(o.Normal + detailNormalSedi), 0.16);
+			float3 sediHue = lerp(_SecHueSedi.rgb, _PriHueSedi.rgb, saturate(cos(IN.worldPos.y * 0.1489) * 0.5 + 0.5));
+			sediHue = lerp(sediHue, sediDetailSample.xyz, 0.015);
+			if(terrainHeights.y > 0) {
+				o.Albedo = lerp(o.Albedo, sediHue * saturate(terrainHeights.rgb + 0.5), smoothstep(0.25, 4, terrainHeights.y + 0.1));
+				//o.Normal = lerp(o.Normal, sediNml, smoothstep(0.25, 4, terrainHeights.y));
+			}
+
+			float3 snowNml = lerp(o.Normal, normalize(o.Normal + detailNormalSnow), 0.2);
+			float3 snowHue = lerp(_SecHueSnow.rgb, _PriHueSnow.rgb, saturate(sin(IN.worldPos.y * 0.237) * 0.5 + 0.5));
+			snowHue = lerp(snowHue, snowDetailSample.xyz, 0.00025);
+			if(terrainHeights.z > 0) {
+				o.Albedo = lerp(o.Albedo, snowHue, smoothstep(0.1,0.25, terrainHeights.z));
+				//o.Normal = lerp(o.Normal, snowNml, smoothstep(0.25, 4, terrainHeights.z));
+			}
+
+            //o.Albedo *= c.rgb + 0.25;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
+            o.Alpha = 1;
         }
         ENDCG
     }

@@ -97,8 +97,16 @@ public class Environment : MonoBehaviour {
         //Material rockReliefArenaMat = Resources.Load("Materials/Environments/indirectInstanceRockMat", typeof(Material)) as Material;
         Material rockReliefArenaMat = Resources.Load("Materials/Environments/indirectInstanceRockReliefArenaMat", typeof(Material)) as Material;
         rockReliefArenaMat.SetPass(0);
-        rockReliefArenaMat.SetColor("_BaseColorPrimary", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
-        rockReliefArenaMat.SetColor("_BaseColorSecondary", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        rockReliefArenaMat.SetColor("_PriHueRock", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        rockReliefArenaMat.SetColor("_SecHueRock", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        rockReliefArenaMat.SetColor("_PriHueSedi", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
+        rockReliefArenaMat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
+        rockReliefArenaMat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
+        rockReliefArenaMat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
+        rockReliefArenaMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+        rockReliefArenaMat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
+        rockReliefArenaMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
+        rockReliefArenaMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
 
         Material rockCliffsMat = Resources.Load("Materials/Environments/indirectInstanceRockCliffsMat", typeof(Material)) as Material;
         rockCliffsMat.SetPass(0);

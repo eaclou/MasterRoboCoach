@@ -120,12 +120,15 @@ public static class TerrainConstructorGPU {
         }
 
         //ArenaAdjustments();
+        HeightStamps();
 
         for (int i = 0; i < genome.terrainGenome.numRockSmoothPasses; i++) {
             SmoothHeights();
         }
 
         CenterHeightTextures();
+
+
 
         if(updateDetailTextures) {
             if (heightMapCascadeTexturesRender == null) {
@@ -356,6 +359,46 @@ public static class TerrainConstructorGPU {
             Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
         }
 
+    }
+
+    private static void HeightStamps() {
+        Material heightStampMat = new Material(Shader.Find("TerrainBlit/TerrainBlitHeightStamp"));
+        heightStampMat.SetPass(0);
+        heightStampMat.SetInt("_PixelsWidth", xResolution);
+        heightStampMat.SetInt("_PixelsHeight", yResolution);
+        heightStampMat.SetFloat("_RadiusStartFade", 0.01f);
+        heightStampMat.SetFloat("_RadiusEndFade", 0.25f);
+        heightStampMat.SetVector("_WorldPivot", new Vector4(0.25f,0f,-0.711f,0f));
+        //heightStampMat.SetInt("_PixelsHeight", yResolution);
+        // _HEIGHT_ADD _HEIGHT_SUBTRACT _HEIGHT_MULTIPLY _HEIGHT_AVERAGE
+        int heightOperation = 0;
+        if (heightOperation == 0) {
+            heightStampMat.EnableKeyword("_HEIGHT_ADD");
+        }
+        else if (heightOperation == 1) {
+            heightStampMat.EnableKeyword("_HEIGHT_SUBTRACT");
+        }
+        else if (heightOperation == 2) {
+            heightStampMat.EnableKeyword("_HEIGHT_MULTIPLY");
+        }
+        else {
+            heightStampMat.EnableKeyword("_HEIGHT_AVERAGE");
+        }
+
+        // NEW HEIGHTS TEXTURE:::::
+        int numNoiseOctaves = 4;
+        ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
+        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(20f,20f,20f), new Vector3(10f, 10f, 10f), new Vector3(10f, 10f, 10f), 1f, 0.25f));
+        heightStampMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
+        heightStampMat.SetVector("_NewTexLevels", new Vector4(0f,1f,0f,1f));   // blackIn, whiteIn, blackOut, whiteOut
+        heightStampMat.SetFloat("_NewTexFlowAmount", 0f);
+
+        for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            heightStampMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i), -1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i)));
+            Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, heightStampMat);  // perform calculations on texture
+            Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
+        }
+        newTexSampleParamsCBuffer.Release();
     }
 
     private static Vector3 MeasureHeights() {

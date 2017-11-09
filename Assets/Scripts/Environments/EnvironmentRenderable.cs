@@ -38,7 +38,7 @@ public class EnvironmentRenderable : MonoBehaviour {
 
     public Material instanceRockReliefArenaMaterial; // nearby only, but bigger -- only on RockMaterial
     public Mesh instanceRockReliefArenaMesh;
-    public int numRocksReliefArenaSide = 32;
+    public int numRocksReliefArenaSide = 128;
     private ComputeBuffer instancedRocksReliefArenaCBuffer;
     private ComputeBuffer instancedRocksReliefArenaInvMatrixCBuffer;
     private ComputeBuffer indirectArgsRocksReliefArenaCBuffer;
@@ -94,7 +94,7 @@ public class EnvironmentRenderable : MonoBehaviour {
         }
 
         if (instancedRocksReliefArenaCBuffer != null && instanceRockReliefArenaMesh != null) {
-            UnityEngine.Rendering.ShadowCastingMode castShadows = UnityEngine.Rendering.ShadowCastingMode.Off;
+            UnityEngine.Rendering.ShadowCastingMode castShadows = UnityEngine.Rendering.ShadowCastingMode.On;
             Graphics.DrawMeshInstancedIndirect(instanceRockReliefArenaMesh, 0, instanceRockReliefArenaMaterial, new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f)), indirectArgsRocksReliefArenaCBuffer, 0, null, castShadows, true);
         }
 

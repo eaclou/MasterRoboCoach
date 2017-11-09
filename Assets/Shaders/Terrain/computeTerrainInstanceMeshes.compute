@@ -243,18 +243,30 @@ void CSInitializeInstanceRocksData (uint3 id : SV_DispatchThreadID)
 [numthreads(32,32,1)]
 void CSInitializeInstanceRocksReliefArenaData (uint3 id : SV_DispatchThreadID)
 {
-	float baseScale = 1;
-	float gridSize = 85;
+	float baseScale = 0.1;
+	float gridSize = 40;
 
 	// Figure out x,z coordinates
 	float numRocksReliefArenaSide = (float)_NumRocksReliefArenaSide;
 	float2 horizontalPos = float2((float)id.x - (numRocksReliefArenaSide / 2), (float)id.y - (numRocksReliefArenaSide / 2)) * (gridSize / numRocksReliefArenaSide);
 
 	// RandomOffset:
-	float maxOffsetValue = (gridSize / numRocksReliefArenaSide) / 2 * 1;
-	float3 noiseSample = Value2D(horizontalPos, 2.6);
-	float2 posOffset = noiseSample.yz * maxOffsetValue + rand(horizontalPos);
+	float maxOffsetValue = (gridSize / numRocksReliefArenaSide) / 2 * 25;
+	float3 noiseSample = Value2D(horizontalPos, 64);
+	float2 posOffset = noiseSample.xz * maxOffsetValue + (rand(horizontalPos) - 0.5) * 20;
 	horizontalPos += posOffset;
+
+	float2 offset2 = Value2D(horizontalPos, 50).yz * 2;
+	//horizontalPos += offset2 - float2(2,2);
+	float2 virtualPos = float2(0,0);
+	for(int i = 0; i < 8; i++) {
+		
+		horizontalPos += (Value2D(horizontalPos.xy, 0.375).yz + float2(1,1)) *0.3;
+		horizontalPos += (Value2D(horizontalPos.xy, 0.075).xy + float2(1,1)) *0.9;
+		//horizontalPos *= 1.1;
+		horizontalPos += offset2 * 0.04;
+	}
+	horizontalPos += offset2 * 0.1;
 	
 	float taxiDistance = max(abs(horizontalPos.x / 680), abs(horizontalPos.y / 680)) + 0.000001;  // 0 - 1  // can't equal 0
 	float log = max(0, abs(log2(1.0 / taxiDistance)) - 1.0);  // hacky magic to figure out how many subdivisions at this location
@@ -288,7 +300,7 @@ void CSInitializeInstanceRocksReliefArenaData (uint3 id : SV_DispatchThreadID)
 
 	//Random Rotation
 	float rx = gradY * 0.3; //rand(horizontalPos);
-	float ry = 0; //rand(horizontalPos + 10.1) * 6.28 - 3.14;
+	float ry = rand(horizontalPos + 10.1) * 0.25;
 	float rz = gradX * 0.3; //rand(horizontalPos + 23.97);
 	float rw = 0; //rand(horizontalPos + 49.66234);
 	//float4 randQuaternion = normalize(float4(rx,ry,rz,rw) * 2 - 1);
@@ -297,7 +309,7 @@ void CSInitializeInstanceRocksReliefArenaData (uint3 id : SV_DispatchThreadID)
 	float sx = rand(horizontalPos - 197.8765);
 	float sy = rand(horizontalPos - 7497.238);
 	float sz = rand(horizontalPos - 1200.321);
-	float3 randScale = float3(lerp(baseScale * 0.45, baseScale * 2, sx), lerp(baseScale * 0.1, baseScale * 0.2, sy), lerp(baseScale * 0.45, baseScale * 2, sz));
+	float3 randScale = float3(lerp(baseScale * 0.55, baseScale * 5, sx), lerp(baseScale * 0.25, baseScale * 2.5, sy), lerp(baseScale * 0.5, baseScale * 5, sz));
 
 	int index = id.x * _NumRocksReliefArenaSide + id.y;
 	//instancedRocksCBuffer[index].worldPos = float4(horizontalPos.x, sampleValue.x, horizontalPos.y, 1);
@@ -306,7 +318,7 @@ void CSInitializeInstanceRocksReliefArenaData (uint3 id : SV_DispatchThreadID)
 
 	float4x4 translationMatrix = {
 		1,0,0,horizontalPos.x,
-		0,1,0,textureSampleCC.x,
+		0,1,0,textureSampleCC.x + textureSampleCC.y * (1 - (rand(horizontalPos) * 0.2)) + textureSampleCC.z * 0.75,
 		0,0,1,horizontalPos.y,
 		0,0,0,1
 	};
