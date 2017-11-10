@@ -135,8 +135,22 @@ public class Environment : MonoBehaviour {
         vistaRockClusterMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
         vistaRockClusterMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
 
+        // OBSTACLES:::::
+        Material obstacleRockMat = Resources.Load("Materials/Environments/indirectInstanceObstacleRockMat", typeof(Material)) as Material;
+        obstacleRockMat.SetPass(0);
+        obstacleRockMat.SetColor("_PriHueRock", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
+        obstacleRockMat.SetColor("_SecHueRock", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
+        obstacleRockMat.SetColor("_PriHueSedi", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
+        obstacleRockMat.SetColor("_SecHueSedi", new Color(genome.terrainGenome.secondaryHueSediment.x, genome.terrainGenome.secondaryHueSediment.y, genome.terrainGenome.secondaryHueSediment.z));
+        obstacleRockMat.SetColor("_PriHueSnow", new Color(genome.terrainGenome.primaryHueSnow.x, genome.terrainGenome.primaryHueSnow.y, genome.terrainGenome.primaryHueSnow.z));
+        obstacleRockMat.SetColor("_SecHueSnow", new Color(genome.terrainGenome.secondaryHueSnow.x, genome.terrainGenome.secondaryHueSnow.y, genome.terrainGenome.secondaryHueSnow.z));
+        obstacleRockMat.SetTexture("_HeightTex", TerrainConstructorGPU.heightMapCascadeTexturesRender[0]);
+        obstacleRockMat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
+        obstacleRockMat.SetTexture("_SediHeightDetailTex", TerrainConstructorGPU.detailTexSedi);
+        obstacleRockMat.SetTexture("_SnowHeightDetailTex", TerrainConstructorGPU.detailTexSnow);
+
         // Grab reference to ComputeShader set on TerrainConstructorGPU (by gameManager through inspector)
-        environmentRenderable.InitializeInstancedGeometry(TerrainConstructorGPU.rockAMesh2, pebbleMat, TerrainConstructorGPU.rockAMesh1, rockMat, TerrainConstructorGPU.rockAMesh1, rockReliefArenaMat, TerrainConstructorGPU.rockAMesh1, rockCliffsMat, TerrainConstructorGPU.rockAMesh0, vistaRockClusterMat, TerrainConstructorGPU.terrainInstanceCompute);
+        environmentRenderable.InitializeInstancedGeometry(genome, TerrainConstructorGPU.rockAMesh2, pebbleMat, TerrainConstructorGPU.rockAMesh1, rockMat, TerrainConstructorGPU.rockAMesh1, rockReliefArenaMat, TerrainConstructorGPU.rockAMesh1, rockCliffsMat, TerrainConstructorGPU.rockAMesh0, vistaRockClusterMat, TerrainConstructorGPU.rockAMesh0, obstacleRockMat, TerrainConstructorGPU.terrainInstanceCompute);
 
 
         /*environmentRenderable.groundRenderable = new GameObject("groundRenderable");
@@ -157,7 +171,7 @@ public class Environment : MonoBehaviour {
         // Obstacles:
         if(genome.useBasicObstacles) {
             for (int i = 0; i < environmentGameplay.obstacles.Count; i++) {
-                GameObject obstacle;
+                /*GameObject obstacle;
                 int meshID = Mathf.RoundToInt(UnityEngine.Random.Range(0f, 2f));
                 
                 if(meshID == 0) {
@@ -175,8 +189,25 @@ public class Environment : MonoBehaviour {
                 obstacle.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(-10f, 10f), UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-10f, 10f));
                 obstacle.transform.localScale = environmentGameplay.obstacles[i].gameObject.transform.localScale + new Vector3(0f, UnityEngine.Random.Range(0f, 1f), 0f);
                 obstacle.GetComponent<MeshRenderer>().material = mat;
-                //environmentGameplay.obstacles[i].GetComponent<MeshRenderer>().material = mat;
-                //environmentGameplay.obstacles[i].GetComponent<MeshRenderer>().enabled = true; // reveal
+                */
+                /*
+                obstacle.transform.parent = environmentGameplay.gameObject.transform;
+                //float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
+                //float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
+                float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
+                float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
+                if (genome.useTargetColumn) {
+                    float distToTarget = (new Vector2(environmentGameplay.targetColumn.transform.localPosition.x, environmentGameplay.targetColumn.transform.localPosition.z) - new Vector2(x, z)).magnitude;
+                    if(distToTarget < genome.basicObstaclesGenome.obstacleScales[i] * 0.6f) {
+                        obstacle.SetActive(false);
+                    }
+                }
+                float y = TerrainConstructor.GetAltitude(genome, x, z) + 0.5f;
+                obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], 1f, genome.basicObstaclesGenome.obstacleScales[i]);
+                obstacle.transform.localPosition = new Vector3(x, y, z);                
+                */
+
+                /*
 
                 //  SUB-BOULDERS!!!
                 int numSubBoulders = Mathf.RoundToInt(UnityEngine.Random.Range(2f, 4f));
@@ -275,8 +306,10 @@ public class Environment : MonoBehaviour {
                     vistaRock.transform.localScale = scale;
                     vistaRock.GetComponent<MeshRenderer>().material = mat;
                 }
+                */
             }
             // PArticle Pebbles!
+            /*
             GameObject particlePebbles = Instantiate(Resources.Load("Prefabs/ObjectPrefabs/obstacleParticles")) as GameObject;
             particlePebbles.transform.parent = environmentRenderable.transform;
             ParticleSystem.ShapeModule emitterShape = particlePebbles.GetComponent<ParticleSystem>().shape;
@@ -284,6 +317,7 @@ public class Environment : MonoBehaviour {
             Debug.Log(emitterShape.mesh.ToString());
             ParticleSystem.EmissionModule emission = particlePebbles.GetComponent<ParticleSystem>().emission;
             emission.enabled = true;
+            */
         }
 
         // WALLS:
@@ -439,7 +473,7 @@ public class Environment : MonoBehaviour {
                     }
                 }
 
-                float y = TerrainConstructor.GetAltitude(genome, x, z) + 0.5f;
+                float y = TerrainConstructorGPU.GetAltitude(x, z);// + 0.5f;                
                 obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], 1f, genome.basicObstaclesGenome.obstacleScales[i]);
                 obstacle.transform.localPosition = new Vector3(x, y, z);
                 obstacle.GetComponent<Collider>().material = noFriction;

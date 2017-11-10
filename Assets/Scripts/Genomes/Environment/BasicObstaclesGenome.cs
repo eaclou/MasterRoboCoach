@@ -51,7 +51,7 @@ public class BasicObstaclesGenome {
             }
             obstacleScales[i] = UnityEngine.Random.Range(1f, 1f);
         }
-        Debug.Log("InitializeRandomGenome scale[0]: " + obstacleScales[0].ToString());
+        //Debug.Log("InitializeRandomGenome scale[0]: " + obstacleScales[0].ToString());
     }
 
     public static BasicObstaclesGenome BirthNewGenome(BasicObstaclesGenome parentGenome, float mutationRate, float mutationDriftAmount, EnvironmentGenome envGenomeRef) {

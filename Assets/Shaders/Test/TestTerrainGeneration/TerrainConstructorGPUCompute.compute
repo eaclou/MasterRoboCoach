@@ -25,6 +25,10 @@ float4 _GlobalBounds;
 
 int _NumStrata;
 
+float _WorldX;
+float _WorldZ;
+RWStructuredBuffer<float> altitudeCBuffer;
+
 RWStructuredBuffer<float3> altitudeMeasurementsCBuffer;
 //groupshared float sharedMaxAltitude = -100;
 //groupshared float sharedMinAltitude = 100;
@@ -148,4 +152,18 @@ void CSMeasureHeights (uint3 id : SV_DispatchThreadID)
 
 	//altitudeMeasurementsCBuffer[0] = float3(texSample.x,-40,10002);
 	altitudeMeasurementsCBuffer[0] = float3(max(altitudeMeasurementsCBuffer[0].x, texSample.x + texSample.y + texSample.z), min(altitudeMeasurementsCBuffer[0].y, texSample.x + texSample.y + texSample.z), altitudeMeasurementsCBuffer[0].z + texSample.x + texSample.y + texSample.z);
+}
+
+#pragma kernel CSGetAltitude
+[numthreads(1,1,1)]
+void CSGetAltitude (uint3 id : SV_DispatchThreadID)
+{
+	
+				// Figure out where start Position is in UV-space
+	float2 worldPos = float2(_WorldX, _WorldZ);		
+	float2 sampleUV = (worldPos - float2(-85, -85)) / (float2(85, 85) - float2(-85, -85));
+		
+	float4 texSample = heightTexture3.SampleLevel(_PointClamp, sampleUV, 0);
+		
+	altitudeCBuffer[0] = texSample.x + texSample.y + texSample.z;
 }

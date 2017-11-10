@@ -66,10 +66,27 @@ public class EnvironmentRenderable : MonoBehaviour {
     private uint[] indirectArgsRocksClusterCore = new uint[5] { 0, 0, 0, 0, 0 };
     //public Matrix4x4[] instancedPebblesMatrixArray;
 
+    public Material obstacleRockMaterial;
+    public Mesh obstacleRockMesh;
+    public int numRockInstancesPerObstacle = 4;
+    private ComputeBuffer obstacleRockMatrixCBuffer;
+    private ComputeBuffer obstacleRockInvMatrixCBuffer;
+    private ComputeBuffer argsObstacleRockCBuffer;
+    private uint[] argsObstacleRock = new uint[5] { 0, 0, 0, 0, 0 };
+    private ComputeBuffer obstacleDataCBuffer; // just the origin of each rock cluster
+    //private ComputeBuffer indirectArgsRocksClusterCoreCBuffer;
+    //private uint[] indirectArgsRocksClusterCore = new uint[5] { 0, 0, 0, 0, 0 };
+
     public struct TransformData {
         public Vector4 worldPos;
         public Vector3 scale;
         public Quaternion rotation;
+    }
+
+    public struct ObstacleData {
+        public Vector3 worldPos;
+        public Vector3 scale;
+        public Vector3 eulerRotation;
     }
 
     // Use this for initialization
@@ -107,13 +124,18 @@ public class EnvironmentRenderable : MonoBehaviour {
             UnityEngine.Rendering.ShadowCastingMode castShadows = UnityEngine.Rendering.ShadowCastingMode.On;
             Graphics.DrawMeshInstancedIndirect(vistaRockClusterMesh, 0, vistaRockClusterMaterial, new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f)), argsVistaRocksClusterCBuffer, 0, null, castShadows, true);
         }
+
+        if (obstacleRockMatrixCBuffer != null && obstacleRockMesh != null) {
+            UnityEngine.Rendering.ShadowCastingMode castShadows = UnityEngine.Rendering.ShadowCastingMode.On;
+            Graphics.DrawMeshInstancedIndirect(obstacleRockMesh, 0, obstacleRockMaterial, new Bounds(Vector3.zero, new Vector3(100f, 100f, 100f)), argsObstacleRockCBuffer, 0, null, castShadows, true);
+        }
     }
 
     private void OnRenderObject() {
         
     }
 
-    public void InitializeInstancedGeometry(Mesh instancePebbleMesh, Material instancePebbleMaterial, Mesh instanceRockMesh, Material instanceRockMaterial, Mesh instanceRockReliefArenaMesh, Material instanceRockReliefArenaMaterial, Mesh instanceRockCliffsMesh, Material instanceRockCliffsMaterial, Mesh vistaRockClusterMesh, Material vistaRockClusterMaterial, ComputeShader instanceComputeShader) {
+    public void InitializeInstancedGeometry(EnvironmentGenome genome, Mesh instancePebbleMesh, Material instancePebbleMaterial, Mesh instanceRockMesh, Material instanceRockMaterial, Mesh instanceRockReliefArenaMesh, Material instanceRockReliefArenaMaterial, Mesh instanceRockCliffsMesh, Material instanceRockCliffsMaterial, Mesh vistaRockClusterMesh, Material vistaRockClusterMaterial, Mesh obstacleRockMesh, Material obstacleRockMaterial, ComputeShader instanceComputeShader) {
         this.instancePebbleMaterial = instancePebbleMaterial;
         this.instancePebbleMesh = instancePebbleMesh;
         this.instanceRockMaterial = instanceRockMaterial;
@@ -124,6 +146,8 @@ public class EnvironmentRenderable : MonoBehaviour {
         this.instanceRockCliffsMesh = instanceRockCliffsMesh;
         this.vistaRockClusterMaterial = vistaRockClusterMaterial;
         this.vistaRockClusterMesh = vistaRockClusterMesh;
+        this.obstacleRockMaterial = obstacleRockMaterial;
+        this.obstacleRockMesh = obstacleRockMesh;
 
         // PEBBLES:
         #region Pebbles
@@ -339,7 +363,91 @@ public class EnvironmentRenderable : MonoBehaviour {
             argsVistaRocksCluster[1] = (uint)numRockClusters * (uint)numRockInstancesPerCluster;
             argsVistaRocksClusterCBuffer.SetData(argsVistaRocksCluster);
         }
+
+        #endregion
+
+        #region OBSTACLE ROCKS
+        if(genome.useBasicObstacles) {
+            // Process data from Obstacles Genome into GPU-friendly structure:
+            if (obstacleDataCBuffer != null)
+                obstacleDataCBuffer.Release();
+            int numObstacles = genome.basicObstaclesGenome.numObstacles;
+            obstacleDataCBuffer = new ComputeBuffer(numObstacles, sizeof(float) * 9);
+
+            ObstacleData[] obstacleDataArray = new ObstacleData[numObstacles];
+            for(int i = 0; i < numObstacles; i++) {
+
+                /*
+                obstacle.transform.parent = environmentGameplay.gameObject.transform;
+                //float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
+                //float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
+                float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
+                float z = genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f;
+                if (genome.useTargetColumn) {
+                    float distToTarget = (new Vector2(environmentGameplay.targetColumn.transform.localPosition.x, environmentGameplay.targetColumn.transform.localPosition.z) - new Vector2(x, z)).magnitude;
+                    if(distToTarget < genome.basicObstaclesGenome.obstacleScales[i] * 0.6f) {
+                        obstacle.SetActive(false);
+                    }
+                }
+                float y = TerrainConstructor.GetAltitude(genome, x, z) + 0.5f;
+                obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], 1f, genome.basicObstaclesGenome.obstacleScales[i]);
+                obstacle.transform.localPosition = new Vector3(x, y, z);                
+                */
+
+                ObstacleData data = new ObstacleData();
+
+                Vector3 obstaclePos = new Vector3(genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f,
+                                                  0f,
+                                                  genome.basicObstaclesGenome.obstaclePositions[i].y * genome.arenaBounds.z - genome.arenaBounds.z * 0.5f);
+                data.worldPos = obstaclePos;
+                data.scale = Vector3.one * genome.basicObstaclesGenome.obstacleScales[i];
+                data.eulerRotation = Vector3.zero;
+
+                obstacleDataArray[i] = data;
+            }
+            obstacleDataCBuffer.SetData(obstacleDataArray);
+
+            // Create and initialize Transform Matrices CBuffers:
+            if (obstacleRockMatrixCBuffer != null) {
+                obstacleRockMatrixCBuffer.Release();
+            }
+            obstacleRockMatrixCBuffer = new ComputeBuffer(numObstacles * numRockInstancesPerObstacle, sizeof(float) * 16);
+
+            if (obstacleRockInvMatrixCBuffer != null) {
+                obstacleRockInvMatrixCBuffer.Release();
+            }
+            obstacleRockInvMatrixCBuffer = new ComputeBuffer(numObstacles * numRockInstancesPerObstacle, sizeof(float) * 16);
+                        
+            // Pass XForm Matrix data to display shader so it can draw rock instances!
+            this.obstacleRockMaterial.SetPass(0);
+            this.obstacleRockMaterial.SetBuffer("matricesCBuffer", obstacleRockMatrixCBuffer);
+            this.obstacleRockMaterial.SetBuffer("invMatricesCBuffer", obstacleRockInvMatrixCBuffer);
+
+            //  Initialize ComputeShader with all the data it needs to generate individual instanced rock xForm Matrices:
+            // Set Shader Params:
+            instanceComputeShader.SetInt("_NumRockInstancesPerObstacle", numRockInstancesPerObstacle);
+            instanceComputeShader.SetVector("_QuadBounds", new Vector4(-85f, 85f, -85f, 85f));  // worldspace size of smallest heightTexture Region
+            instanceComputeShader.SetVector("_GlobalBounds", new Vector4(-680f, 680f, -680f, 680f));
+            int generateObstacleRocksKernelID = instanceComputeShader.FindKernel("CSGenerateObstacleRocks");
+            // Only needs closest LOD level since obstacles are inside the Arena (or barely outside - sans collision)
+            instanceComputeShader.SetTexture(generateObstacleRocksKernelID, "heightTexture3", TerrainConstructorGPU.heightMapCascadeTexturesRender[3]);
+            instanceComputeShader.SetBuffer(generateObstacleRocksKernelID, "obstacleDataCBuffer", obstacleDataCBuffer);
+            instanceComputeShader.SetBuffer(generateObstacleRocksKernelID, "obstacleRockMatrixCBuffer", obstacleRockMatrixCBuffer);
+            instanceComputeShader.SetBuffer(generateObstacleRocksKernelID, "obstacleRockInvMatrixCBuffer", obstacleRockInvMatrixCBuffer);
+
+            // Generate Transform Matrices for all obstalce rock instances:
+            instanceComputeShader.Dispatch(generateObstacleRocksKernelID, numObstacles * numRockInstancesPerObstacle, 1, 1); // create all triangles from Neurons
+
+            // indirect args
+            argsObstacleRockCBuffer = new ComputeBuffer(1, argsObstacleRock.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+            uint numIndicesObstacleRock = (obstacleRockMesh != null) ? (uint)obstacleRockMesh.GetIndexCount(0) : 0;
+            argsObstacleRock[0] = numIndicesObstacleRock;
+            argsObstacleRock[1] = (uint)numObstacles * (uint)numRockInstancesPerObstacle;
+            argsObstacleRockCBuffer.SetData(argsObstacleRock);
+        }
         
+
+
         #endregion
     }
 
@@ -392,6 +500,18 @@ public class EnvironmentRenderable : MonoBehaviour {
         }
         if (indirectArgsRocksClusterCoreCBuffer != null) {
             indirectArgsRocksClusterCoreCBuffer.Release();
+        }
+        if (argsObstacleRockCBuffer != null) {
+            argsObstacleRockCBuffer.Release();
+        }
+        if (obstacleRockMatrixCBuffer != null) {
+            obstacleRockMatrixCBuffer.Release();
+        }
+        if (obstacleRockInvMatrixCBuffer != null) {
+            obstacleRockInvMatrixCBuffer.Release();
+        }
+        if (obstacleDataCBuffer != null) {
+            obstacleDataCBuffer.Release();
         }
     }
 }

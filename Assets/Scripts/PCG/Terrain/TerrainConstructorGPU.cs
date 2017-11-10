@@ -114,59 +114,24 @@ public static class TerrainConstructorGPU {
         }
 
 
-        
-        //  Cinder Cones:
-        int numRockStamps = 6;
-        TerrainGenome.HeightStampData[] stampDataArray = new TerrainGenome.HeightStampData[numRockStamps];
-        for (int i = 0; i < numRockStamps; i++) {
-            TerrainGenome.HeightStampData stampData = new TerrainGenome.HeightStampData();
-            stampData.altitudeOffset = UnityEngine.Random.Range(-10f, 30f);
-            stampData.heightOperation = 0;
-            stampData.amplitude = Vector3.one * UnityEngine.Random.Range(1f, 30f);
-            stampData.frequency = Vector3.one * UnityEngine.Random.Range(0.04f, 16f);
-            stampData.offset = Vector3.one * UnityEngine.Random.Range(-50f, 50f);
-            stampData.ridgeNoise = UnityEngine.Random.Range(0f, 1f);
-            stampData.rotation = UnityEngine.Random.Range(-6f, 6f);
-            stampData.numOctaves = UnityEngine.Random.Range(2, 5);
-            stampData.maskNoiseFreq = UnityEngine.Random.Range(8f, 32f);
-            stampData.radiusEndFade = UnityEngine.Random.Range(0.12f, 0.32f);
-            stampData.radiusStartFade = UnityEngine.Random.Range(0.001f, 0.08f);
-            stampData.stampPivot = new Vector4(UnityEngine.Random.Range(-1f, 1f), 0f, UnityEngine.Random.Range(-1f, 1f), 0f);
-
-            stampDataArray[i] = stampData;
-
-            //Debug.Log("stamp " + i.ToString() + " Pos: " + stampData.stampPivot.ToString());
-        }        
-
-        HeightStamps(stampDataArray, 0);
-
-        //  Craters:
-        int numCraterStamps = 8;
-        TerrainGenome.HeightStampData[] craterStampDataArray = new TerrainGenome.HeightStampData[numCraterStamps];
-        for (int i = 0; i < numCraterStamps; i++) {
-            TerrainGenome.HeightStampData stampData = new TerrainGenome.HeightStampData();
-            float radius = UnityEngine.Random.Range(0.02f, 0.3f);
-
-            stampData.altitudeOffset = UnityEngine.Random.Range(6f, 12f) * Mathf.Lerp(0.5f, 2f, (radius - 0.02f) * (1.0f/0.28f));
-            stampData.heightOperation = 2;
-            stampData.amplitude = Vector3.one * UnityEngine.Random.Range(1f, 6f);
-            stampData.frequency = Vector3.one * UnityEngine.Random.Range(0.1f, 30f);
-            stampData.offset = Vector3.one * UnityEngine.Random.Range(-50f, 50f);
-            stampData.ridgeNoise = UnityEngine.Random.Range(0f, 1f);
-            stampData.rotation = UnityEngine.Random.Range(-6f, 6f);
-            stampData.numOctaves = UnityEngine.Random.Range(4, 7);
-            stampData.maskNoiseFreq = UnityEngine.Random.Range(4f, 12f);
-            
-            stampData.radiusEndFade = radius;
-            stampData.radiusStartFade = radius * 0.8f;
-            stampData.stampPivot = new Vector4(UnityEngine.Random.Range(-1f, 1f), 0f, UnityEngine.Random.Range(-1f, 1f), 0f);
-
-            craterStampDataArray[i] = stampData;
-
-            //Debug.Log("stamp " + i.ToString() + " Pos: " + stampData.stampPivot.ToString());
+        if (genome.terrainGenome.heightStampHills.Count > 0) {  // if any globalrockPasses
+            TerrainGenome.HeightStampData[] stampDataArray = new TerrainGenome.HeightStampData[genome.terrainGenome.heightStampHills.Count];
+            for (int i = 0; i < genome.terrainGenome.heightStampHills.Count; i++) {
+                // Convert List to Array for CBuffer                
+                stampDataArray[i] = genome.terrainGenome.heightStampHills[i];
+            }
+            HeightStamps(stampDataArray, 0);
         }
 
-        HeightStamps(craterStampDataArray, 2);
+        if (genome.terrainGenome.heightStampCraters.Count > 0) {  // if any globalrockPasses
+            TerrainGenome.HeightStampData[] stampDataArray = new TerrainGenome.HeightStampData[genome.terrainGenome.heightStampCraters.Count];
+            for (int i = 0; i < genome.terrainGenome.heightStampCraters.Count; i++) {
+                // Convert List to Array for CBuffer                
+                stampDataArray[i] = genome.terrainGenome.heightStampCraters[i];
+            }
+            HeightStamps(stampDataArray, 2); // 2 = crater
+        }
+        
 
         // SNOW:
         if (genome.terrainGenome.terrainGlobalSnowPasses != null) {  // if any globalrockPasses
@@ -482,7 +447,7 @@ public static class TerrainConstructorGPU {
     }
 
     private static void ArenaAdjustments(EnvironmentGenome genome) {
-        Debug.Log("ArenaAdjustments: startPos: " + genome.agentStartPositionsList[0].agentStartPosition.ToString());
+        //Debug.Log("ArenaAdjustments: startPos: " + genome.agentStartPositionsList[0].agentStartPosition.ToString());
         Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitArenaAdjustments"));
         modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, 3), 1f / Mathf.Pow(2f, 3), -1f / Mathf.Pow(2f, 3), 1f / Mathf.Pow(2f, 3)));
         modifyHeightMat.SetVector("_StartPosition", new Vector4(genome.agentStartPositionsList[0].agentStartPosition.x, genome.agentStartPositionsList[0].agentStartPosition.y, genome.agentStartPositionsList[0].agentStartPosition.z, 0f));
@@ -633,5 +598,26 @@ public static class TerrainConstructorGPU {
 
         return terrainMesh;
     }    
+
+    public static float GetAltitude(float worldX, float worldZ) {
+        ComputeBuffer altitudeCBuffer = new ComputeBuffer(1, sizeof(float) * 1);
+
+        int getAltitudeKernelID = terrainConstructorGPUCompute.FindKernel("CSGetAltitude");
+        terrainConstructorGPUCompute.SetTexture(getAltitudeKernelID, "heightTexture3", heightMapCascadeTextures[3]);   // Read-Only 
+        terrainConstructorGPUCompute.SetBuffer(getAltitudeKernelID, "altitudeCBuffer", altitudeCBuffer);
+        terrainConstructorGPUCompute.SetFloat("_WorldX", worldX);
+        terrainConstructorGPUCompute.SetFloat("_WorldZ", worldZ);
+        // Measure Stats:
+        terrainConstructorGPUCompute.Dispatch(getAltitudeKernelID, 1, 1, 1);
+        
+        float[] altitudeArray = new float[1];
+        altitudeCBuffer.GetData(altitudeArray);
+        //float altitude = modifyHeightMat.GetFloat("_AltitudeAtCoords");
+        //Debug.Log("( " + worldX.ToString() + ", " + worldZ.ToString() + ") alt: " + altitudeArray[0].ToString());
+
+        altitudeCBuffer.Release();
+
+        return altitudeArray[0];
+    }
 }
 

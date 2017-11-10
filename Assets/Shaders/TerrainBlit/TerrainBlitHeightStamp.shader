@@ -223,15 +223,15 @@
 						#endif
 						#if defined(_HEIGHT_MULTIPLY)
 						// Multiplication:          /// USE as CRATER?
-							finalHeight.x += newRockHeight;
+							finalHeight.x += newRockHeight * 0.45;
 
-							float distanceMask2 = smoothstep(heightStampDataCBuffer[x].radiusStartFade * 0.0, heightStampDataCBuffer[x].radiusEndFade * 0.9, length(coords - stampPosition) + Value2D(coords, heightStampDataCBuffer[x].maskNoiseFreq).yz * 0.025);
+							float distanceMask2 = smoothstep(heightStampDataCBuffer[x].radiusStartFade * 0.4, heightStampDataCBuffer[x].radiusEndFade * 0.95, length(coords - stampPosition) + Value2D(coords, heightStampDataCBuffer[x].maskNoiseFreq).yz * 0.025);
 				
 							float newRockHeight2 = newHeight.x + heightStampDataCBuffer[x].altitudeOffset; // * saturate(mask1Value.x) * saturate(mask2Value.x);
 
 							newRockHeight2 = lerp(0, newRockHeight2, 1.0 - distanceMask2);
 
-							finalHeight.x -= newRockHeight2 * 2;
+							finalHeight.x -= newRockHeight2 * 1.5;
 						//baseHeight.x *= newRockHeight;
 						#endif
 						#if defined(_HEIGHT_AVERAGE)

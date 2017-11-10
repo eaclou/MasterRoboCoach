@@ -30,6 +30,8 @@ public class TerrainGenome {
     public List<GlobalSnowPass> terrainGlobalSnowPasses;
     public Vector3 primaryHueSnow;
     public Vector3 secondaryHueSnow;
+    public List<HeightStampData> heightStampHills;
+    public List<HeightStampData> heightStampCraters;
 
     [System.Serializable]
     public struct GlobalRockPass {
@@ -171,7 +173,26 @@ public class TerrainGenome {
                 terrainGlobalSnowPasses.Add(globalSnowPass);
             }
         }
+        // Height Stamp Hills:
+        if(templateGenome.heightStampHills != null) {
+            heightStampHills = new List<HeightStampData>();
 
+            for (int i = 0; i < templateGenome.heightStampHills.Count; i++) {
+                HeightStampData data = new HeightStampData();
+                data = templateGenome.heightStampHills[i];
+                heightStampHills.Add(data);
+            }
+        }
+        // Height Stamp Craters:
+        if (templateGenome.heightStampCraters != null) {
+            heightStampCraters = new List<HeightStampData>();
+
+            for (int i = 0; i < templateGenome.heightStampCraters.Count; i++) {
+                HeightStampData data = new HeightStampData();
+                data = templateGenome.heightStampCraters[i];
+                heightStampCraters.Add(data);
+            }
+        }
 
 
         // OLD:::::
@@ -209,14 +230,14 @@ public class TerrainGenome {
         
     }
 
-    private static void MutateAmplitude(ref GenomeNoiseOctaveData passData, float maxAmpToFreqRatio, float minAmplitude, float maxAmplitude, float mutationRate, float mutationDriftAmount) {
+    private static void MutateAmplitude(ref Vector3 amplitude, float maxAmpToFreqRatio, float minAmplitude, float maxAmplitude, float mutationRate, float mutationDriftAmount) {
         
         float mutationCheck = UnityEngine.Random.Range(0f, 1f);
         if (mutationCheck < mutationRate) {
-            Vector3 newHeightAmplitudeAdd = UnityEngine.Random.insideUnitSphere + passData.amplitude;
-            Vector3 newHeightAmplitudeMult = new Vector3(UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f)) * passData.amplitude.x;
+            Vector3 newHeightAmplitudeAdd = UnityEngine.Random.insideUnitSphere + amplitude;
+            Vector3 newHeightAmplitudeMult = new Vector3(UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f)) * amplitude.x;
             Vector3 newHeightAmplitudeLerp = Vector3.Lerp(newHeightAmplitudeAdd, newHeightAmplitudeMult, 0.2f);
-            passData.amplitude = Vector3.Lerp(passData.amplitude, newHeightAmplitudeLerp, mutationDriftAmount);
+            amplitude = Vector3.Lerp(amplitude, newHeightAmplitudeLerp, mutationDriftAmount);
 
             //float ampToFreqRatio = passData.amplitude.magnitude / passData.frequency.magnitude;
             //if (ampToFreqRatio > maxAmpToFreqRatio) {
@@ -225,29 +246,29 @@ public class TerrainGenome {
 
 
             // CAPS:
-            if (passData.amplitude.magnitude > maxAmplitude) {
-                passData.amplitude *= maxAmplitude / passData.amplitude.magnitude;
+            if (amplitude.magnitude > maxAmplitude) {
+                amplitude *= maxAmplitude / amplitude.magnitude;
             }
-            if (passData.amplitude.magnitude < minAmplitude) {
-                passData.amplitude *= 0f;
+            if (amplitude.magnitude < minAmplitude) {
+                amplitude *= 0f;
             }
         }
     }
 
-    private static void MutateFrequency(ref GenomeNoiseOctaveData passData, float minFrequency, float maxFrequency, float mutationRate, float mutationDriftAmount) {
+    private static void MutateFrequency(ref Vector3 frequency, float minFrequency, float maxFrequency, float mutationRate, float mutationDriftAmount) {
         float mutationCheck = UnityEngine.Random.Range(0f, 1f);
         if (mutationCheck < mutationRate) {
-            Vector3 newHeightFrequencyAdd = UnityEngine.Random.insideUnitSphere + passData.frequency;
-            Vector3 newHeightFrequencyMult = new Vector3(UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f)) * passData.frequency.x;
+            Vector3 newHeightFrequencyAdd = UnityEngine.Random.insideUnitSphere + frequency;
+            Vector3 newHeightFrequencyMult = new Vector3(UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f), UnityEngine.Random.Range(0.5f, 2f)) * frequency.x;
             Vector3 newHeightFrequencyLerp = Vector3.Lerp(newHeightFrequencyAdd, newHeightFrequencyMult, 0.2f);
             
-            passData.frequency = Vector3.Lerp(passData.frequency, newHeightFrequencyLerp, mutationDriftAmount);
+            frequency = Vector3.Lerp(frequency, newHeightFrequencyLerp, mutationDriftAmount);
 
-            if (passData.frequency.magnitude > maxFrequency) {
-                passData.frequency *= maxFrequency / passData.frequency.magnitude;
+            if (frequency.magnitude > maxFrequency) {
+                frequency *= maxFrequency / frequency.magnitude;
             }
-            if (passData.frequency.magnitude < minFrequency) {
-                passData.frequency /= passData.frequency.magnitude / minFrequency;
+            if (frequency.magnitude < minFrequency) {
+                frequency /= frequency.magnitude / minFrequency;
             }
         }
     }
@@ -294,6 +315,19 @@ public class TerrainGenome {
             if (data.magnitude < minMagnitude) {
                 data /= data.magnitude / minMagnitude;
             }
+        }
+    }
+    private static void MutateVector4Basic(ref Vector4 data, float minMagnitude, float maxMagnitude, float mutationRate, float mutationDriftAmount) {
+        float mutationCheck = UnityEngine.Random.Range(0f, 1f);
+        if (mutationCheck < mutationRate) {
+            float newData = UnityEngine.Random.Range(minMagnitude, maxMagnitude);           
+            data.x = Mathf.Lerp(data.x, newData, mutationDriftAmount);
+            newData = UnityEngine.Random.Range(minMagnitude, maxMagnitude);
+            data.y = Mathf.Lerp(data.y, newData, mutationDriftAmount);
+            newData = UnityEngine.Random.Range(minMagnitude, maxMagnitude);
+            data.z = Mathf.Lerp(data.z, newData, mutationDriftAmount);
+            newData = UnityEngine.Random.Range(minMagnitude, maxMagnitude);
+            data.w = Mathf.Lerp(data.w, newData, mutationDriftAmount);
         }
     }
     private static void MutateVector3Color(ref Vector3 data, float mutationRate, float mutationDriftAmount) {
@@ -350,8 +384,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalRockPass.numNoiseOctavesHeight, 4, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalRockPass.heightFlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                // AmpFreqOff
-                MutateAmplitude(ref globalRockPass.heightSampleData, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalRockPass.heightSampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalRockPass.heightSampleData.amplitude, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalRockPass.heightSampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalRockPass.heightSampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalRockPass.heightSampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -366,8 +400,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalRockPass.numNoiseOctavesHeight, 4, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalRockPass.mask1FlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalRockPass.mask1SampleData, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalRockPass.mask1SampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalRockPass.mask1SampleData.amplitude, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalRockPass.mask1SampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalRockPass.mask1SampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalRockPass.mask1SampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -382,8 +416,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalRockPass.numNoiseOctavesHeight, 4, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalRockPass.mask2FlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalRockPass.mask2SampleData, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalRockPass.mask2SampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalRockPass.mask2SampleData.amplitude, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalRockPass.mask2SampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalRockPass.mask2SampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalRockPass.mask2SampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -397,8 +431,8 @@ public class TerrainGenome {
                 // FLOW !!!!!
                 MutateIntBasic(ref globalRockPass.numNoiseOctavesHeight, 4, 8, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalRockPass.flowSampleData, maxAmpToFreqRatio, -1f, 1f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalRockPass.flowSampleData, minFrequency, maxFrequency * 0.33f, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalRockPass.flowSampleData.amplitude, maxAmpToFreqRatio, -1f, 1f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalRockPass.flowSampleData.frequency, minFrequency, maxFrequency * 0.33f, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalRockPass.flowSampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalRockPass.flowSampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -442,8 +476,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalSedimentPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalSedimentPass.heightFlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSedimentPass.heightSampleData, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSedimentPass.heightSampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSedimentPass.heightSampleData.amplitude, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSedimentPass.heightSampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSedimentPass.heightSampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSedimentPass.heightSampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -458,8 +492,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalSedimentPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalSedimentPass.mask1FlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSedimentPass.mask1SampleData, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSedimentPass.mask1SampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSedimentPass.mask1SampleData.amplitude, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSedimentPass.mask1SampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSedimentPass.mask1SampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSedimentPass.mask1SampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -474,8 +508,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalSedimentPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalSedimentPass.mask2FlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSedimentPass.mask2SampleData, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSedimentPass.mask2SampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSedimentPass.mask2SampleData.amplitude, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSedimentPass.mask2SampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSedimentPass.mask2SampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSedimentPass.mask2SampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -489,8 +523,8 @@ public class TerrainGenome {
                 // FLOW !!!!!
                 MutateIntBasic(ref globalSedimentPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSedimentPass.flowSampleData, maxAmpToFreqRatio, -1f, 1f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSedimentPass.flowSampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSedimentPass.flowSampleData.amplitude, maxAmpToFreqRatio, -1f, 1f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSedimentPass.flowSampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSedimentPass.flowSampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSedimentPass.flowSampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -539,8 +573,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalSnowPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalSnowPass.heightFlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSnowPass.heightSampleData, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSnowPass.heightSampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSnowPass.heightSampleData.amplitude, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSnowPass.heightSampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSnowPass.heightSampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSnowPass.heightSampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -555,8 +589,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalSnowPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalSnowPass.mask1FlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSnowPass.mask1SampleData, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSnowPass.mask1SampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSnowPass.mask1SampleData.amplitude, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSnowPass.mask1SampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSnowPass.mask1SampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSnowPass.mask1SampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -571,8 +605,8 @@ public class TerrainGenome {
                 MutateIntBasic(ref globalSnowPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 MutateFloatBasic(ref globalSnowPass.mask2FlowAmount, -1f, 1f, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSnowPass.mask2SampleData, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSnowPass.mask2SampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSnowPass.mask2SampleData.amplitude, maxAmpToFreqRatio, 0f, 5f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSnowPass.mask2SampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSnowPass.mask2SampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSnowPass.mask2SampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -586,8 +620,8 @@ public class TerrainGenome {
                 // FLOW !!!!!
                 MutateIntBasic(ref globalSnowPass.numNoiseOctavesHeight, 1, 8, mutationRate, mutationDriftAmount);
                 // AmpFreqOff
-                MutateAmplitude(ref globalSnowPass.flowSampleData, maxAmpToFreqRatio, -1f, 1f, mutationRate, mutationDriftAmount);
-                MutateFrequency(ref globalSnowPass.flowSampleData, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateAmplitude(ref globalSnowPass.flowSampleData.amplitude, maxAmpToFreqRatio, -1f, 1f, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref globalSnowPass.flowSampleData.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
                 MutateVector3Basic(ref globalSnowPass.flowSampleData.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
                 // Rotation & ridgeNoise
                 MutateFloatBasic(ref globalSnowPass.flowSampleData.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
@@ -600,11 +634,80 @@ public class TerrainGenome {
 
             //Debug.Log(newGenome.terrainGlobalSedimentPasses[0].numNoiseOctavesHeight.ToString());
         }
-
-
         #endregion
 
+        // HEIGHT STAMPS (HILLS):
+        if (parentGenome.heightStampHills != null) {
+            newGenome.heightStampHills = new List<HeightStampData>();
 
+            for (int i = 0; i < parentGenome.heightStampHills.Count; i++) {
+                float maxAmplitude = baseMaxAmplitude / Mathf.Pow(2, i);
+                float minAmplitude = baseMinAmplitude / Mathf.Pow(2, i);
+                float maxFrequency = baseMaxFrequency * Mathf.Pow(2, i);
+                float minFrequency = baseMinFrequency * Mathf.Pow(2, i);
+                float maxAmpToFreqRatio = 10f;
+
+                HeightStampData data = new HeightStampData();
+                data = parentGenome.heightStampHills[i];
+
+                MutateFloatBasic(ref data.radiusStartFade, 0f, data.radiusEndFade - epsilon, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.radiusEndFade, data.radiusStartFade + epsilon, 1f, mutationRate, mutationDriftAmount);
+                MutateVector4Basic(ref data.stampPivot, -1f, 1f, mutationRate, mutationDriftAmount);
+                data.heightOperation = 0; // Hills default to additive heights for now...
+                MutateFloatBasic(ref data.maskNoiseFreq, 0.1f, 20f, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.altitudeOffset, 0f, 20f, mutationRate, mutationDriftAmount);
+
+                MutateIntBasic(ref data.numOctaves, 1, 8, mutationRate, mutationDriftAmount);
+
+                // AmpFreqOff
+                MutateAmplitude(ref data.amplitude, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref data.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateVector3Basic(ref data.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
+                // Rotation & ridgeNoise
+                MutateFloatBasic(ref data.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.ridgeNoise, 0f, 1f, mutationRate, mutationDriftAmount);
+                
+
+                newGenome.heightStampHills.Add(data);
+            }
+        }
+        // HEIGHT STAMPS ( CRATERS!!! ):
+        if (parentGenome.heightStampCraters != null) {
+            newGenome.heightStampCraters = new List<HeightStampData>();
+
+            for (int i = 0; i < parentGenome.heightStampCraters.Count; i++) {
+                float maxAmplitude = baseMaxAmplitude / Mathf.Pow(2, i);
+                float minAmplitude = baseMinAmplitude / Mathf.Pow(2, i);
+                float maxFrequency = baseMaxFrequency * Mathf.Pow(2, i);
+                float minFrequency = baseMinFrequency * Mathf.Pow(2, i);
+                float maxAmpToFreqRatio = 10f;
+
+                HeightStampData data = new HeightStampData();
+                data = parentGenome.heightStampCraters[i];
+
+                MutateFloatBasic(ref data.radiusStartFade, 0f, data.radiusEndFade - epsilon, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.radiusEndFade, data.radiusStartFade + epsilon, 1f, mutationRate, mutationDriftAmount);
+                MutateVector4Basic(ref data.stampPivot, -1f, 1f, mutationRate, mutationDriftAmount);
+                data.heightOperation = 0; // Hills default to additive heights for now...
+                MutateFloatBasic(ref data.maskNoiseFreq, 0.1f, 20f, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.altitudeOffset, 0f, 20f, mutationRate, mutationDriftAmount);
+
+                MutateIntBasic(ref data.numOctaves, 1, 8, mutationRate, mutationDriftAmount);
+
+                // AmpFreqOff
+                MutateAmplitude(ref data.amplitude, maxAmpToFreqRatio, minAmplitude, maxAmplitude, mutationRate, mutationDriftAmount);
+                MutateFrequency(ref data.frequency, minFrequency, maxFrequency, mutationRate, mutationDriftAmount);
+                MutateVector3Basic(ref data.offset, -1000f, 1000f, 1f, 0.25f, mutationRate, mutationDriftAmount);
+                // Rotation & ridgeNoise
+                MutateFloatBasic(ref data.rotation, -6.28f, 6.28f, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.ridgeNoise, 0f, 1f, mutationRate, mutationDriftAmount);
+
+
+                newGenome.heightStampCraters.Add(data);
+            }
+        }
+
+        // OLD OLD OLD OLD v v v 
         // NEED TO COPY ALL ATTRIBUTES HERE unless I switch mutation process to go: full-copy, then re-traverse and mutate on a second sweep...
         newGenome.useAltitude = parentGenome.useAltitude;
         newGenome.numOctaves = parentGenome.numOctaves;
@@ -615,16 +718,6 @@ public class TerrainGenome {
             float r = UnityEngine.Random.Range(0.4f, 1f);
             newGenome.color = new Vector3(Mathf.Lerp(newGenome.color.x, r, mutationDriftAmount), Mathf.Lerp(newGenome.color.y, r, mutationDriftAmount), Mathf.Lerp(newGenome.color.z, r, mutationDriftAmount));
         }
-        /*rand = UnityEngine.Random.Range(0f, 1f);
-        if (rand < mutationRate) {
-            float g = UnityEngine.Random.Range(0f, 1f);
-            newGenome.color = new Vector3(newGenome.color.x, Mathf.Lerp(newGenome.color.y, g, mutationDriftAmount), newGenome.color.z);
-        }
-        rand = UnityEngine.Random.Range(0f, 1f);
-        if (rand < mutationRate) {
-            float b = UnityEngine.Random.Range(0f, 1f);
-            newGenome.color = new Vector3(newGenome.color.x, newGenome.color.y, Mathf.Lerp(newGenome.color.z, b, mutationDriftAmount));
-        }*/
         // TERRAIN:        
         newGenome.terrainWaves = new Vector3[newGenome.numOctaves];
         if(parentGenome.useAltitude) {

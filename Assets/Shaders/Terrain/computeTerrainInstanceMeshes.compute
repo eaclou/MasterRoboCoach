@@ -12,6 +12,12 @@ struct RockClusterData {
 	float3 centerPos;
 };
 
+struct ObstacleData {
+    float3 worldPos;
+    float3 scale;
+    float3 eulerRotation;
+};
+
 float4 _QuadBounds;
 float4 _GlobalBounds;
 int _NumPebblesSide;
@@ -21,6 +27,7 @@ int _NumRocksCliffsSide;
 int _MaxClustersPerSide;
 int _NumRockClusters;
 int _NumRockInstancesPerCluster;
+int _NumRockInstancesPerObstacle;
 
 RWStructuredBuffer<TransformData> instancedPebblesCBuffer;
 
@@ -32,6 +39,10 @@ RWStructuredBuffer<float4x4> instancedRocksReliefArenaInvMatrixCBuffer;
 
 RWStructuredBuffer<float4x4> instancedRocksCliffsMatrixCBuffer;
 RWStructuredBuffer<float4x4> instancedRocksCliffsInvMatrixCBuffer;
+
+StructuredBuffer<ObstacleData> obstacleDataCBuffer;
+RWStructuredBuffer<float4x4> obstacleRockMatrixCBuffer;
+RWStructuredBuffer<float4x4> obstacleRockInvMatrixCBuffer;
 
 // CLUSTERS:::
 AppendStructuredBuffer<RockClusterData> appendRocksClusterCoreCBuffer;
@@ -595,4 +606,69 @@ void CSGenerateVistaClusterRocks (uint3 id : SV_DispatchThreadID)
 	vistaRocksClusterMatrixCBuffer[rockIndex] = mObjectToWorld;
 	float4x4 mWorldToObject = inverse(mObjectToWorld);
 	vistaRocksClusterInvMatrixCBuffer[rockIndex] = mWorldToObject;
+}
+
+
+#pragma kernel CSGenerateObstacleRocks
+[numthreads(1,1,1)]
+void CSGenerateObstacleRocks (uint3 id : SV_DispatchThreadID)
+{
+	int obstacleIndex = id.x;
+
+	for(int ri = 0; ri < 32; ri++) {
+		if(ri < _NumRockInstancesPerObstacle) {
+			int rockInstanceIndex = obstacleIndex * _NumRockInstancesPerObstacle + ri;
+
+			float3 obstacleWorldPos = obstacleDataCBuffer[obstacleIndex].worldPos;
+
+			//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			// &&&&&&&&&&&&&&&   CALCULATE RANDOM OFFSET, SCALE, ETC...   LOOK UP TERRAIN HEIGHT FOR FINAL PLACEMENT  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+
+			//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+			//Random Rotation
+			float rx = 0; //rand(horizontalPos);
+			float ry = 0;
+			float rz = 0;
+
+			//RandomScale
+			float sx = rand(obstacleWorldPos.xz - 197.8765 * ri);
+			float sy = rand(obstacleWorldPos.xz - 7497.238 * ri);
+			float sz = rand(obstacleWorldPos.xz - 1200.321 * ri);
+			float3 randScale = float3(1, 1, 1);
+
+			float4x4 translationMatrix = {    
+				1,0,0,obstacleWorldPos.x,
+				0,1,0,obstacleWorldPos.y,
+				0,0,1,obstacleWorldPos.z,
+				0,0,0,1
+			};
+			// Scale:
+			float4x4 scaleMatrix = {
+				obstacleDataCBuffer[obstacleIndex].scale.x,0,0,0,
+				0,obstacleDataCBuffer[obstacleIndex].scale.y,0,0,
+				0,0,obstacleDataCBuffer[obstacleIndex].scale.z,0,
+				0,0,0,1
+			};
+		
+			// INVERSE MATRIX::::
+			float4x4 mObjectToWorld;
+			// rotation
+			float4x4 rotationMatrix = float4x4(  // XYZ:
+				cos(ry)*cos(rz), -cos(ry)*sin(rz), sin(ry), 0,
+				cos(rx)*sin(rz)+sin(rx)*sin(ry)*cos(rz), cos(rx)*cos(rz)-sin(rx)*sin(ry)*sin(rz), -sin(rx)*cos(ry), 0,
+				sin(rx)*sin(rz)-cos(rx)*sin(ry)*cos(rz), sin(rx)*cos(rz)+cos(rx)*sin(ry)*sin(rz), cos(rx)*cos(ry), 0,
+				0, 0, 0, 1);
+
+			mObjectToWorld = mul(translationMatrix, rotationMatrix);
+			mObjectToWorld = mul(mObjectToWorld, scaleMatrix);
+
+			obstacleRockMatrixCBuffer[rockInstanceIndex] = mObjectToWorld;
+			float4x4 mWorldToObject = inverse(mObjectToWorld);
+			obstacleRockInvMatrixCBuffer[rockInstanceIndex] = mWorldToObject;
+		}
+	}
 }
