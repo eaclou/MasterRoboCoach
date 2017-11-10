@@ -79,7 +79,8 @@
 
 			int _PixelsWidth;
 			int _PixelsHeight;
-			float4 _GridBounds;	
+			float4 _GridBounds;	// -1 to 1 represents entire Terrain Plane
+			float4 _StartPosition;
 
 			//float minAltitude;
 			//float avgAltitude;
@@ -172,22 +173,20 @@
 		
 			fixed4 frag (v2f i) : SV_Target
 			{	
+				// Figure out where start Position is in UV-space
+				float4 gridWorldCoords = _GridBounds * 680;				
+				float2 startUV = (_StartPosition.xz - gridWorldCoords.xz) / (gridWorldCoords.yw - gridWorldCoords.xz);
 				
-				//float2 _Pixels = float2((float)_PixelsWidth, (float)_PixelsHeight);  // why the fuck did I need to mult by 2?? -- something weird with Bilinear Sampling?
-				
-				 // Neighbour cells
-				//float s = 1 / _Pixels;
-
-				//_GridBounds
-				//float2 coords = float2(i.uv.x * (_GridBounds.y - _GridBounds.x) + _GridBounds.x, i.uv.y * (_GridBounds.w - _GridBounds.z) + _GridBounds.z);
-
-				float4 centerAltitudeSample = tex2D(_MainTex, float2(0.5, 0.5));
+				float4 centerAltitudeSample = tex2D(_MainTex, startUV);
 				float centerAltitude = centerAltitudeSample.x + centerAltitudeSample.y + centerAltitudeSample.z;
 				
 				float4 baseHeight = tex2D(_MainTex, i.uv);
 
-				float distToCenter = length(i.uv - float2(0.5, 0.5));
-				baseHeight.x = lerp(baseHeight.x, centerAltitude, saturate(1.5 - saturate(distToCenter * 12)));
+				float distToCenter = length(i.uv - startUV);
+				//if(distToCenter < 0.2) {
+				//	baseHeight.x = centerAltitude - baseHeight.y - baseHeight.z;
+				//}
+				baseHeight.x = lerp((centerAltitude - baseHeight.y - baseHeight.z), baseHeight.x, saturate(distToCenter * 4 - 0.05));
 				
 				return baseHeight;				
 			}

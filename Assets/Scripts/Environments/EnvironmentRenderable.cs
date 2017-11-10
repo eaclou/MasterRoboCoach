@@ -38,7 +38,7 @@ public class EnvironmentRenderable : MonoBehaviour {
 
     public Material instanceRockReliefArenaMaterial; // nearby only, but bigger -- only on RockMaterial
     public Mesh instanceRockReliefArenaMesh;
-    public int numRocksReliefArenaSide = 128;
+    public int numRocksReliefArenaSide = 32;
     private ComputeBuffer instancedRocksReliefArenaCBuffer;
     private ComputeBuffer instancedRocksReliefArenaInvMatrixCBuffer;
     private ComputeBuffer indirectArgsRocksReliefArenaCBuffer;
@@ -46,7 +46,7 @@ public class EnvironmentRenderable : MonoBehaviour {
 
     public Material instanceRockCliffsMaterial; // nearby only, but bigger -- only on RockMaterial
     public Mesh instanceRockCliffsMesh;
-    public int numRocksCliffsSide = 128;
+    public int numRocksCliffsSide = 64;
     private ComputeBuffer instancedRocksCliffsMatrixCBuffer;
     private ComputeBuffer instancedRocksCliffsInvMatrixCBuffer;
     private ComputeBuffer indirectArgsRocksCliffsCBuffer;
@@ -56,7 +56,7 @@ public class EnvironmentRenderable : MonoBehaviour {
     public Mesh vistaRockClusterMesh;
     // AppendBuffer?
     public int maxClustersPerSide = 32;
-    public int numRockInstancesPerCluster = 32;
+    public int numRockInstancesPerCluster = 16;
     private ComputeBuffer vistaRocksClusterMatrixCBuffer;    
     private ComputeBuffer vistaRocksClusterInvMatrixCBuffer;
     private ComputeBuffer argsVistaRocksClusterCBuffer;

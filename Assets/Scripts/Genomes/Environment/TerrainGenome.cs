@@ -106,9 +106,22 @@ public class TerrainGenome {
 
         public int numNoiseOctavesFlow;
         public GenomeNoiseOctaveData flowSampleData;
-    }    
-    public struct GlobalSmoothPass {
+    }
+    [System.Serializable]
+    public struct HeightStampData {
+        public float radiusStartFade;
+        public float radiusEndFade;
+        public Vector4 stampPivot;
+        public int heightOperation;
+        public float maskNoiseFreq;
+        public float altitudeOffset;
 
+        public int numOctaves;
+        public Vector3 amplitude;
+        public Vector3 frequency;
+        public Vector3 offset;
+        public float rotation;
+        public float ridgeNoise;
     }
 
     public static float epsilon = 0.0000001f;

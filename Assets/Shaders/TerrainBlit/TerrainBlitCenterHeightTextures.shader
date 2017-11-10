@@ -47,12 +47,15 @@
 			int _PixelsWidth;
 			int _PixelsHeight;
 			float4 _GridBounds;	
-
+			float4 _StartPosition;
 						
 			fixed4 frag (v2f i) : SV_Target
 			{	
-								
-				float4 centerAltitudeSample = tex2D(_CenterTex, float2(0.5, 0.5));
+				// Convert StartPos worlds-space to uv-space:
+				float4 gridWorldCoords = _GridBounds * 680;				
+				float2 startUV = (_StartPosition.xz - gridWorldCoords.xz) / (gridWorldCoords.yw - gridWorldCoords.xz);
+
+				float4 centerAltitudeSample = tex2D(_CenterTex, startUV);
 				float centerAltitude = centerAltitudeSample.x + centerAltitudeSample.y + centerAltitudeSample.z;
 				
 				float4 baseHeight = tex2D(_MainTex, i.uv);

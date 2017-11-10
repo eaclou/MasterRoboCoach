@@ -112,6 +112,62 @@ public static class TerrainConstructorGPU {
                 GlobalDebrisPass(genome.terrainGenome.terrainGlobalSedimentPasses[i]);
             }
         }
+
+
+        
+        //  Cinder Cones:
+        int numRockStamps = 6;
+        TerrainGenome.HeightStampData[] stampDataArray = new TerrainGenome.HeightStampData[numRockStamps];
+        for (int i = 0; i < numRockStamps; i++) {
+            TerrainGenome.HeightStampData stampData = new TerrainGenome.HeightStampData();
+            stampData.altitudeOffset = UnityEngine.Random.Range(-10f, 30f);
+            stampData.heightOperation = 0;
+            stampData.amplitude = Vector3.one * UnityEngine.Random.Range(1f, 30f);
+            stampData.frequency = Vector3.one * UnityEngine.Random.Range(0.04f, 16f);
+            stampData.offset = Vector3.one * UnityEngine.Random.Range(-50f, 50f);
+            stampData.ridgeNoise = UnityEngine.Random.Range(0f, 1f);
+            stampData.rotation = UnityEngine.Random.Range(-6f, 6f);
+            stampData.numOctaves = UnityEngine.Random.Range(2, 5);
+            stampData.maskNoiseFreq = UnityEngine.Random.Range(8f, 32f);
+            stampData.radiusEndFade = UnityEngine.Random.Range(0.12f, 0.32f);
+            stampData.radiusStartFade = UnityEngine.Random.Range(0.001f, 0.08f);
+            stampData.stampPivot = new Vector4(UnityEngine.Random.Range(-1f, 1f), 0f, UnityEngine.Random.Range(-1f, 1f), 0f);
+
+            stampDataArray[i] = stampData;
+
+            //Debug.Log("stamp " + i.ToString() + " Pos: " + stampData.stampPivot.ToString());
+        }        
+
+        HeightStamps(stampDataArray, 0);
+
+        //  Craters:
+        int numCraterStamps = 8;
+        TerrainGenome.HeightStampData[] craterStampDataArray = new TerrainGenome.HeightStampData[numCraterStamps];
+        for (int i = 0; i < numCraterStamps; i++) {
+            TerrainGenome.HeightStampData stampData = new TerrainGenome.HeightStampData();
+            float radius = UnityEngine.Random.Range(0.02f, 0.3f);
+
+            stampData.altitudeOffset = UnityEngine.Random.Range(6f, 12f) * Mathf.Lerp(0.5f, 2f, (radius - 0.02f) * (1.0f/0.28f));
+            stampData.heightOperation = 2;
+            stampData.amplitude = Vector3.one * UnityEngine.Random.Range(1f, 6f);
+            stampData.frequency = Vector3.one * UnityEngine.Random.Range(0.1f, 30f);
+            stampData.offset = Vector3.one * UnityEngine.Random.Range(-50f, 50f);
+            stampData.ridgeNoise = UnityEngine.Random.Range(0f, 1f);
+            stampData.rotation = UnityEngine.Random.Range(-6f, 6f);
+            stampData.numOctaves = UnityEngine.Random.Range(4, 7);
+            stampData.maskNoiseFreq = UnityEngine.Random.Range(4f, 12f);
+            
+            stampData.radiusEndFade = radius;
+            stampData.radiusStartFade = radius * 0.8f;
+            stampData.stampPivot = new Vector4(UnityEngine.Random.Range(-1f, 1f), 0f, UnityEngine.Random.Range(-1f, 1f), 0f);
+
+            craterStampDataArray[i] = stampData;
+
+            //Debug.Log("stamp " + i.ToString() + " Pos: " + stampData.stampPivot.ToString());
+        }
+
+        HeightStamps(craterStampDataArray, 2);
+
         // SNOW:
         if (genome.terrainGenome.terrainGlobalSnowPasses != null) {  // if any globalrockPasses
             for (int i = 0; i < genome.terrainGenome.terrainGlobalSnowPasses.Count; i++) {
@@ -119,18 +175,17 @@ public static class TerrainConstructorGPU {
             }
         }
 
-        //ArenaAdjustments();
-        HeightStamps();
-
         for (int i = 0; i < genome.terrainGenome.numRockSmoothPasses; i++) {
             SmoothHeights();
         }
 
-        CenterHeightTextures();
+        // needs to use StartPositions:  
+        ArenaAdjustments(genome);
+        CenterHeightTextures(genome);
+        
 
 
-
-        if(updateDetailTextures) {
+        if (updateDetailTextures) {
             if (heightMapCascadeTexturesRender == null) {
                 heightMapCascadeTexturesRender = new RenderTexture[4];
                 // Initialize Cascade Textures
@@ -361,17 +416,17 @@ public static class TerrainConstructorGPU {
 
     }
 
-    private static void HeightStamps() {
+    private static void HeightStamps(TerrainGenome.HeightStampData[] stampData, int heightOp) {
         Material heightStampMat = new Material(Shader.Find("TerrainBlit/TerrainBlitHeightStamp"));
         heightStampMat.SetPass(0);
-        heightStampMat.SetInt("_PixelsWidth", xResolution);
-        heightStampMat.SetInt("_PixelsHeight", yResolution);
-        heightStampMat.SetFloat("_RadiusStartFade", 0.01f);
-        heightStampMat.SetFloat("_RadiusEndFade", 0.25f);
-        heightStampMat.SetVector("_WorldPivot", new Vector4(0.25f,0f,-0.711f,0f));
+        //heightStampMat.SetInt("_PixelsWidth", xResolution);
+        //heightStampMat.SetInt("_PixelsHeight", yResolution);
+        //heightStampMat.SetFloat("_RadiusStartFade", stampData.radiusStartFade);
+        //heightStampMat.SetFloat("_RadiusEndFade", stampData.radiusEndFade);
+        //heightStampMat.SetVector("_WorldPivot", stampData.stampPivot);
         //heightStampMat.SetInt("_PixelsHeight", yResolution);
         // _HEIGHT_ADD _HEIGHT_SUBTRACT _HEIGHT_MULTIPLY _HEIGHT_AVERAGE
-        int heightOperation = 0;
+        int heightOperation = heightOp; // stampData.heightOperation;
         if (heightOperation == 0) {
             heightStampMat.EnableKeyword("_HEIGHT_ADD");
         }
@@ -386,10 +441,15 @@ public static class TerrainConstructorGPU {
         }
 
         // NEW HEIGHTS TEXTURE:::::
-        int numNoiseOctaves = 4;
-        ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(numNoiseOctaves, sizeof(float) * 11);
-        newTexSampleParamsCBuffer.SetData(SetNoiseSamplerSettings(numNoiseOctaves, new Vector3(20f,20f,20f), new Vector3(10f, 10f, 10f), new Vector3(10f, 10f, 10f), 1f, 0.25f));
-        heightStampMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
+        //int numNoiseOctaves = stampData.heightSampleData.numOctaves;
+        ComputeBuffer heightStampDataCBuffer = new ComputeBuffer(stampData.Length, sizeof(float) * 19 + sizeof(int) * 2);
+        heightStampDataCBuffer.SetData(stampData);
+        heightStampMat.SetBuffer("heightStampDataCBuffer", heightStampDataCBuffer);
+
+        //ComputeBuffer newTexSampleParamsCBuffer = new ComputeBuffer(1, sizeof(float) * 11 + sizeof(int) * 1);
+        //newTexSampleParamsCBuffer.SetData(SetHeightStampSettings(numNoiseOctaves, stampData.heightSampleData.amplitude, stampData.heightSampleData.frequency, stampData.heightSampleData.offset, stampData.heightSampleData.rotation, stampData.heightSampleData.ridgeNoise));
+        //heightStampMat.SetBuffer("newTexSampleParamsCBuffer", newTexSampleParamsCBuffer);
+
         heightStampMat.SetVector("_NewTexLevels", new Vector4(0f,1f,0f,1f));   // blackIn, whiteIn, blackOut, whiteOut
         heightStampMat.SetFloat("_NewTexFlowAmount", 0f);
 
@@ -398,7 +458,7 @@ public static class TerrainConstructorGPU {
             Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, heightStampMat);  // perform calculations on texture
             Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture
         }
-        newTexSampleParamsCBuffer.Release();
+        heightStampDataCBuffer.Release();
     }
 
     private static Vector3 MeasureHeights() {
@@ -421,8 +481,11 @@ public static class TerrainConstructorGPU {
         return altitudeMeasurements[0];
     }
 
-    private static void ArenaAdjustments() {
+    private static void ArenaAdjustments(EnvironmentGenome genome) {
+        Debug.Log("ArenaAdjustments: startPos: " + genome.agentStartPositionsList[0].agentStartPosition.ToString());
         Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitArenaAdjustments"));
+        modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, 3), 1f / Mathf.Pow(2f, 3), -1f / Mathf.Pow(2f, 3), 1f / Mathf.Pow(2f, 3)));
+        modifyHeightMat.SetVector("_StartPosition", new Vector4(genome.agentStartPositionsList[0].agentStartPosition.x, genome.agentStartPositionsList[0].agentStartPosition.y, genome.agentStartPositionsList[0].agentStartPosition.z, 0f));
         modifyHeightMat.SetPass(0);
         Graphics.Blit(heightMapCascadeTextures[3], temporaryRT, modifyHeightMat);  // perform calculations on texture
         Graphics.Blit(temporaryRT, heightMapCascadeTextures[3]); // copy results back into main texture       
@@ -444,12 +507,14 @@ public static class TerrainConstructorGPU {
         return sampleParamsArray;
     }
 
-    private static void CenterHeightTextures() {
+    private static void CenterHeightTextures(EnvironmentGenome genome) {
         Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitCenterHeightTextures"));
         modifyHeightMat.SetPass(0);
+        modifyHeightMat.SetVector("_StartPosition", new Vector4(genome.agentStartPositionsList[0].agentStartPosition.x, genome.agentStartPositionsList[0].agentStartPosition.y, genome.agentStartPositionsList[0].agentStartPosition.z, 0f));
         modifyHeightMat.SetTexture("_CenterTex", heightMapCascadeTextures[3]);
 
         for (int i = 0; i < heightMapCascadeTextures.Length; i++) {
+            modifyHeightMat.SetVector("_GridBounds", new Vector4(-1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i), -1f / Mathf.Pow(2f, i), 1f / Mathf.Pow(2f, i)));
             Graphics.Blit(heightMapCascadeTextures[i], temporaryRT, modifyHeightMat);  // perform calculations on texture
             Graphics.Blit(temporaryRT, heightMapCascadeTextures[i]); // copy results back into main texture    
         }   
