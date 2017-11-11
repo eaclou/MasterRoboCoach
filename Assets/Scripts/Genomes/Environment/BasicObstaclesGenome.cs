@@ -8,6 +8,7 @@ public class BasicObstaclesGenome {
     public int numObstacles = 4;
     public float minObstacleSize = 0.5f;
     public float maxObstacleSize = 6f;
+    public int randomSeed;
     public Vector2[] obstaclePositions;
     public float[] obstacleScales;
 
@@ -61,14 +62,19 @@ public class BasicObstaclesGenome {
         newGenome.numObstacles = parentGenome.numObstacles;
         newGenome.minObstacleSize = parentGenome.minObstacleSize;
         newGenome.maxObstacleSize = parentGenome.maxObstacleSize;
+        newGenome.randomSeed = parentGenome.randomSeed;
+        float rand = UnityEngine.Random.Range(0f, 1f);
+        if (rand < mutationRate) {
+            int newVal = UnityEngine.Random.Range(0, 99999);
+            newGenome.randomSeed = newVal;
+        }
 
-        
         newGenome.obstaclePositions = new Vector2[newGenome.numObstacles];
         newGenome.obstacleScales = new float[newGenome.numObstacles];
         for (int i = 0; i < parentGenome.obstaclePositions.Length; i++) {
             newGenome.obstaclePositions[i] = new Vector2(parentGenome.obstaclePositions[i].x, parentGenome.obstaclePositions[i].y);
             newGenome.obstacleScales[i] = parentGenome.obstacleScales[i];
-            float rand = UnityEngine.Random.Range(0f, 1f);
+            rand = UnityEngine.Random.Range(0f, 1f);
             if (rand < mutationRate) {
                 float newPosX = UnityEngine.Random.Range(0f, 1f);
                 newGenome.obstaclePositions[i].x = Mathf.Lerp(newGenome.obstaclePositions[i].x, newPosX, mutationDriftAmount);

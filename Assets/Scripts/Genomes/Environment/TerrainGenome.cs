@@ -651,7 +651,7 @@ public class TerrainGenome {
                 data = parentGenome.heightStampHills[i];
 
                 MutateFloatBasic(ref data.radiusStartFade, 0f, data.radiusEndFade - epsilon, mutationRate, mutationDriftAmount);
-                MutateFloatBasic(ref data.radiusEndFade, data.radiusStartFade + epsilon, 1f, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.radiusEndFade, data.radiusStartFade + epsilon, 0.36f, mutationRate, mutationDriftAmount);
                 MutateVector4Basic(ref data.stampPivot, -1f, 1f, mutationRate, mutationDriftAmount);
                 data.heightOperation = 0; // Hills default to additive heights for now...
                 MutateFloatBasic(ref data.maskNoiseFreq, 0.1f, 20f, mutationRate, mutationDriftAmount);
@@ -686,7 +686,7 @@ public class TerrainGenome {
                 data = parentGenome.heightStampCraters[i];
 
                 MutateFloatBasic(ref data.radiusStartFade, 0f, data.radiusEndFade - epsilon, mutationRate, mutationDriftAmount);
-                MutateFloatBasic(ref data.radiusEndFade, data.radiusStartFade + epsilon, 1f, mutationRate, mutationDriftAmount);
+                MutateFloatBasic(ref data.radiusEndFade, data.radiusStartFade + epsilon, 0.36f, mutationRate, mutationDriftAmount);
                 MutateVector4Basic(ref data.stampPivot, -1f, 1f, mutationRate, mutationDriftAmount);
                 data.heightOperation = 0; // Hills default to additive heights for now...
                 MutateFloatBasic(ref data.maskNoiseFreq, 0.1f, 20f, mutationRate, mutationDriftAmount);

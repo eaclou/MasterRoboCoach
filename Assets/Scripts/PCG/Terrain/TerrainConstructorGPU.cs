@@ -443,6 +443,9 @@ public static class TerrainConstructorGPU {
         altitudeMeasurementsCBuffer.Release();
 
         altitudeMeasurements[0].z /= ((float)xResolution * (float)yResolution);
+
+        //Debug.Log("x: " + altitudeMeasurements[0].x.ToString() + ", y: " + altitudeMeasurements[0].y.ToString() + ", z: " + altitudeMeasurements[0].z.ToString());
+        //return new Vector3(4.0f, -4.0f, 0f);
         return altitudeMeasurements[0];
     }
 

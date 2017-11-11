@@ -155,7 +155,7 @@
 			float3 nmlMapNormals = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
 			o.Normal = nmlMapNormals;
 			
-			o.Albedo = float3(1.1,0,0.1); //lerp(o.Albedo, groundColor, 1);
+			//o.Albedo = float3(1.1,0,0.1); //lerp(o.Albedo, groundColor, 1);
 			//o.Albedo = float3(1,1,1) * dustAmount;
 
             o.Metallic = _Metallic;

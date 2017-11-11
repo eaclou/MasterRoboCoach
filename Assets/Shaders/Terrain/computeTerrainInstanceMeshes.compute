@@ -557,7 +557,7 @@ void CSGenerateVistaClusterRocks (uint3 id : SV_DispatchThreadID)
 	float3 worldPos = rocksClusterCoreCBuffer[clusterIndex].centerPos;
 
 	float maxOffsetDist = 20;
-	float2 horizontalOffset = float2(rand(id.xy) * 2 - 1, rand(id.yy) * 2 - 1) * maxOffsetDist;
+	float2 horizontalOffset = float2(rand(id.yy + 13.19) * 2 - 1, rand(id.yy) * 2 - 1) * maxOffsetDist;
 	worldPos.x += horizontalOffset.x;
 	worldPos.z += horizontalOffset.y;
 
@@ -585,7 +585,7 @@ void CSGenerateVistaClusterRocks (uint3 id : SV_DispatchThreadID)
 
 	//Random Rotation
 	float rx = rand(id.xy);
-	float ry = rand(id.xy + 10.1) * 6.28 - 3.14;
+	float ry = rand(id.yx + 10.1) * 6.28 - 3.14;
 	float rz = rand(id.xy + 23.97);
 
 	//RandomScale
@@ -594,9 +594,9 @@ void CSGenerateVistaClusterRocks (uint3 id : SV_DispatchThreadID)
 	float distribution = saturate(pow(random01, 4) - 0.4);
 	//float scaleModifier = clamp(1.0 / distToClusterCenter, 0.1, 1);
 	//scaleModifier = clamp(pow(scaleModifier, 2), 0.1, 1);
-	float sx = rand(id.xy - 197.8765);
-	float sy = rand(id.xy - 7497.238);
-	float sz = rand(id.xy - 1200.321);
+	float sx = rand(id.yy - 197.8765);
+	float sy = rand(id.yy - 7497.238);
+	float sz = rand(id.yy - 1200.321);
 	float baseScale = lerp(1, 8, distribution);
 	float3 randScale = float3(lerp(baseScale * 0.5, baseScale * 2, sx), lerp(baseScale * 0.25, baseScale * 2.5, sy), lerp(baseScale * 0.5, baseScale * 2, sz));
 
@@ -615,7 +615,7 @@ void CSGenerateObstacleRocks (uint3 id : SV_DispatchThreadID)
 {
 	int obstacleIndex = id.x;
 
-	for(int ri = 0; ri < 32; ri++) {
+	for(int ri = 0; ri < 32; ri++) {   // eventually think about moving this from a forloop, to the Y-dimension as a thread...
 		if(ri < _NumRockInstancesPerObstacle) {
 			int rockInstanceIndex = obstacleIndex * _NumRockInstancesPerObstacle + ri;
 
@@ -624,21 +624,37 @@ void CSGenerateObstacleRocks (uint3 id : SV_DispatchThreadID)
 			//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 			// &&&&&&&&&&&&&&&   CALCULATE RANDOM OFFSET, SCALE, ETC...   LOOK UP TERRAIN HEIGHT FOR FINAL PLACEMENT  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
+			float2 horizontalOffset = normalize(float2(rand(float2(ri, id.x)), rand(float2(id.x,ri))) - 0.5) * obstacleDataCBuffer[obstacleIndex].scale.xz * 0.5;  // relative to parent obstacle radius
 
 
 
-			//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			obstacleWorldPos.x += horizontalOffset.x;
+			obstacleWorldPos.z += horizontalOffset.y;
+
+			float2 globalRange = float2(_GlobalBounds.y - _GlobalBounds.x, _GlobalBounds.w - _GlobalBounds.z);
+			float2 uv0 = obstacleWorldPos.xz / 680 * 0.5 + 0.5;
+			float2 uv1 = uv0 * 2 - 0.5;
+			float2 uv2 = uv1 * 2 - 0.5;
+			float2 uv3 = uv2 * 2 - 0.5;
+			// look up height texture
+			float4 textureSample3 =  heightTexture3.SampleLevel(_LinearClamp, uv3, 0);
+
+			obstacleWorldPos.y = textureSample3.x + textureSample3.y + textureSample3.z;
 
 			//Random Rotation
-			float rx = 0; //rand(horizontalPos);
-			float ry = 0;
-			float rz = 0;
+			float rx = rand(obstacleWorldPos.xz);
+			float ry = rand(horizontalOffset + 10.532 + rx);
+			float rz = rand(horizontalOffset - 9873.1 + ry);
 
 			//RandomScale
 			float sx = rand(obstacleWorldPos.xz - 197.8765 * ri);
 			float sy = rand(obstacleWorldPos.xz - 7497.238 * ri);
 			float sz = rand(obstacleWorldPos.xz - 1200.321 * ri);
-			float3 randScale = float3(1, 1, 1);
+			float3 rockScale = obstacleDataCBuffer[obstacleIndex].scale * (float3(sx,sy,sz) * 0.9 + 0.1) * 0.4;
+
+			//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+			// CALCULATE TRANSFORM MATRICES:::::
 
 			float4x4 translationMatrix = {    
 				1,0,0,obstacleWorldPos.x,
@@ -648,9 +664,9 @@ void CSGenerateObstacleRocks (uint3 id : SV_DispatchThreadID)
 			};
 			// Scale:
 			float4x4 scaleMatrix = {
-				obstacleDataCBuffer[obstacleIndex].scale.x,0,0,0,
-				0,obstacleDataCBuffer[obstacleIndex].scale.y,0,0,
-				0,0,obstacleDataCBuffer[obstacleIndex].scale.z,0,
+				rockScale.x,0,0,0,
+				0,rockScale.y,0,0,
+				0,0,rockScale.z,0,
 				0,0,0,1
 			};
 		

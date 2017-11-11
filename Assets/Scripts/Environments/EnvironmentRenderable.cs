@@ -68,7 +68,7 @@ public class EnvironmentRenderable : MonoBehaviour {
 
     public Material obstacleRockMaterial;
     public Mesh obstacleRockMesh;
-    public int numRockInstancesPerObstacle = 4;
+    public int numRockInstancesPerObstacle = 16;
     private ComputeBuffer obstacleRockMatrixCBuffer;
     private ComputeBuffer obstacleRockInvMatrixCBuffer;
     private ComputeBuffer argsObstacleRockCBuffer;

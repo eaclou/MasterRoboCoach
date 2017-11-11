@@ -196,7 +196,7 @@
 			//o.Albedo = float3(IN.color.y,0,0);
 			//o.Albedo.xy = IN.uv_MainTex;
 
-			//o.Albedo = sediDetailSample.rgb;
+			//o.Albedo = IN.color.ggg;
 			
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;

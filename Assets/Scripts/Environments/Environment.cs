@@ -171,7 +171,9 @@ public class Environment : MonoBehaviour {
         // Obstacles:
         if(genome.useBasicObstacles) {
             for (int i = 0; i < environmentGameplay.obstacles.Count; i++) {
-                /*GameObject obstacle;
+                GameObject obstacle;
+                UnityEngine.Random.InitState(genome.basicObstaclesGenome.randomSeed + i);  // Set Seed from Genome (experimental)
+
                 int meshID = Mathf.RoundToInt(UnityEngine.Random.Range(0f, 2f));
                 
                 if(meshID == 0) {
@@ -188,8 +190,8 @@ public class Environment : MonoBehaviour {
                 obstacle.transform.localPosition = environmentGameplay.obstacles[i].gameObject.transform.localPosition - new Vector3(0f, UnityEngine.Random.Range(0f, 1f), 0f);
                 obstacle.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(-10f, 10f), UnityEngine.Random.Range(-180f, 180f), UnityEngine.Random.Range(-10f, 10f));
                 obstacle.transform.localScale = environmentGameplay.obstacles[i].gameObject.transform.localScale + new Vector3(0f, UnityEngine.Random.Range(0f, 1f), 0f);
-                obstacle.GetComponent<MeshRenderer>().material = mat;
-                */
+                obstacle.GetComponent<MeshRenderer>().material = obstacleRockMat;
+                
                 /*
                 obstacle.transform.parent = environmentGameplay.gameObject.transform;
                 //float x = genome.basicObstaclesGenome.obstaclePositions[i].x * genome.arenaBounds.x - genome.arenaBounds.x * 0.5f;
@@ -474,7 +476,7 @@ public class Environment : MonoBehaviour {
                 }
 
                 float y = TerrainConstructorGPU.GetAltitude(x, z);// + 0.5f;                
-                obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], 1f, genome.basicObstaclesGenome.obstacleScales[i]);
+                obstacle.transform.localScale = new Vector3(genome.basicObstaclesGenome.obstacleScales[i], genome.basicObstaclesGenome.obstacleScales[i], genome.basicObstaclesGenome.obstacleScales[i]);
                 obstacle.transform.localPosition = new Vector3(x, y, z);
                 obstacle.GetComponent<Collider>().material = noFriction;
                 obstacle.tag = "hazard";
