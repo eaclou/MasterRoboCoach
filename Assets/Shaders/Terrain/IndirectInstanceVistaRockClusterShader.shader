@@ -142,6 +142,9 @@
 			o.Albedo = lerp(o.Albedo, groundColor, 0.8) * (c + 0.2);
 			//o.Albedo = float3(0,0,0);
 
+			float grayVal = o.Albedo.x * 0.299 + o.Albedo.y * 0.587 + o.Albedo.z * 0.114;
+			o.Albedo = float3(grayVal, grayVal, grayVal);
+
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
             o.Alpha = 1;

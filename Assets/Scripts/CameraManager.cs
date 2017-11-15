@@ -8,20 +8,24 @@ public class CameraManager : MonoBehaviour {
     public GameObject mainCamGroup;
     public GameObject mainCam;
     public int currentCameraMode = 0;  // 0 = wide, 1 = top-down, 2 = shoulder-cam
-    private Vector3 cameraPosWide;
-    private Quaternion cameraRotWide;
-    private Vector3 cameraPosTop;
-    private Quaternion cameraRotTop;
-    private Vector3 cameraPosShoulder;
-    private Quaternion cameraRotShoulder;
+    public Vector3 cameraPosWide;
+    public Quaternion cameraRotWide;
+    public Vector3 cameraPosTop;
+    public Quaternion cameraRotTop;
+    public Vector3 cameraPosShoulder;
+    public Quaternion cameraRotShoulder;
 
-    private Vector3 targetCamGroupPosition;
-    private Quaternion targetCamGroupRotation;
-    private Vector3 targetMainCamPosition;
-    private Quaternion targetMainCamRotation;
+    public Vector3 targetCamGroupPosition;
+    public Quaternion targetCamGroupRotation;
+    public Vector3 targetMainCamPosition;
+    public Quaternion targetMainCamRotation;
 
     private Vector3 focusPoint = Vector3.zero;
     private Vector3 focusPointAvgVel = Vector3.zero;
+
+    public float cameraSpeed = 0.025f;
+    public float cameraSpeedAngle = 0.990f;
+    public float camSpeedOther = 0.05f;
 
     // Use this for initialization
     void Start () {
@@ -29,7 +33,7 @@ public class CameraManager : MonoBehaviour {
         cameraRotWide = Quaternion.Euler(25f, 0f, 0f);
         cameraPosTop = new Vector3(0f, 40f, 0f);
         cameraRotTop = Quaternion.Euler(90f, 0f, 0f);
-        cameraPosShoulder = new Vector3(0f, 4f, -6.3f);
+        cameraPosShoulder = new Vector3(0f, 1.5f, -2.5f);
         cameraRotShoulder = Quaternion.Euler(12.5f, 0f, 0f);
     }
 	
@@ -79,13 +83,13 @@ public class CameraManager : MonoBehaviour {
             targetMainCamPosition = cameraPosShoulder;
             targetMainCamRotation = cameraRotShoulder;
 
-            targetCamGroupPosition = Vector3.Lerp(targetCamGroupPosition, focusPoint, 0.025f);
+            targetCamGroupPosition = Vector3.Lerp(targetCamGroupPosition, focusPoint, cameraSpeed);
 
             Vector3 focusPointVel = focusPoint - prevFocusPoint;
             if (focusPointVel.sqrMagnitude == 0f) {
                 focusPointVel = new Vector3(0f, 0f, 1f);
             }
-            focusPointAvgVel = Vector3.Lerp(focusPoint - prevFocusPoint, focusPointAvgVel, 0.990f);
+            focusPointAvgVel = Vector3.Lerp(focusPoint - prevFocusPoint, focusPointAvgVel, cameraSpeedAngle);
             focusPointAvgVel.y = 0f;
             if(focusPointAvgVel.sqrMagnitude < 0.00001f) {
                 focusPointAvgVel = new Vector3(0f, 0f, 1f);
@@ -107,11 +111,11 @@ public class CameraManager : MonoBehaviour {
         Vector3 camGroupToTarget = targetCamGroupPosition - mainCamGroup.transform.position;
         Vector3 mainCamToTarget = targetMainCamPosition - mainCam.transform.localPosition;
 
-        Vector3 camGroupMove = camGroupToTarget * 0.05f;
-        Vector3 mainCamMove = mainCamToTarget * 0.05f;
+        Vector3 camGroupMove = camGroupToTarget * camSpeedOther;
+        Vector3 mainCamMove = mainCamToTarget * camSpeedOther;
 
-        Quaternion newCamGroupRotation = Quaternion.Lerp(mainCamGroup.transform.rotation, targetCamGroupRotation, 0.05f);
-        Quaternion newMainCamRotation = Quaternion.Lerp(mainCam.transform.localRotation, targetMainCamRotation, 0.05f);
+        Quaternion newCamGroupRotation = Quaternion.Lerp(mainCamGroup.transform.rotation, targetCamGroupRotation, camSpeedOther);
+        Quaternion newMainCamRotation = Quaternion.Lerp(mainCam.transform.localRotation, targetMainCamRotation, camSpeedOther);
 
         mainCamGroup.transform.position += camGroupMove;
         mainCam.transform.localPosition += mainCamMove;

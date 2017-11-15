@@ -68,8 +68,8 @@ float rand(in float2 uv)
 [numthreads(32,32,1)]
 void CSInitializeInstancePebblesData (uint3 id : SV_DispatchThreadID)
 {
-	float baseScale = 0.026;
-	float gridSize = 60;
+	float baseScale = 0.013;
+	float gridSize = 46;
 
 	// Figure out x,z coordinates
 	float numPebblesSide = (float)_NumPebblesSide;

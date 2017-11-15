@@ -380,7 +380,7 @@ public class TrainingManager : MonoBehaviour {
     }
     private void ResetGeneration() {
         // Restarts the training generation from scratch immediately:
-
+        
 
         // Should be able to remove this eventually:
         teamsConfig.environmentPopulation.fitnessManager.ProcessAndRankRawFitness(teamsConfig.environmentPopulation.popSize);

@@ -160,6 +160,9 @@
 				//o.Normal = lerp(o.Normal, snowNml, smoothstep(0.25, 4, terrainHeights.z));
 			}
 
+			float grayVal = o.Albedo.x * 0.299 + o.Albedo.y * 0.587 + o.Albedo.z * 0.114;
+			o.Albedo = float3(grayVal, grayVal, grayVal);
+
             //o.Albedo *= c.rgb + 0.25;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;

@@ -13,6 +13,6 @@ public class TestRotateObjectYAxis : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        transform.rotation = Quaternion.Euler(0f, Time.fixedTime * rotationRate, rotateZ);
+        transform.localRotation = Quaternion.Euler(0f, Time.fixedTime * rotationRate, rotateZ);
 	}
 }

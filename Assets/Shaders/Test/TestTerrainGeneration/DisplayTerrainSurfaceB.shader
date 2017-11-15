@@ -112,7 +112,6 @@
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 			// Albedo comes from a texture tinted by color
 			
-			//fixed4 c = tex2D (_MainTex, -IN.uv_MainTex * 1) * _Color;
 			fixed4 sedimentTex = tex2D (_MainTex, IN.uv_MainTex * 1);
 			//o.Albedo = c.rgb;
 			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
@@ -196,7 +195,9 @@
 			//o.Albedo = float3(IN.color.y,0,0);
 			//o.Albedo.xy = IN.uv_MainTex;
 
-			//o.Albedo = IN.color.ggg;
+			float grayVal = o.Albedo.x * 0.299 + o.Albedo.y * 0.587 + o.Albedo.z * 0.114;
+			o.Albedo = lerp(float3(grayVal, grayVal, grayVal), 0.75, 0.75);
+			
 			
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;

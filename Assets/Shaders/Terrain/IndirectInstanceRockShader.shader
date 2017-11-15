@@ -156,8 +156,11 @@
 			o.Normal = nmlMapNormals;
 			
 			o.Albedo = lerp(o.Albedo, groundColor, 1);
-			//o.Albedo = float3(1,1,1) * dustAmount;
 
+			float grayVal = o.Albedo.x * 0.299 + o.Albedo.y * 0.587 + o.Albedo.z * 0.114;
+			o.Albedo = float3(grayVal, grayVal, grayVal);
+
+			//o.Albedo = float3(1,1,1) * dustAmount;			
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
             o.Alpha = 1;

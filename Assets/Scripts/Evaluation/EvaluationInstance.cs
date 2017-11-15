@@ -349,8 +349,24 @@ public class EvaluationInstance : MonoBehaviour {
         }
         else {
             // Already built
+            CollisionHitEffects collideFX = currentEvalTicket.environmentGenome.gameplayPrefab.groundCollision.GetComponent<CollisionHitEffects>();
+            bool prefabState = false;
+            if (collideFX != null) {
+                //currentEnvironment.environmentGameplay.groundCollision.GetComponent<CollisionHitEffects>().active = false;
+                prefabState = collideFX.active;
+                collideFX.active = false;
+                //Destroy(collideFX);
+            }
             EnvironmentGameplay environmentGameplayScript = Instantiate<EnvironmentGameplay>(currentEvalTicket.environmentGenome.gameplayPrefab) as EnvironmentGameplay;
+            // restore state after instantiation:
+            if (collideFX != null) {
+                collideFX.active = prefabState;
+            }
+            
+
             currentEnvironment.environmentGameplay = environmentGameplayScript;
+            //CollisionHitEffects collideFX = currentEnvironment.environmentGameplay.groundCollision.GetComponent<CollisionHitEffects>();
+                       
             currentEnvironment.environmentGameplay.gameObject.transform.parent = currentEnvironment.gameObject.transform;
             currentEnvironment.environmentGameplay.gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
         }

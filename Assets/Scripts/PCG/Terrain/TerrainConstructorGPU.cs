@@ -6,7 +6,7 @@ using UnityEngine;
 public static class TerrainConstructorGPU {
 
     public static ComputeShader terrainConstructorGPUCompute;
-    public static  ComputeShader terrainInstanceCompute;
+    public static ComputeShader terrainInstanceCompute;
 
     public static Mesh rockAMesh0;
     public static Mesh rockAMesh1;
@@ -29,6 +29,9 @@ public static class TerrainConstructorGPU {
     public static RenderTexture detailTexSedi;
     public static RenderTexture detailTexSnow;
     //public static Material terrainDisplayMaterial;
+
+    public static Camera customHeightCam;
+    public static RenderTexture customHeightRT;
 
     public static int xResolution = 512;
     public static int yResolution = 512;
@@ -188,7 +191,34 @@ public static class TerrainConstructorGPU {
         
         //Debug.Log(MeasureHeights().ToString());
     }
-    
+
+    public static void RestoreCameraClearMode() {
+        customHeightCam.clearFlags = CameraClearFlags.Nothing;
+    }
+
+    public static void ClearCustomHeightRT() {
+        customHeightCam.targetTexture = null;
+        customHeightCam.clearFlags = CameraClearFlags.SolidColor;
+        RenderTexture.active = customHeightRT;
+        GL.Clear(true, true, Color.black);
+
+        Debug.Log("ClearRT!");
+        Material blitMat = new Material(Shader.Find("TerrainBlit/BlitSolidColor"));
+        blitMat.SetPass(0);
+        blitMat.SetColor("_Color", new Color(0.0f, 0.0f, 0.0f));
+        RenderTexture tempRT = new RenderTexture(customHeightRT.width, customHeightRT.height, 0, customHeightRT.format, RenderTextureReadWrite.Linear);
+        tempRT.wrapMode = TextureWrapMode.Clamp;
+        tempRT.filterMode = FilterMode.Bilinear;
+        tempRT.enableRandomWrite = true;
+        tempRT.useMipMap = true;
+        tempRT.Create();
+        Graphics.Blit(tempRT, customHeightRT, blitMat);
+        
+        tempRT.Release();
+        customHeightCam.targetTexture = customHeightRT;
+    }
+
+
     private static void GlobalRockPass(TerrainGenome.GlobalRockPass pass) {
 
         Material modifyHeightMat = new Material(Shader.Find("TerrainBlit/TerrainBlitModifyRockHeightGlobal"));

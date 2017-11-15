@@ -11,6 +11,15 @@ public class GameManager : MonoBehaviour {
     public Mesh rockAMesh1;
     public Mesh rockAMesh2;
 
+    public GameObject customHeightParticle;
+    public static GameObject customHeightParticleStatic;
+    public GameObject impactDustParticle;
+    public static GameObject impactDustParticleStatic;
+    public GameObject impactPebblesParticle;
+    public static GameObject impactPebblesParticleStatic;
+    public Camera customHeightsCamera;
+    public RenderTexture customHeightRT;
+
     public bool isTraining = false;
 
     public UIManager uiManager;
@@ -44,6 +53,28 @@ public class GameManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        customHeightParticleStatic = customHeightParticle;
+        impactDustParticleStatic = impactDustParticle;
+        impactPebblesParticleStatic = impactPebblesParticle;
+
+        //Material blitMat = new Material(Shader.Find("TerrainBlit/BlitSolidColor"));
+        //blitMat.SetPass(0);
+        //blitMat.SetColor("_Color", new Color(0.5f, 0.5f, 0.5f));
+        //RenderTexture temporaryRT = new RenderTexture(customHeightRT.width, customHeightRT.height, 0, customHeightRT.format, RenderTextureReadWrite.Linear);
+        //temporaryRT.wrapMode = TextureWrapMode.Clamp;
+        //temporaryRT.filterMode = FilterMode.Bilinear;
+        //temporaryRT.enableRandomWrite = true;
+        //temporaryRT.useMipMap = true;
+        //temporaryRT.Create();
+        //Graphics.Blit(temporaryRT, customHeightRT, blitMat);
+        TerrainConstructorGPU.customHeightRT = this.customHeightRT;
+        TerrainConstructorGPU.customHeightCam = customHeightsCamera;
+        //temporaryRT.Release();
+
+        //customHeightsCamera.clearFlags = CameraClearFlags.SolidColor;
+        //customHeightsCamera.backgroundColor = new Color(0.5f, 0.5f, 0.5f);
+        //customHeightsCamera.Cle
+
         TerrainConstructorGPU.terrainConstructorGPUCompute = this.terrainConstructorGPUCompute;
         TerrainConstructorGPU.terrainInstanceCompute = this.terrainInstanceCompute;
         TerrainConstructorGPU.rockAMesh0 = this.rockAMesh0;

@@ -29,6 +29,7 @@ public class TestProceduralCubemap : MonoBehaviour {
                 //float r = Mathf.Lerp(0f, 1f, (float)x / (float)127);
                 //float g = Mathf.Lerp(0f, 1f, (float)y / (float)127);
                 Color col = GetGradientColor(2f * ((float)x / (float)127 - 0.5f), 1f, 2f * ((float)y / (float)127 - 0.5f));
+                col = Color.black;
                 cubemap.SetPixel(CubemapFace.PositiveY, x, y, col);
             }
         }
@@ -38,6 +39,7 @@ public class TestProceduralCubemap : MonoBehaviour {
                 //float r = Mathf.Lerp(0f, 1f, (float)x / (float)127);
                 //float g = Mathf.Lerp(0f, 1f, (float)y / (float)127);
                 Color col = GetGradientColor(1f, 2f * ((float)(127 - y) / (float)127 - 0.5f), 2f * ((float)(127 - x) / (float)127 - 0.5f));
+                col = Color.black;
                 cubemap.SetPixel(CubemapFace.PositiveX, x, y, col);
             }
         }
@@ -47,6 +49,7 @@ public class TestProceduralCubemap : MonoBehaviour {
                 //float r = Mathf.Lerp(0f, 1f, (float)x / (float)127);
                 //float g = Mathf.Lerp(0f, 1f, (float)y / (float)127);
                 Color col = GetGradientColor(2f * ((float)x / (float)127 - 0.5f), 2f * ((float)(127 - y) / (float)127 - 0.5f), 1f);
+                col = Color.black;
                 cubemap.SetPixel(CubemapFace.PositiveZ, x, y, col);
             }
         }
@@ -56,6 +59,7 @@ public class TestProceduralCubemap : MonoBehaviour {
                 //float r = Mathf.Lerp(0f, 1f, (float)x / (float)127);
                 //float g = Mathf.Lerp(0f, 1f, (float)y / (float)127);
                 Color col = GetGradientColor(-1f, 2f * ((float)(127 - y) / (float)127 - 0.5f), 2f * ((float)x / (float)127 - 0.5f));
+                col = Color.black;
                 cubemap.SetPixel(CubemapFace.NegativeX, x, y, col);
             }
         }
@@ -65,6 +69,7 @@ public class TestProceduralCubemap : MonoBehaviour {
                 //float r = Mathf.Lerp(0f, 1f, (float)x / (float)127);
                 //float g = Mathf.Lerp(0f, 1f, (float)y / (float)127);
                 Color col = GetGradientColor(2f * ((float)(127 - x) / (float)127 - 0.5f), 2f * ((float)(127 - y) / (float)127 - 0.5f), -1f);
+                col = Color.black;
                 cubemap.SetPixel(CubemapFace.NegativeZ, x, y, col);
             }
         }
@@ -74,6 +79,7 @@ public class TestProceduralCubemap : MonoBehaviour {
                 //float r = Mathf.Lerp(0f, 1f, (float)x / (float)127);
                 //float g = Mathf.Lerp(0f, 1f, (float)y / (float)127);
                 Color col = GetGradientColor(2f * ((float)x / (float)127 - 0.5f), -1f, 2f * ((float)(127 - y) / (float)127 - 0.5f));
+                col = Color.black;
                 cubemap.SetPixel(CubemapFace.NegativeY, x, y, col);
             }
         }

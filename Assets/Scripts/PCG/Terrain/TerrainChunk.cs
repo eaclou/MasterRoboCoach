@@ -182,7 +182,7 @@ public class TerrainChunk : MonoBehaviour {
         Mesh groundMesh = TerrainConstructorGPU.GetTerrainMesh(this.resolutionX, this.resolutionZ, position.x, position.y, scale.x * 2f, scale.y * 2);
         chunkGO.AddComponent<MeshFilter>().sharedMesh = groundMesh;
         this.mesh = groundMesh;
-        chunkGO.AddComponent<MeshRenderer>().material = mat;
+        chunkGO.AddComponent<MeshRenderer>().material = mat;        
         chunkGO.transform.parent = gameObject.transform;
         chunkGO.transform.localPosition = new Vector3(0f, 0f, 0f);
         

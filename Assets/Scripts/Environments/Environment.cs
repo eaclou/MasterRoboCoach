@@ -42,9 +42,9 @@ public class Environment : MonoBehaviour {
         environmentRenderable.transform.parent = gameObject.transform;
         environmentRenderable.transform.localPosition = new Vector3(0f, 0f, 0f);
 
-        Material mat = Resources.Load("Materials/Environments/terrainDefault", typeof(Material)) as Material;  //new Material(Shader.Find("Standard"));
+        Material mat = Resources.Load("Materials/Environments/terrainC", typeof(Material)) as Material;  //new Material(Shader.Find("Standard"));
         mat.color = new Color(genome.terrainGenome.color.x, genome.terrainGenome.color.y, genome.terrainGenome.color.z);
-
+        mat.SetTexture("_MainTex", TerrainConstructorGPU.customHeightRT);
         mat.SetColor("_PriHueRock", new Color(genome.terrainGenome.primaryHueRock.x, genome.terrainGenome.primaryHueRock.y, genome.terrainGenome.primaryHueRock.z));
         mat.SetColor("_SecHueRock", new Color(genome.terrainGenome.secondaryHueRock.x, genome.terrainGenome.secondaryHueRock.y, genome.terrainGenome.secondaryHueRock.z));
         mat.SetColor("_PriHueSedi", new Color(genome.terrainGenome.primaryHueSediment.x, genome.terrainGenome.primaryHueSediment.y, genome.terrainGenome.primaryHueSediment.z));
@@ -66,8 +66,16 @@ public class Environment : MonoBehaviour {
         // Set Cascade Height Textures:
         //TerrainConstructorGPU.heightMapCascadeTextures = heightMapCascadeTextures;
         //TerrainConstructorGPU.terrainDisplayMaterial = mat;
+        //TerrainConstructorGPU.ClearCustomHeightRT();
+        TerrainConstructorGPU.RestoreCameraClearMode();
         TerrainConstructorGPU.GenerateTerrainTexturesFromGenome(genome, true);        
         terrainManager.Initialize(terrainManagerGO, genome, mat, new Vector2(gameObject.transform.position.x, gameObject.transform.position.z), new Vector2(Challenge.GetChallengeArenaBounds(genome.challengeType).x * 17f, Challenge.GetChallengeArenaBounds(genome.challengeType).z * 17f), 6);
+
+        // FOOTSTEPS!!! ::::
+        CollisionHitEffects hitFX = environmentGameplay.groundCollision.AddComponent<CollisionHitEffects>();
+        hitFX.active = true;
+        hitFX.part = GameManager.customHeightParticleStatic.GetComponent<ParticleSystem>(); // super hacky, fucking hate this
+        hitFX.part.Clear();
 
         // Grab Material detail textures from TerrainConstructorGPU, then:
         mat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);

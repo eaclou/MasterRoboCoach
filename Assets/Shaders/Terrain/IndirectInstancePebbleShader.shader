@@ -108,6 +108,10 @@
 			//float3 hue = float3(rand(col.xy), rand(col.yz), rand(col.zw));
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex);			
             o.Albedo = c.rgb * lerp(_BaseColorPrimary, _BaseColorSecondary, randColorLerp); //float3(c.r * hue.x, c.y * hue.y, c.z * hue.z);
+			
+			float grayVal = o.Albedo.x * 0.299 + o.Albedo.y * 0.587 + o.Albedo.z * 0.114;
+			o.Albedo = float3(1,1,1); //float3(grayVal, grayVal, grayVal);
+
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
             o.Alpha = c.a;
