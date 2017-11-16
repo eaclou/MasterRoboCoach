@@ -74,8 +74,12 @@ public class Environment : MonoBehaviour {
         // FOOTSTEPS!!! ::::
         CollisionHitEffects hitFX = environmentGameplay.groundCollision.AddComponent<CollisionHitEffects>();
         hitFX.active = true;
-        hitFX.part = GameManager.customHeightParticleStatic.GetComponent<ParticleSystem>(); // super hacky, fucking hate this
-        hitFX.part.Clear();
+        hitFX.partCustomHeight = GameManager.customHeightParticleStatic.GetComponent<ParticleSystem>(); // super hacky, fucking hate this
+        hitFX.partCustomHeight.Clear();
+        hitFX.partImpactDust = GameManager.impactDustParticleStatic.GetComponent<ParticleSystem>();
+        hitFX.partImpactDust.Clear();
+        hitFX.partImpactPebbles = GameManager.impactPebblesParticleStatic.GetComponent<ParticleSystem>(); 
+        hitFX.partImpactPebbles.Clear();
 
         // Grab Material detail textures from TerrainConstructorGPU, then:
         mat.SetTexture("_RockHeightDetailTex", TerrainConstructorGPU.detailTexRock);
