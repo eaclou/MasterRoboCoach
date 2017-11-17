@@ -40,6 +40,16 @@ public class EvaluationInstance : MonoBehaviour {
         for (int i = 0; i < currentAgentsArray.Length; i++) {
             currentAgentsArray[i].TickBrain();
             currentAgentsArray[i].RunModules(currentTimeStep, currentEnvironment);
+
+            if(isExhibition) {
+                DoodadManager doodadManager = currentAgentsArray[i].gameObject.GetComponent<DoodadManager>();
+                if (doodadManager != null) {
+                    float inputVal01 = currentAgentsArray[i].brain.neuronList[doodadManager.neuronID_01].currentValue[0];
+                    float inputVal02 = currentAgentsArray[i].brain.neuronList[doodadManager.neuronID_02].currentValue[0];
+                    float inputVal03 = currentAgentsArray[i].brain.neuronList[doodadManager.neuronID_03].currentValue[0];
+                    doodadManager.Tick(inputVal01, inputVal02, inputVal03);
+                }
+            }            
         }        
 
         if(CheckForEvaluationEnd()) {
@@ -378,6 +388,16 @@ public class EvaluationInstance : MonoBehaviour {
             case Challenge.Type.Test:
                 for (int i = 0; i < currentAgentsArray[0].targetSensorList.Count; i++) {
                     currentAgentsArray[0].targetSensorList[i].targetPosition = currentEnvironment.environmentGameplay.targetColumn.gameObject.transform;
+
+                    if (isExhibition) {
+                        DoodadManager doodadManager = currentAgentsArray[i].gameObject.GetComponent<DoodadManager>();
+                        if (doodadManager != null) {
+
+                            doodadManager.neuronID_01 = UnityEngine.Random.Range(0, currentAgentsArray[i].brain.neuronList.Count);
+                            doodadManager.neuronID_02 = UnityEngine.Random.Range(0, currentAgentsArray[i].brain.neuronList.Count);
+                            doodadManager.neuronID_03 = UnityEngine.Random.Range(0, currentAgentsArray[i].brain.neuronList.Count);
+                        }
+                    }
                 }
                 break;
             case Challenge.Type.Racing:

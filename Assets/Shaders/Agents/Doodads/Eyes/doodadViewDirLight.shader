@@ -6,7 +6,7 @@
 		_EmissionMap ("Emission", 2D) = "balck" {}
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
-		_Luminance ("Luminance", Float) = 1
+		_LightValue ("Luminance", Float) = 0
 		_LightTint ("LightTint", Color) = (1,1,1,1)
 		_RimPower ("Rim Power", Range(0.1, 10)) = 3.0
 	}
@@ -35,7 +35,7 @@
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;
-		float _Luminance;
+		float _LightValue;
 		float _RimPower;
 		float4 _LightTint;
 
@@ -54,8 +54,10 @@
 
 			half rim = saturate(dot(normalize(IN.viewDir), o.Normal));
 			fixed4 emissive = tex2D(_EmissionMap, IN.uv_EmissionMap);
+
+			float intensity = _LightValue * 7;
 			
-			o.Emission = emissive.rgb * _LightTint.rgb * pow(rim, _RimPower) * _Luminance + emissive.rgb * _LightTint.rgb * pow(rim, _RimPower * 0.1) * (_Luminance * 0.15);
+			o.Emission = emissive.rgb * _LightTint.rgb * pow(rim, _RimPower) * intensity + emissive.rgb * _LightTint.rgb * pow(rim, _RimPower * 0.1) * (intensity * 0.15);
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
