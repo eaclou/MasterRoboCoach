@@ -38,7 +38,9 @@ public class EvaluationInstance : MonoBehaviour {
 
         //currentEnvironment.RunModules();
         for (int i = 0; i < currentAgentsArray.Length; i++) {
-            currentAgentsArray[i].TickBrain();
+            if(currentTimeStep % 4 == 0) {
+                currentAgentsArray[i].TickBrain();
+            }            
             currentAgentsArray[i].RunModules(currentTimeStep, currentEnvironment);
 
             if(isExhibition) {
@@ -565,10 +567,10 @@ public class EvaluationInstance : MonoBehaviour {
             }
             if (challengeType == Challenge.Type.Test) {
                 if(currentTimeStep > 1f) {
-                    agentGameScoresArray[0][0] = 1f - (((float)currentTimeStep - 1) / (float)maxTimeSteps);  // 0-1
+                    //agentGameScoresArray[0][0] = 1f - (((float)currentTimeStep - 1) / (float)maxTimeSteps);  // 0-1
                 }
                 else {
-                    agentGameScoresArray[0][0] = 0f;
+                    //agentGameScoresArray[0][0] = 0f;
                 }
 
                 Vector2 targetPos = new Vector2(currentEnvironment.environmentGameplay.targetColumn.transform.position.x, currentEnvironment.environmentGameplay.targetColumn.transform.position.z);
@@ -576,16 +578,25 @@ public class EvaluationInstance : MonoBehaviour {
                 float distanceToTarget = (targetPos - agentPos).magnitude;
                 if(distanceToTarget < 2f) {
                     // In target!!!
-                    agentGameScoresArray[0][0] += 2f;
+                    //agentGameScoresArray[0][0] += 2f;
                     gameWonOrLost = true;
                 }
 
                 if(currentAgentsArray[0].healthModuleList.Count > 0) {
                     if (currentAgentsArray[0].healthModuleList[0].destroyed) {
-                        agentGameScoresArray[0][0] = 0f;
+                        agentGameScoresArray[0][0] = -5f;
                         gameWonOrLost = true;
                         //Debug.Log("Agent DIED from collision! " + currentTimeStep.ToString());
                     }
+                }
+
+                float dotUp = Vector3.Dot(currentAgentsArray[0].rootObject.transform.up, new Vector3(0f,1f,0f));
+                if (dotUp < 0.3) {
+                   
+                    agentGameScoresArray[0][0] = -5f;
+                    gameWonOrLost = false;
+                        //Debug.Log("Agent DIED from collision! " + currentTimeStep.ToString());
+                    
                 }
             }
         }

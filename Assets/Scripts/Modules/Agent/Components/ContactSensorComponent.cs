@@ -23,7 +23,9 @@ public class ContactSensorComponent : MonoBehaviour {
     }
 
     private void OnCollisionEnter(Collision collision) {
-        processCollisionForces(collision.impulse.magnitude);
+        //processCollisionForces(collision.impulse.magnitude);
+        processCollisionForces(collision.relativeVelocity.magnitude);
+        //Debug.Log("OnCollisionEnter: " + collision.impulse.magnitude.ToString());
         newCollision = true;
 
         if (collision.collider.tag == "hazard") {
@@ -42,5 +44,6 @@ public class ContactSensorComponent : MonoBehaviour {
 
     private void processCollisionForces(float collisionForce) {
         maxImpactForce = Mathf.Max(maxImpactForce, collisionForce);
+        //maxImpactForce = collisionForce;
     }
 }

@@ -59,6 +59,15 @@ public class AgentBodyGenomeTemplate : ScriptableObject {
             case AgentBodyType.PistonWalkerA:
                 bodyURL = "Prefabs/AgentPrefabs/AgentPistonWalkerA";
                 break;
+            case AgentBodyType.QuadrapedA:
+                bodyURL = "Prefabs/AgentPrefabs/AgentQuadrapedA";
+                break;
+            case AgentBodyType.QuadrapedB:
+                bodyURL = "Prefabs/AgentPrefabs/AgentQuadrapedB";
+                break;
+            case AgentBodyType.QuadrapedC:
+                bodyURL = "Prefabs/AgentPrefabs/AgentQuadrapedC";
+                break;
             case AgentBodyType.SlapperTurtleA:
                 bodyURL = "Prefabs/AgentPrefabs/AgentSlapperTurtleA";
                 break;
@@ -103,6 +112,9 @@ public enum AgentBodyType {
     HoverBotA,
     HoverBotB,
     PistonWalkerA,
+    QuadrapedA,
+    QuadrapedB,
+    QuadrapedC,
     SlapperTurtleA,
     SnakeA,
     SphereA,

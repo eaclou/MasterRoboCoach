@@ -19,7 +19,7 @@ public class EvaluationManager {
     public ExhibitionParticleCurves exhibitionParticleCurves;
 
     private int maxInstancesX = 3;
-    private int maxInstancesY = 2;
+    private int maxInstancesY = 3;
     private int maxInstancesZ = 3;    
     private float instanceBufferX = 2.5f;
     private float instanceBufferY = 2.5f;

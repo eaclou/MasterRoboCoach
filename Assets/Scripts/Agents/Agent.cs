@@ -144,11 +144,13 @@ public class Agent : MonoBehaviour {
             contactSensorList[i].Tick();
             if(contactSensorList[i].component.newCollision) {
                 // collision w/ damage!
+                //Debug.Log("COLLISION!!! ");
                 // hacky!!!! warning!!!
-                float impulseDamageThreshold = 0.5f;
-                float impactForce  = contactSensorList[i].component.maxImpactForce;
+                float impulseDamageThreshold = 0.01f;
+                float impactForce = contactSensorList[i].component.maxImpactForce;
                 if (healthModuleList.Count > 0) {
-                    if(impactForce > impulseDamageThreshold) {
+                    //Debug.Log("healthModuleList.Count > 0" + impactForce.ToString());
+                    if (impactForce > impulseDamageThreshold) {
                         //Debug.Log("COLLISION DAMAGE!!! " + impactForce.ToString());
                         float damage = 10f;
                         if(impactForce > 2.5f) {
