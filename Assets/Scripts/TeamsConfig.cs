@@ -88,7 +88,7 @@ public class TeamsConfig {
         AgentBodyGenomeTemplate templateGenome;
         switch (challengeType) {
             case Challenge.Type.Test:
-                templateGenome = Resources.Load("Templates/Agents/TemplateQuadrapedC") as AgentBodyGenomeTemplate;
+                templateGenome = Resources.Load("Templates/Agents/TemplateQuadrapedB") as AgentBodyGenomeTemplate;
                 //templateGenome = ((AgentGenomeTemplate)AssetDatabase.LoadAssetAtPath("Assets/Templates/Agents/TemplateTelevisionWalker.asset", typeof(AgentGenomeTemplate)));
                 break;
             case Challenge.Type.Racing:

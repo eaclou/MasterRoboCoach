@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class DoodadManager : MonoBehaviour {
 
-    public Material lightMaterial_01;
-    public Material lightMaterial_02;
+    public Material[] lightMaterialArray;
+   // public Material lightMaterial_01;
+    //public Material lightMaterial_02;
     public Transform doodadXForm_01;
 
     public int neuronID_01 = 0;
@@ -23,11 +24,21 @@ public class DoodadManager : MonoBehaviour {
 	}
 
     public void Tick(float neuronVal01, float neuronVal02, float neuronVal03) {
-        if(lightMaterial_01 != null) {
-            lightMaterial_01.SetFloat("_LightValue", neuronVal01);
-        }
-        if (lightMaterial_02 != null) {
-            lightMaterial_02.SetFloat("_LightValue", neuronVal02);
+
+        if(lightMaterialArray != null) {
+            for(int i = 0; i < lightMaterialArray.Length; i++) {
+                float neuronValue = 0f;
+                if(i % 3 == 0) {
+                    neuronValue = neuronVal01;
+                }
+                if (i % 3 == 1) {
+                    neuronValue = neuronVal02;
+                }
+                if (i % 3 == 2) {
+                    neuronValue = neuronVal03;
+                }
+                lightMaterialArray[i].SetFloat("_LightValue", neuronValue);
+            }
         }
     }
 }
