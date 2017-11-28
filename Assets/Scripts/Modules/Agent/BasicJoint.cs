@@ -224,6 +224,16 @@ public class BasicJoint : AgentModuleBase {
     }
 
     public void Tick(Agent agent) {
+        //JointDrive xDrive = joint.angularXDrive;
+        //xDrive.positionDamper = 8f * Mathf.Abs(throttleX[0]);
+        //xDrive.positionSpring = 8f * Mathf.Abs(throttleX[0]);
+        //joint.angularXDrive = xDrive;
+
+        //JointDrive yzDrive = joint.angularYZDrive;
+        //yzDrive.positionDamper = 8f * Mathf.Abs(throttleY[0]);
+        //yzDrive.positionSpring = 8f * Mathf.Abs(throttleY[0]);
+        //joint.angularYZDrive = yzDrive;
+
         joint.targetAngularVelocity = new Vector3(throttleX[0] * motorStrength, throttleY[0] * motorStrength, throttleZ[0] * motorStrength);
         if(usePistonY) {
             joint.targetPosition = new Vector3(0f, pistonThrottleY[0] * motorStrength, 0f);

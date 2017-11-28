@@ -55,7 +55,7 @@
 			half rim = saturate(dot(normalize(IN.viewDir), o.Normal));
 			fixed4 emissive = tex2D(_EmissionMap, IN.uv_EmissionMap);
 
-			float intensity = _LightValue * 7;
+			float intensity = saturate(_LightValue) * 7;
 			
 			o.Emission = emissive.rgb * _LightTint.rgb * pow(rim, _RimPower) * intensity + emissive.rgb * _LightTint.rgb * pow(rim, _RimPower * 0.1) * (intensity * 0.15);
 			// Metallic and smoothness come from slider variables
